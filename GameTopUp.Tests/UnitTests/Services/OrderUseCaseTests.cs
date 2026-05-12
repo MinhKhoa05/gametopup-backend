@@ -81,9 +81,9 @@ namespace GameTopUp.Tests.UnitTests.Services
             var order = new Order { Id = orderId, UserId = context.UserId, Status = OrderStatus.Pending, UnitPrice = 100, Quantity = 1 };
             var wallet = new Wallet { UserId = context.UserId, Balance = 500 };
 
-            _orderRepoMock.Setup(r => r.GetByIdForUpdateAsync(orderId)).ReturnsAsync(order);
+            _orderRepoMock.Setup(r => r.GetWithLockByIdAsync(orderId)).ReturnsAsync(order);
             _walletRepoMock.Setup(r => r.GetByUserIdForUpdateAsync(context.UserId)).ReturnsAsync(wallet);
-            _walletRepoMock.Setup(r => r.DecreaseBalanceAsync(context.UserId, 100)).ReturnsAsync(1);
+            _walletRepoMock.Setup(r => r.UpdateBalanceAsync(wallet.Id, 400)).ReturnsAsync(1);
             _walletTxRepoMock.Setup(r => r.CreateAsync(It.IsAny<WalletTransaction>())).ReturnsAsync(1);
 
             // Act
@@ -91,7 +91,7 @@ namespace GameTopUp.Tests.UnitTests.Services
 
             // Assert
             _orderRepoMock.Verify(r => r.UpdateAsync(It.Is<Order>(o => o.Status == OrderStatus.Paid)), Times.Once);
-            _walletRepoMock.Verify(r => r.DecreaseBalanceAsync(context.UserId, 100), Times.Once);
+            _walletRepoMock.Verify(r => r.UpdateBalanceAsync(wallet.Id, 400), Times.Once);
         }
 
         [Fact]
@@ -102,7 +102,7 @@ namespace GameTopUp.Tests.UnitTests.Services
             var adminContext = new UserContext(2, "admin", "Admin");
             var order = new Order { Id = orderId, Status = OrderStatus.Paid };
 
-            _orderRepoMock.Setup(r => r.GetByIdForUpdateAsync(orderId)).ReturnsAsync(order);
+            _orderRepoMock.Setup(r => r.GetWithLockByIdAsync(orderId)).ReturnsAsync(order);
 
             // Act
             await _orderUseCase.PickOrderAsync(orderId, adminContext);
@@ -122,9 +122,9 @@ namespace GameTopUp.Tests.UnitTests.Services
             var order = new Order { Id = orderId, UserId = userId, Status = OrderStatus.Paid, UnitPrice = 100, Quantity = 1, GamePackageId = 10, AssignTo = 2 };
             var wallet = new Wallet { UserId = userId, Balance = 500 };
 
-            _orderRepoMock.Setup(r => r.GetByIdForUpdateAsync(orderId)).ReturnsAsync(order);
+            _orderRepoMock.Setup(r => r.GetWithLockByIdAsync(orderId)).ReturnsAsync(order);
             _walletRepoMock.Setup(r => r.GetByUserIdForUpdateAsync(userId)).ReturnsAsync(wallet);
-            _walletRepoMock.Setup(r => r.IncreaseBalanceAsync(userId, 100)).ReturnsAsync(1);
+            _walletRepoMock.Setup(r => r.UpdateBalanceAsync(wallet.Id, 600)).ReturnsAsync(1);
             
             // Act
             await _orderUseCase.CancelOrderAsync(orderId, adminContext);
@@ -132,7 +132,7 @@ namespace GameTopUp.Tests.UnitTests.Services
             // Assert
             _orderRepoMock.Verify(r => r.UpdateAsync(It.Is<Order>(o => o.Status == OrderStatus.Cancelled)), Times.Once);
             _packageRepoMock.Verify(r => r.IncreaseStockAsync(10, 1), Times.Once); // Restock
-            _walletRepoMock.Verify(r => r.IncreaseBalanceAsync(userId, 100), Times.Once); // Refund
+            _walletRepoMock.Verify(r => r.UpdateBalanceAsync(wallet.Id, 600), Times.Once); // Refund
         }
 
         [Fact]
@@ -144,7 +144,7 @@ namespace GameTopUp.Tests.UnitTests.Services
             var adminContext = new UserContext(2, "admin", "Admin");
             var order = new Order { Id = orderId, UserId = userId, Status = OrderStatus.Pending, UnitPrice = 100, Quantity = 1, GamePackageId = 10, AssignTo = 2 };
 
-            _orderRepoMock.Setup(r => r.GetByIdForUpdateAsync(orderId)).ReturnsAsync(order);
+            _orderRepoMock.Setup(r => r.GetWithLockByIdAsync(orderId)).ReturnsAsync(order);
 
             // Act
             await _orderUseCase.CancelOrderAsync(orderId, adminContext);
@@ -152,7 +152,7 @@ namespace GameTopUp.Tests.UnitTests.Services
             // Assert
             _orderRepoMock.Verify(r => r.UpdateAsync(It.Is<Order>(o => o.Status == OrderStatus.Cancelled)), Times.Once);
             _packageRepoMock.Verify(r => r.IncreaseStockAsync(10, 1), Times.Once); // Restock
-            _walletRepoMock.Verify(r => r.IncreaseBalanceAsync(It.IsAny<long>(), It.IsAny<decimal>()), Times.Never); // No refund
+            _walletRepoMock.Verify(r => r.UpdateBalanceAsync(It.IsAny<long>(), It.IsAny<decimal>()), Times.Never); // No refund
         }
     }
 }

@@ -22,20 +22,21 @@ namespace GameTopUp.Tests.UnitTests.Services
         }
 
         [Fact]
-        public async Task CreditAsync_ShouldUpdateBalanceAndRecordHistory()
+        public async Task DepositAsync_ShouldUpdateBalanceAndRecordHistory()
         {
             // Arrange
-            var wallet = new Wallet { UserId = 1, Balance = 100 };
+            var wallet = new Wallet { Id = 1, UserId = 1, Balance = 100 };
             decimal amount = 50;
-            _walletRepoMock.Setup(r => r.IncreaseBalanceAsync(1, amount)).ReturnsAsync(1);
+            _walletRepoMock.Setup(r => r.GetByUserIdForUpdateAsync(1)).ReturnsAsync(wallet);
+            _walletRepoMock.Setup(r => r.UpdateBalanceAsync(wallet.Id, 150)).ReturnsAsync(1);
             _walletTxRepoMock.Setup(r => r.CreateAsync(It.IsAny<WalletTransaction>())).ReturnsAsync(999);
 
             // Act
-            var result = await _walletService.CreditAsync(wallet, amount, WalletTransactionType.Deposit, "Test deposit");
+            var result = await _walletService.DepositAsync(1, amount);
 
             // Assert
             wallet.Balance.Should().Be(150);
-            _walletRepoMock.Verify(r => r.IncreaseBalanceAsync(1, amount), Times.Once);
+            _walletRepoMock.Verify(r => r.UpdateBalanceAsync(wallet.Id, 150), Times.Once);
             _walletTxRepoMock.Verify(r => r.CreateAsync(It.Is<WalletTransaction>(tx => 
                 tx.Amount == amount && 
                 tx.BalanceBefore == 100 && 
@@ -43,20 +44,21 @@ namespace GameTopUp.Tests.UnitTests.Services
         }
 
         [Fact]
-        public async Task DebitAsync_ShouldUpdateBalanceAndRecordHistory()
+        public async Task WithdrawAsync_ShouldUpdateBalanceAndRecordHistory()
         {
             // Arrange
-            var wallet = new Wallet { UserId = 1, Balance = 200 };
+            var wallet = new Wallet { Id = 1, UserId = 1, Balance = 200 };
             decimal amount = 80;
-            _walletRepoMock.Setup(r => r.DecreaseBalanceAsync(1, amount)).ReturnsAsync(1);
+            _walletRepoMock.Setup(r => r.GetByUserIdForUpdateAsync(1)).ReturnsAsync(wallet);
+            _walletRepoMock.Setup(r => r.UpdateBalanceAsync(wallet.Id, 120)).ReturnsAsync(1);
             _walletTxRepoMock.Setup(r => r.CreateAsync(It.IsAny<WalletTransaction>())).ReturnsAsync(999);
 
             // Act
-            var result = await _walletService.DebitAsync(wallet, amount, WalletTransactionType.Withdraw, "Test withdraw");
+            var result = await _walletService.WithdrawAsync(1, amount);
 
             // Assert
             wallet.Balance.Should().Be(120);
-            _walletRepoMock.Verify(r => r.DecreaseBalanceAsync(1, amount), Times.Once);
+            _walletRepoMock.Verify(r => r.UpdateBalanceAsync(wallet.Id, 120), Times.Once);
             _walletTxRepoMock.Verify(r => r.CreateAsync(It.Is<WalletTransaction>(tx => 
                 tx.Amount == -amount && 
                 tx.BalanceBefore == 200 && 
@@ -64,14 +66,15 @@ namespace GameTopUp.Tests.UnitTests.Services
         }
 
         [Fact]
-        public async Task DebitAsync_ShouldThrow_WhenBalanceInsufficient()
+        public async Task WithdrawAsync_ShouldThrow_WhenBalanceInsufficient()
         {
             // Arrange
-            var wallet = new Wallet { UserId = 1, Balance = 50 };
+            var wallet = new Wallet { Id = 1, UserId = 1, Balance = 50 };
             decimal amount = 100;
+            _walletRepoMock.Setup(r => r.GetByUserIdForUpdateAsync(1)).ReturnsAsync(wallet);
 
             // Act
-            Func<Task> act = () => _walletService.DebitAsync(wallet, amount, WalletTransactionType.Withdraw, "Test");
+            Func<Task> act = () => _walletService.WithdrawAsync(1, amount);
 
             // Assert
             await act.Should().ThrowAsync<BusinessException>().WithMessage("Số dư ví không đủ*");

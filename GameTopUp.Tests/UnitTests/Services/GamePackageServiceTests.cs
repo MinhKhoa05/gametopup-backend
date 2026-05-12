@@ -69,13 +69,13 @@ namespace GameTopUp.Tests.UnitTests.Services
         }
 
         [Fact]
-        public async Task GetPackageByIdAsync_ShouldThrowNotFound_WhenDoesNotExist()
+        public async Task GetPackageByIdOrThrowAsync_ShouldThrowNotFound_WhenDoesNotExist()
         {
             // Arrange
             _packageRepoMock.Setup(r => r.GetByIdAsync(99)).ReturnsAsync((GamePackage?)null);
 
             // Act
-            Func<Task> act = () => _packageService.GetPackageByIdAsync(99);
+            Func<Task> act = () => _packageService.GetPackageByIdOrThrowAsync(99);
 
             // Assert
             await act.Should().ThrowAsync<NotFoundException>()

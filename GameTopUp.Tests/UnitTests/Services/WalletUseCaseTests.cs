@@ -37,10 +37,10 @@ namespace GameTopUp.Tests.UnitTests.Services
         {
             // Arrange
             var context = new UserContext(1, "user", "Customer");
-            var wallet = new Wallet { UserId = 1, Balance = 100 };
+            var wallet = new Wallet { Id = 1, UserId = 1, Balance = 100 };
             
             _walletRepoMock.Setup(r => r.GetByUserIdForUpdateAsync(1)).ReturnsAsync(wallet);
-            _walletRepoMock.Setup(r => r.IncreaseBalanceAsync(1, 50)).ReturnsAsync(1);
+            _walletRepoMock.Setup(r => r.UpdateBalanceAsync(wallet.Id, 150)).ReturnsAsync(1);
             _walletTxRepoMock.Setup(r => r.CreateAsync(It.IsAny<WalletTransaction>())).ReturnsAsync(999);
 
             // Act
@@ -48,7 +48,7 @@ namespace GameTopUp.Tests.UnitTests.Services
 
             // Assert
             _walletRepoMock.Verify(r => r.GetByUserIdForUpdateAsync(1), Times.Once);
-            _walletRepoMock.Verify(r => r.IncreaseBalanceAsync(1, 50), Times.Once);
+            _walletRepoMock.Verify(r => r.UpdateBalanceAsync(wallet.Id, 150), Times.Once);
         }
 
         [Fact]
@@ -56,10 +56,10 @@ namespace GameTopUp.Tests.UnitTests.Services
         {
             // Arrange
             var context = new UserContext(1, "user", "Customer");
-            var wallet = new Wallet { UserId = 1, Balance = 100 };
+            var wallet = new Wallet { Id = 1, UserId = 1, Balance = 100 };
             
             _walletRepoMock.Setup(r => r.GetByUserIdForUpdateAsync(1)).ReturnsAsync(wallet);
-            _walletRepoMock.Setup(r => r.DecreaseBalanceAsync(1, 40)).ReturnsAsync(1);
+            _walletRepoMock.Setup(r => r.UpdateBalanceAsync(wallet.Id, 60)).ReturnsAsync(1);
             _walletTxRepoMock.Setup(r => r.CreateAsync(It.IsAny<WalletTransaction>())).ReturnsAsync(999);
 
             // Act
@@ -67,7 +67,7 @@ namespace GameTopUp.Tests.UnitTests.Services
 
             // Assert
             _walletRepoMock.Verify(r => r.GetByUserIdForUpdateAsync(1), Times.Once);
-            _walletRepoMock.Verify(r => r.DecreaseBalanceAsync(1, 40), Times.Once);
+            _walletRepoMock.Verify(r => r.UpdateBalanceAsync(wallet.Id, 60), Times.Once);
         }
     }
 }
