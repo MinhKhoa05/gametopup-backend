@@ -69,7 +69,7 @@ namespace GameTopUp.BLL.Services
             wallet.Balance = balanceAfter;
             wallet.UpdatedAt = DateTime.UtcNow;
 
-            _walletRepo.UpdateBalanceAsync(wallet.Id, wallet.Balance);
+            await _walletRepo.UpdateBalanceAsync(wallet.Id, wallet.Balance);
 
             // Log transaction
             var txId = await _walletTxRepo.CreateAsync(new WalletTransaction
@@ -108,7 +108,7 @@ namespace GameTopUp.BLL.Services
             wallet.Balance = balanceAfter;
             wallet.UpdatedAt = DateTime.UtcNow;
 
-            _walletRepo.UpdateBalanceAsync(wallet.Id, wallet.Balance);
+            await _walletRepo.UpdateBalanceAsync(wallet.Id, wallet.Balance);
 
             // Log transaction
             var txId = await _walletTxRepo.CreateAsync(new WalletTransaction

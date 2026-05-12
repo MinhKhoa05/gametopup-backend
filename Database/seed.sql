@@ -1,6 +1,4 @@
 -- seed.sql
--- USE game_topup_db;
-
 SET FOREIGN_KEY_CHECKS = 0;
 START TRANSACTION;
 
@@ -8,9 +6,9 @@ START TRANSACTION;
 -- USERS
 -- ======================
 INSERT INTO `users` (`id`, `username`, `email`, `password_hash`, `role`) VALUES
-(1, 'admin', 'admin@gametopup.com', '$2b$10$NyUW5g6HWLCOpzRQTMk6keOmdV/pw9DMeqE5vgXkLuN2pJyal1yxK', 1),
-(2, 'member1', 'member1@gmail.com', '$2b$10$IQpdSmIDSadCEVqxbua9Q.Agyc5/TrrOkoyp6VNODmfz.kvBJGDvO', 0),
-(3, 'staff1', 'staff1@gametopup.com', '$2b$10$NyUW5g6HWLCOpzRQTMk6keOmdV/pw9DMeqE5vgXkLuN2pJyal1yxK', 2);
+(1, 'admin', 'admin@gametopup.com', '$2b$10$bppKKRHPleFWDR2TXpWO1O4ZQ5RmI/Zm6t8hQJxttsaM3Dfq6Ya5u', 1),
+(2, 'customer01', 'customer01@gametopup.com', '$2b$10$bppKKRHPleFWDR2TXpWO1O4ZQ5RmI/Zm6t8hQJxttsaM3Dfq6Ya5u', 0),
+(3, 'customer02', 'customer02@gametopup.com', '$2b$10$bppKKRHPleFWDR2TXpWO1O4ZQ5RmI/Zm6t8hQJxttsaM3Dfq6Ya5u', 0);
 
 -- ======================
 -- WALLETS
@@ -18,43 +16,73 @@ INSERT INTO `users` (`id`, `username`, `email`, `password_hash`, `role`) VALUES
 INSERT INTO `wallets` (`user_id`, `balance`) VALUES
 (1, 1000000.00),
 (2, 500000.00),
-(3, 0.00);
+(3, 300000.00);
 
 -- ======================
--- GAMES
+-- GAMES (Garena & HHGames)
 -- ======================
 INSERT INTO `games` (`id`, `name`, `image_url`, `is_active`) VALUES
-(1, 'Free Fire', 'https://example.com/ff.png', 1),
-(2, 'Liên Quân Mobile', 'https://example.com/lq.png', 1),
-(3, 'PUBG Mobile', 'https://example.com/pubg.png', 1);
+(1, 'Free Fire', 'https://example.com/games/free-fire.png', 1),
+(2, 'Liên Quân Mobile', 'https://example.com/games/lien-quan.png', 1),
+(3, 'FIFA Online 4', 'https://example.com/games/fo4.png', 1),
+(4, 'Call of Duty Mobile Garena', 'https://example.com/games/codm.png', 1),
+(5, 'Undawn', 'https://example.com/games/undawn.png', 1),
+(6, 'Dark War Survival', 'https://example.com/games/dark-war.png', 1),
+(7, 'Last War: Survival', 'https://example.com/games/last-war.png', 1),
+(8, 'Blood Strike: Vây Hãm', 'https://example.com/games/blood-strike.png', 1),
+(9, 'Magic Chess: Go Go', 'https://example.com/games/magic-chess.png', 1),
+(10, 'Sky: Children of the Light', 'https://example.com/games/sky.png', 1),
+(11, 'Age of Apes', 'https://example.com/games/age-of-apes.png', 1),
+(12, 'Hành Trình Bất Tận', 'https://example.com/games/hanh-trinh-bat-tan.png', 1);
 
 -- ======================
 -- GAME PACKAGES
 -- ======================
 INSERT INTO `game_packages` (`id`, `name`, `normalized_name`, `game_id`, `sale_price`, `original_price`, `import_price`, `stock_quantity`) VALUES
--- Free Fire
-(1, '100 Kim Cương', '100-kim-cuong', 1, 20000.00, 25000.00, 15000.00, 100),
-(2, '500 Kim Cương', '500-kim-cuong', 1, 95000.00, 120000.00, 75000.00, 50),
--- Liên Quân
-(3, '100 Quân Huy', '100-quan-huy', 2, 50000.00, 60000.00, 40000.00, 100),
-(4, '500 Quân Huy', '500-quan-huy', 2, 240000.00, 300000.00, 20000.00, 30),
--- PUBG
-(5, '60 UC', '60-uc', 3, 22000.00, 25000.00, 18000.00, 200),
-(6, '325 UC', '325-uc', 3, 110000.00, 130000.00, 90000.00, 80);
+(1, '100 Kim Cương', '100-kim-cuong', 1, 20000, 25000, 16000, 100),
+(2, '310 Kim Cương', '310-kim-cuong', 1, 59000, 69000, 50000, 80),
+(3, '1060 Kim Cương', '1060-kim-cuong', 1, 199000, 239000, 175000, 40),
+(4, '40 Quân Huy', '40-quan-huy', 2, 20000, 25000, 16000, 100),
+(5, '200 Quân Huy', '200-quan-huy', 2, 95000, 120000, 82000, 60),
+(6, '999 Quân Huy', '999-quan-huy', 2, 399000, 459000, 350000, 25),
+(7, '100 FC', '100-fc', 3, 25000, 30000, 20000, 120),
+(8, '500 FC', '500-fc', 3, 119000, 139000, 100000, 70),
+(9, '2200 FC', '2200-fc', 3, 459000, 529000, 400000, 30),
+(10, '80 CP', '80-cp', 4, 22000, 27000, 18000, 100),
+(11, '420 CP', '420-cp', 4, 99000, 119000, 85000, 70),
+(12, '880 CP', '880-cp', 4, 199000, 239000, 175000, 40),
+(13, '100 RC', '100-rc', 5, 25000, 30000, 20000, 100),
+(14, '500 RC', '500-rc', 5, 119000, 149000, 100000, 60),
+(15, 'Starter Pack', 'starter-pack', 6, 49000, 59000, 42000, 100),
+(16, 'Elite Survival Pack', 'elite-survival-pack', 6, 199000, 239000, 175000, 40),
+(17, '100 Diamonds', '100-diamonds', 7, 20000, 25000, 16000, 120),
+(18, '500 Diamonds', '500-diamonds', 7, 95000, 120000, 82000, 60),
+(19, '60 Gold', '60-gold', 8, 22000, 27000, 18000, 100),
+(20, '300 Gold', '300-gold', 8, 99000, 119000, 85000, 60),
+(21, 'Chess Pass', 'chess-pass', 9, 49000, 59000, 42000, 100),
+(22, 'Magic Bundle', 'magic-bundle', 9, 119000, 149000, 100000, 50),
+(23, 'Season Pass', 'season-pass', 10, 119000, 149000, 100000, 60),
+(24, 'Candle Pack', 'candle-pack', 10, 49000, 59000, 42000, 80),
+(25, '100 Banana Coin', '100-banana-coin', 11, 20000, 25000, 16000, 100),
+(26, '1000 Banana Coin', '1000-banana-coin', 11, 180000, 220000, 155000, 40),
+(27, 'Adventure Pack', 'adventure-pack', 12, 29000, 39000, 24000, 100),
+(28, 'Infinity Pass', 'infinity-pass', 12, 119000, 149000, 100000, 50);
 
 -- ======================
--- GAME ACCOUNTS (Address Book)
+-- GAME ACCOUNTS
 -- ======================
 INSERT INTO `game_accounts` (`user_id`, `game_id`, `name`, `account_identifier`, `server`, `is_default`) VALUES
-(2, 1, 'Acc Chính FF', '123456789', 'Việt Nam', 1),
-(2, 2, 'Acc Leo Rank LQ', 'member1_lq', 'Mặt Trời', 1);
-
+(2, 1, 'Acc Chính Free Fire', 'ff_998877', 'VN', 1),
+(2, 2, 'Acc Leo Rank Liên Quân', 'lq_223344', 'Mặt Trời', 0),
+(3, 8, 'Blood Strike Main', 'bs_556677', 'VN-1', 1),
+(3, 10, 'Sky Chill Account', 'sky_778899', 'SEA', 0);
 
 -- ======================
 -- WALLET TRANSACTIONS
 -- ======================
-INSERT INTO `wallet_transactions` (`id`, `user_id`, `amount`, `balance_after`, `type`, `description`) VALUES
-(1, 2, 500000.00, 500000.00, 1, 'Nạp tiền khởi tạo hệ thống');
+INSERT INTO `wallet_transactions` (`id`, `user_id`, `amount`, `balance_before`, `balance_after`, `type`, `description`) VALUES
+(1, 2, 500000.00, 0.00, 500000.00, 1, 'Nạp tiền khởi tạo hệ thống'),
+(2, 3, 300000.00, 0.00, 300000.00, 1, 'Nạp tiền khởi tạo hệ thống');
 
 COMMIT;
-SET FOREIGN_KEY_CHECKS = 1;
+SET FOREIGN_KEY_CHECKS = 1;

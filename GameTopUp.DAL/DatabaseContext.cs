@@ -35,9 +35,26 @@ namespace GameTopUp.DAL
 
         public async Task EnsureOpenAsync()
         {
-            if (_connection.State != ConnectionState.Open)
+            // Nếu kết nối đã mở, không cần làm gì thêm.
+            if (_connection.State == ConnectionState.Open) return;
+            
+            // Xử lý retry khi kết nối thất bại, đặc biệt hữu ích trong môi trường có thể gặp sự cố mạng hoặc khi cơ sở dữ liệu đang khởi động lại.
+            int maxRetries = 5;
+            int delaySeconds = 2;
+
+            for (int i = 0; i < maxRetries; i++)
             {
-                await _connection.OpenAsync();
+                try
+                {
+                    await _connection.OpenAsync();
+                    return;
+                }
+                catch (Exception ex) when (i < maxRetries - 1)
+                {
+                    // Log hoặc in ra console nếu cần (trong console app/API có thể dùng Console.WriteLine)
+                    Console.WriteLine($"[DatabaseContext] Kết nối thất bại, đang thử lại lần {i + 2}/{maxRetries} sau {delaySeconds}s... Error: {ex.Message}");
+                    await Task.Delay(TimeSpan.FromSeconds(delaySeconds));
+                }
             }
         }
 

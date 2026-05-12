@@ -15,7 +15,21 @@ This document provides detailed instructions on how to integrate and use the Gam
 }
 ```
 
-## 2. Authentication
+## 2. Quick Testing Accounts
+
+You can use the following accounts to test the API:
+
+### Admin Account
+- **Email:** `admin@gametopup.com`
+- **Password:** `Admin123456@`
+- **Role:** Admin (Access to all endpoints)
+
+### Customer Accounts
+- **Email:** `customer01@gametopup.com` / `customer02@gametopup.com`
+- **Password:** `Admin123456@` (Default for seed data)
+- **Role:** Member
+
+## 3. Authentication
 
 The system uses **JWT (JSON Web Token)** for authentication.
 
@@ -23,7 +37,7 @@ The system uses **JWT (JSON Web Token)** for authentication.
 - **Header:** `Authorization: Bearer <your_access_token>`
 - **Token:** Obtained from the Login API (`POST /api/auth/login`). The token contains information such as `UserId`, `Username`, and `Role`.
 
-## 3. Endpoint List
+## 4. Endpoint List
 
 | Module | Method | Endpoint | Description | Auth | Role |
 | :--- | :--- | :--- | :--- | :--- | :--- |
@@ -66,8 +80,7 @@ The system uses **JWT (JSON Web Token)** for authentication.
 | | POST | `/api/orders/{id}/complete`| Mark order as completed | Yes | Admin |
 | | POST | `/api/orders/{id}/cancel` | Cancel order & auto refund | Yes | All |
 
-
-## 4. Core Workflows
+## 5. Core Workflows
 
 ### Flow 1: Registration -> Login -> Get Profile
 1. **Registration:** Call `POST /api/auth/register` with user details.
@@ -89,7 +102,7 @@ The system uses **JWT (JSON Web Token)** for authentication.
 4. **Processing & Completion:** Admin processes the top-up and calls `POST /api/orders/{id}/complete` to finish.
 5. **Cancellation (Optional):** If needed, calling `POST /api/orders/{id}/cancel` will automatically restore stock and refund the wallet (if already paid).
 
-## 5. Important Notes
+## 6. Important Notes
 - **Request Body/DTO Details:** Please refer to the [Swagger UI](http://localhost:5089/swagger) for the exact structure of each request.
 - **HTTP Status Codes:** 
   - `200 OK`: Success.

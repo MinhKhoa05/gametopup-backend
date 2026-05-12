@@ -95,28 +95,40 @@ The project uses a dual testing approach to ensure reliability:
 
 ### 1. Environment Setup
 
-Create a `.env` file in the root directory based on the provided example configuration.
+Create a `.env` file in the root directory by copying `.env.example`. This file contains essential configurations for the Database, API, JWT, and CORS.
 
-It includes:
-- **Database**: MySQL via Docker
-- **API Settings**: Ports, environment
-- **Security**: JWT authentication settings
-- **CORS**: Domain configuration
+### 2. Start Services (Flexible Options)
 
-Refer to `.env.example` for full details.
+The project supports flexible execution modes to suit different development scenarios:
+
+#### Option 1: Docker Database + Local API (Recommended for Development)
+*Ideal for active development, allowing easy debugging and hot-reloading.*
+
+1. Start the Database container:
+   ```bash
+   docker-compose up -d db
+   ```
+2. Run the API using dotnet CLI:
+   ```bash
+   cd GameTopUp.API
+   dotnet run
+   ```
+   *The API will connect to the Docker DB via `localhost:3307` as configured in your `.env` file.*
+
+#### Option 2: Full Docker Stack (API & Database)
+*Ideal for testing the system in a production-like environment or when .NET SDK is not installed locally.*
+
+Start all services using Docker Compose with the `full` profile:
+```bash
+docker-compose --profile full up -d
+```
+
+| Service | URL/Port | Notes |
+| :--- | :--- | :--- |
+| **API** | `http://localhost:5000` | Swagger UI at `/swagger` |
+| **Database** | `localhost:3307` | MariaDB 11 |
 
 ---
-
-### 2. Start Services
-
-Run the application using Docker Compose:
-   ```bash
-   docker-compose up -d
-   ```
-
-- MySQL: Container starts automatically
-- Initialization: Database schema and seed data are initialized on startup.
-- Connectivity: API connects to the database using the configured connection string.
 
 ### 3. Run Tests
 Integration tests use an isolated SQLite database and mocked authentication to ensure environment consistency.

@@ -75,22 +75,6 @@ CREATE TABLE IF NOT EXISTS game_accounts (
 ) ENGINE=InnoDB;
 
 
--- 6. Table: wallet_transactions
-CREATE TABLE IF NOT EXISTS wallet_transactions (
-    id BIGINT SIGNED AUTO_INCREMENT PRIMARY KEY,
-    user_id BIGINT SIGNED NOT NULL,
-    amount DECIMAL(18, 2) NOT NULL,
-    balance_before DECIMAL(18, 2) NOT NULL,
-    balance_after DECIMAL(18, 2) NOT NULL,
-    type INT NOT NULL, -- 1: Deposit, 2: Withdraw, 3: PaidOrder, 4: Refund
-    description TEXT,
-    order_id BIGINT SIGNED NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_tx_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-    CONSTRAINT fk_tx_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE SET NULL,
-    INDEX idx_tx_user_sort (user_id, created_at)
-) ENGINE=InnoDB;
-
 -- 7. Table: orders
 CREATE TABLE IF NOT EXISTS orders (
     id BIGINT SIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -111,6 +95,22 @@ CREATE TABLE IF NOT EXISTS orders (
     INDEX idx_orders_status (status),
     -- Đảm bảo mỗi khách hàng chỉ có tối đa 1 đơn hàng ở trạng thái Pending (1)
     UNIQUE INDEX idx_one_pending_per_user (user_id, is_pending)
+) ENGINE=InnoDB;
+
+-- 6. Table: wallet_transactions
+CREATE TABLE IF NOT EXISTS wallet_transactions (
+    id BIGINT SIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT SIGNED NOT NULL,
+    amount DECIMAL(18, 2) NOT NULL,
+    balance_before DECIMAL(18, 2) NOT NULL,
+    balance_after DECIMAL(18, 2) NOT NULL,
+    type INT NOT NULL, -- 1: Deposit, 2: Withdraw, 3: PaidOrder, 4: Refund
+    description TEXT,
+    order_id BIGINT SIGNED NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_tx_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    CONSTRAINT fk_tx_order FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE SET NULL,
+    INDEX idx_tx_user_sort (user_id, created_at)
 ) ENGINE=InnoDB;
 
 -- 8. Table: order_history
