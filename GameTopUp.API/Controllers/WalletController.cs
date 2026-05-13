@@ -20,13 +20,6 @@ namespace GameTopUp.API.Controllers
             _walletUseCase = walletUseCase;
         }
 
-        [HttpPost("active")]
-        public async Task<IActionResult> ActiveWallet()
-        {
-            var walletId = await _walletUseCase.ActiveWalletAsync(CurrentUser);
-            return ApiOk(new { WalletId = walletId }, "Kích hoạt ví thành công.");
-        }
-
         [HttpGet]
         public async Task<IActionResult> GetBalance()
         {

@@ -17,11 +17,6 @@ namespace GameTopUp.BLL.ApplicationServices
             _database = database;
         }
 
-        public async Task<long> ActiveWalletAsync(UserContext context)
-        {
-            return await _walletService.CreateWalletAsync(context);
-        }
-
         public async Task<TransactionResponseDTO> DepositAsync(UserContext context, decimal amount)
         {
             return await _database.ExecuteInTransactionAsync(async () =>

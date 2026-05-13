@@ -27,7 +27,7 @@ namespace GameTopUp.BLL.Services
             return user.Adapt<UserResponseDTO>();
         }
 
-        public async Task<long> RegisterAsync(CreateUserRequest request)
+        public async Task<long> RegisterWithHashedPasswordAsync(CreateUserRequest request, string hashedPassword)
         {
             var existingUser = await _userRepo.GetByEmailAsync(request.Email);
             if (existingUser != null)
@@ -39,7 +39,7 @@ namespace GameTopUp.BLL.Services
             {
                 Username = request.Name,
                 Email = request.Email,
-                PasswordHash = request.Password,
+                PasswordHash = hashedPassword,
                 CreatedAt = DateTime.UtcNow
             });
         }

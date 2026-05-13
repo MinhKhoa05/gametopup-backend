@@ -1,5 +1,6 @@
 using GameTopUp.DAL.Entities;
 using GameTopUp.DAL.Interfaces;
+using GameTopUp.BLL.Exceptions;
 
 namespace GameTopUp.DAL.Repositories
 {
@@ -14,25 +15,50 @@ namespace GameTopUp.DAL.Repositories
 
         public async Task<Wallet?> GetByUserIdAsync(long userId)
         {
-            string sql = "SELECT * FROM wallets WHERE user_id = @UserId";
+            const string sql = @"
+                SELECT * 
+                FROM wallets 
+                WHERE user_id = @UserId";
+
             return await _database.QueryFirstAsync<Wallet>(sql, new { UserId = userId });
         }
 
-        public async Task<Wallet?> GetByUserIdForUpdateAsync(long userId)
+        public async Task<Wallet?> GetWithLockByUserIdAsync(long userId)
         {
-            string sql = "SELECT * FROM wallets WHERE user_id = @UserId FOR UPDATE";
+            const string sql = @"
+                SELECT * 
+                FROM wallets 
+                WHERE user_id = @UserId 
+                FOR UPDATE";
+
             return await _database.QueryFirstAsync<Wallet>(sql, new { UserId = userId });
         }
 
-        public async Task<long> CreateAsync(Wallet wallet)
+        // WHY: Dùng ON DUPLICATE KEY để tạo ví an toàn (idempotent), không lỗi nếu đã tồn tại.
+        public async Task UpsertWalletAsync(Wallet wallet)
         {
-            return await _database.InsertAsync<Wallet, long>(wallet);
+            const string sql = @"
+                INSERT INTO wallets (user_id, balance, created_at, updated_at)
+                VALUES (@UserId, @Balance, @CreatedAt, @UpdatedAt)
+                ON DUPLICATE KEY UPDATE user_id = user_id;";
+
+            await _database.ExecuteAsync(sql, new
+            {
+                wallet.UserId,
+                wallet.Balance,
+                wallet.CreatedAt,
+                wallet.UpdatedAt
+            });
         }
 
         public async Task<int> UpdateBalanceAsync(long walletId, decimal newBalance)
         {
-            string sql = "UPDATE wallets SET balance = @Balance, updated_at = @UpdatedAt WHERE id = @Id";
-            return await _database.ExecuteAsync(sql, new 
+            const string sql = @"
+                UPDATE wallets 
+                SET balance = @Balance, updated_at = @UpdatedAt 
+                WHERE id = @Id";
+
+            return await _database.ExecuteAsync(sql, new
             {
                 Id = walletId,
                 Balance = newBalance,

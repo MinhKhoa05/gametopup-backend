@@ -94,6 +94,7 @@ namespace GameTopUp.DAL
         public virtual async Task<T> ExecuteInTransactionAsync<T>(Func<Task<T>> action)
         {
             // Nếu đã có transaction đang chạy (lồng nhau), chỉ thực thi action mà không tạo mới transaction.
+            // Nhằm xử lý trường hợp transaction lồng nhau (nested transaction)
             if (_transaction != null)
             {
                 return await action();

@@ -12,19 +12,31 @@ namespace GameTopUp.BLL.ApplicationServices
         private readonly UserService _user;
         private readonly TokenService _token;
         private readonly PasswordService _password;
+        private readonly WalletService _wallet;
+        private readonly DatabaseContext _database;
 
-        public AuthService(UserService user, TokenService token, PasswordService password)
+        public AuthService(UserService user, TokenService token, PasswordService password, WalletService wallet, DatabaseContext database)
         {
             _user = user;
             _token = token;
             _password = password;
+            _wallet = wallet;
+            _database = database;
         }
 
         public async Task RegisterAsync(CreateUserRequest request)
         {
             _password.Validate(request.Password);
-            request.Password = _password.Hash(request.Password);
-            await _user.RegisterAsync(request);
+            var hashedPassword = _password.Hash(request.Password);
+
+            await _database.ExecuteInTransactionAsync(async () =>
+            {
+                // 1. Tạo người dùng
+                var userId = await _user.RegisterWithHashedPasswordAsync(request, hashedPassword);
+                
+                // WHY: Tạo ví trong cùng transaction đăng ký đảm bảo tính toàn vẹn dữ liệu (Stripe-style).
+                await _wallet.CreateWalletAsync(userId);
+            });
         }
 
         public async Task<LoginResponseDTO> LoginAsync(LoginRequest request)

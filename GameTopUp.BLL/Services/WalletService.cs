@@ -18,36 +18,16 @@ namespace GameTopUp.BLL.Services
             _walletTxRepo = walletTxRepo;
         }
 
-        public async Task<long> CreateWalletAsync(UserContext context)
+        // WHY: Repo đã dùng ON DUPLICATE KEY nên an toàn gọi nhiều lần không sợ lỗi tạo trùng.
+        public async Task CreateWalletAsync(long userId)
         {
-            var existingWallet = await _walletRepo.GetByUserIdAsync(context.UserId);
-            if (existingWallet != null)
+            await _walletRepo.UpsertWalletAsync(new Wallet
             {
-                throw new BusinessException("Ví của bạn đã được kích hoạt.");
-            }
-
-            try
-            {
-                return await _walletRepo.CreateAsync(new Wallet
-                {
-                    UserId = context.UserId,
-                    Balance = 0,
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow
-                });
-            }
-            catch (Exception ex) when (ex.Message.Contains("Duplicate", StringComparison.OrdinalIgnoreCase) || 
-                                       ex.Message.Contains("UNIQUE", StringComparison.OrdinalIgnoreCase))
-            {
-                throw new BusinessException("Ví của bạn đã được kích hoạt hoặc đang được xử lý.");
-            }
-        }
-
-        public async Task<Wallet> GetWithLockByUserIdOrThrowAsync(long userId)
-        {
-            // WHY: Pessimistic Lock ngăn chặn race condition khi thay đổi số dư.
-            return await _walletRepo.GetByUserIdForUpdateAsync(userId)
-                ?? throw new NotFoundException("Ví của bạn chưa được kích hoạt. Vui lòng kích hoạt ví để sử dụng.");
+                UserId = userId,
+                Balance = 0,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            });
         }
 
         private async Task<TransactionResponseDTO> CreditAsync(
@@ -57,21 +37,19 @@ namespace GameTopUp.BLL.Services
             string description, 
             long? orderId = null)
         {
-            // WHY: Tự động lock ví để đảm bảo an toàn dữ liệu.
-            var wallet = await GetWithLockByUserIdOrThrowAsync(userId);
+            // WHY: Ví đã được đảm bảo tạo ở bước đăng ký nên chỉ cần lấy và khóa.
+            var wallet = await _walletRepo.GetWithLockOrThrowAsync(userId);
 
             if (amount <= 0) throw new BusinessException("Số tiền nạp phải lớn hơn 0.");
 
             decimal balanceBefore = wallet.Balance;
             decimal balanceAfter = balanceBefore + amount;
 
-            // Update balance
             wallet.Balance = balanceAfter;
             wallet.UpdatedAt = DateTime.UtcNow;
 
             await _walletRepo.UpdateBalanceAsync(wallet.Id, wallet.Balance);
 
-            // Log transaction
             var txId = await _walletTxRepo.CreateAsync(new WalletTransaction
             {
                 UserId = wallet.UserId,
@@ -94,23 +72,20 @@ namespace GameTopUp.BLL.Services
             string description, 
             long? orderId = null)
         {
-            // WHY: Lock ví để kiểm tra và trừ tiền an toàn.
-            var wallet = await GetWithLockByUserIdOrThrowAsync(userId);
+            // WHY: Ví đã được đảm bảo tạo ở bước đăng ký nên chỉ cần lấy và khóa.
+            var wallet = await _walletRepo.GetWithLockOrThrowAsync(userId);
 
             if (amount <= 0) throw new BusinessException("Số tiền trừ phải lớn hơn 0.");
-
             if (wallet.Balance < amount) throw new BusinessException("Số dư ví không đủ.");
 
             decimal balanceBefore = wallet.Balance;
             decimal balanceAfter = balanceBefore - amount;
 
-            // Update balance
             wallet.Balance = balanceAfter;
             wallet.UpdatedAt = DateTime.UtcNow;
 
             await _walletRepo.UpdateBalanceAsync(wallet.Id, wallet.Balance);
 
-            // Log transaction
             var txId = await _walletTxRepo.CreateAsync(new WalletTransaction
             {
                 UserId = wallet.UserId,
@@ -128,7 +103,6 @@ namespace GameTopUp.BLL.Services
 
         public async Task PayOrderAsync(Order order)
         {
-            // WHY: Đóng gói flow thanh toán, UseCase không cần quan tâm log/type.
             await DebitAsync(
                 order.UserId, 
                 order.Total, 
@@ -139,7 +113,6 @@ namespace GameTopUp.BLL.Services
 
         public async Task RefundOrderAsync(Order order, string? reason = null)
         {
-            // WHY: Đóng gói logic hoàn tiền giúp code UseCase sạch và đồng nhất.
             var description = $"Hoàn tiền đơn hàng #{order.Id}." + (string.IsNullOrEmpty(reason) ? "" : $" Lý do: {reason}");
             
             await CreditAsync(
@@ -162,19 +135,14 @@ namespace GameTopUp.BLL.Services
 
         public async Task<decimal> GetBalanceAsync(UserContext context)
         {
-            var wallet = await GetOrThrowByUserIdAsync(context.UserId);
+            var wallet = await _walletRepo.GetByUserIdAsync(context.UserId) 
+                ?? throw new NotFoundException("Không tìm thấy ví người dùng.");
             return wallet.Balance;
         }
 
         public async Task<List<WalletTransaction>> GetTransactionsAsync(UserContext context)
         {
             return await _walletTxRepo.GetByUserIdAsync(context.UserId);
-        }
-
-        public async Task<Wallet> GetOrThrowByUserIdAsync(long userId)
-        {
-            return await _walletRepo.GetByUserIdAsync(userId)
-                ?? throw new NotFoundException("Ví của bạn chưa được kích hoạt. Vui lòng kích hoạt ví để sử dụng.");
         }
     }
 }
