@@ -1,106 +1,117 @@
 # GameTopUp API Reference
 
-This document provides detailed instructions on how to integrate and use the GameTopUp system APIs for the Frontend development team.
+This document provides instructions for integrating and using the GameTopUp APIs in the frontend application.
 
 ## 1. Overview
 
-- **Base URL (Development):** `http://localhost:5000`
-- **Standard Response Body:** All server responses are wrapped in an `ApiResponse` object.
+- **Base URL:** `http://localhost:5000`
+- **Response Format:** All responses are wrapped in an `ApiResponse` object.
+- **Contract Source:** Always verify schemas in [Swagger](http://localhost:5000/swagger).
 
+### Standard Wrapper
 ```json
 {
-  "success": true, // true if the request was successful, false otherwise
-  "message": "System message", // Result or error description
-  "data": { ... } // Returned data (null if not applicable)
+  "success": true, // false if error occurs
+  "message": "Detailed message",
+  "data": { ... } // Actual payload or null
 }
 ```
 
-## 2. Quick Testing Accounts
+## 2. Enums & Mappings
 
-You can use the following accounts to test the API:
+### 📦 Order Status
+| Value | Status | Description |
+| :--- | :--- | :--- |
+| `1` | **Pending** | Order placed, waiting for payment |
+| `2` | **Paid** | Payment successful, waiting for admin to pick |
+| `3` | **Processing** | Admin has picked and is processing the top-up |
+| `4` | **Completed** | Top-up successful |
+| `5` | **Cancelled** | Order cancelled (Stock and money refunded if applicable) |
 
-### Admin Account
-- **Email:** `admin@gametopup.com`
-- **Password:** `Admin123456@`
-- **Role:** Admin (Access to all endpoints)
+### 💳 Wallet Transaction Type
+| Value | Type | Description |
+| :--- | :--- | :--- |
+| `1` | **Deposit** | Money added to wallet |
+| `2` | **Withdraw** | Money removed from wallet |
+| `3` | **PaidOrder** | Money deducted for order payment |
+| `4` | **Refund** | Money returned from cancelled order |
 
-### Customer Accounts
-- **Email:** `customer01@gametopup.com` / `customer02@gametopup.com`
-- **Password:** `Admin123456@` (Default for seed data)
-- **Role:** Member
+## 3. Request/Response Schema (Critical Endpoints)
 
-## 3. Authentication
+### 🔐 Authentication
+| Endpoint | Request Body | Response Data |
+| :--- | :--- | :--- |
+| `POST /api/auth/login` | `{ "email": "customer01@...", "password": "..." }` | `{ "accessToken": "eyJhbGci..." }` |
+| `POST /api/auth/register` | `{ "name": "User01", "email": "...", "password": "..." }` | `null` |
+| `GET /api/users/me` | *None* | `{ "id": 2, "name": "...", "email": "...", "role": "Member" }` |
 
-The system uses **JWT (JSON Web Token)** for authentication.
+### 🛒 Ordering & Wallet
+| Endpoint | Request Body | Response Data | Notes |
+| :--- | :--- | :--- | :--- |
+| `POST /api/wallet/transactions/deposit` | `{ "amount": 100000 }` | `null` | Directly credits balance (Dev mode) |
+| `POST /api/orders/place` | `{ "gamePackageId": 1, "quantity": 1, "gameAccountInfo": "..." }` | `123` | Returns generated Order ID |
+| `POST /api/orders/{id}/pay` | *None* | `null` | Debits wallet and marks as Paid |
+| `GET /api/orders/{id}` | *None* | `{ "id": 123, "status": 1, "total": 50000, ... }` | Refer to Enum mapping for `status` |
 
-- **Usage:** Attach the token to the Header of every request that requires authentication.
-- **Header:** `Authorization: Bearer <your_access_token>`
-- **Token:** Obtained from the Login API (`POST /api/auth/login`). The token contains information such as `UserId`, `Username`, and `Role`.
+## 4. Quick Testing Accounts
 
-## 4. Endpoint List
+| Role | Email | Password |
+| :--- | :--- | :--- |
+| **Admin** | `admin@gametopup.com` | `Admin123456@` |
+| **Member** | `customer01@gametopup.com` | `Admin123456@` |
+| **Member** | `customer02@gametopup.com` | `Admin123456@` |
+
+## 5. Endpoint List
 
 | Module | Method | Endpoint | Description | Auth | Role |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Auth** | POST | `/api/auth/register` | Register a new user account | No | All |
-| | POST | `/api/auth/login` | Login and receive an Access Token | No | All |
-| | PUT | `/api/auth/password` | Change user password | Yes | User |
-| **User** | GET | `/api/users` | Get user list (paginated) | Yes | Admin |
-| | GET | `/api/users/{id}` | Get detailed user information | Yes | User/Admin |
-| | GET | `/api/users/me` | Get detailed user information | Yes | User |
-| | PUT | `/api/users/{id}` | Update user information | Yes | User/Admin |
-| | DELETE | `/api/users/{id}` | Delete user from the system | Yes | Admin |
-| **Game** | GET | `/api/games` | Get list of all games | No | All |
-| | GET | `/api/games/{id}` | Get detailed game information | No | All |
-| | POST | `/api/games` | Create a new game | Yes | Admin |
-| | PUT | `/api/games/{id}` | Update game information | Yes | Admin |
-| | DELETE | `/api/games/{id}` | Delete a game | Yes | Admin |
-| **Package** | GET | `/api/game-packages` | Get list of all top-up packages | No | All |
-| | GET | `/api/game-packages/game/{gameId}` | Get packages by Game ID | No | All |
-| | GET | `/api/game-packages/{id}` | Get package details | No | All |
-| | POST | `/api/game-packages` | Create a new top-up package | Yes | Admin |
-| | PUT | `/api/game-packages/{id}` | Update package information | Yes | Admin |
-| | DELETE | `/api/game-packages/{id}` | Delete a package | Yes | Admin |
-| **Wallet** | POST | `/api/wallet/active` | Activate user wallet | Yes | User |
-| | GET | `/api/wallet` | Check current wallet balance | Yes | User |
-| | GET | `/api/wallet/transactions` | View wallet transaction history | Yes | User |
-| | POST | `/api/wallet/transactions/deposit` | Deposit money into wallet | Yes | User |
-| | POST | `/api/wallet/transactions/withdraw` | Withdraw money from wallet | Yes | User |
-| **Order** | POST | `/api/orders/place` | Place a new order (Stock reservation) | Yes | User |
-| | POST | `/api/orders/{id}/pay` | Pay for a pending order | Yes | User |
-| | GET | `/api/orders/me` | Get list of my orders | Yes | User |
-| | GET | `/api/orders/{id}` | View order details | Yes | User |
-| | GET | `/api/orders/{id}/history` | View order status history | Yes | User |
-| | GET | `/api/orders` | List all orders (filter by status) | Yes | Admin |
-| | POST | `/api/orders/{id}/pick` | Claim order for processing | Yes | Admin |
-| | POST | `/api/orders/{id}/complete`| Mark order as completed | Yes | Admin |
-| | POST | `/api/orders/{id}/cancel` | Cancel order & auto refund | Yes | All |
-
-## 5. Core Workflows
-
-### Flow 1: Registration -> Login -> Get Profile
-1. **Registration:** Call `POST /api/auth/register` with user details.
-2. **Login:** Call `POST /api/auth/login`. The server returns an `accessToken`.
-3. **Get Profile:** Call `GET /api/users/me` with the `Authorization` header to retrieve details.
-
-### Flow 2: Wallet Activation -> Deposit -> Check Balance
-1. **Activation:** Call `POST /api/wallet/active` (only needs to be called once after registration).
-2. **Deposit:** Call `POST /api/wallet/transactions/deposit`. Send the `Amount` (decimal) in the request body. User scans the dynamic QR code (Admin provides) to transfer.
-3. **Admin Approval:** Admin verifies the bank transfer and approves the deposit (Logic handled via internal admin panel/API).
-4. **Check Balance:** Call `GET /api/wallet` to see the updated balance.
-
-### Flow 3: Place Order -> Payment -> Admin Fulfillment
-1. **Place Order:** Call `POST /api/orders/place`. This reserves the stock immediately.
-2. **Payment:** Call `POST /api/orders/{id}/pay`. This debits the wallet balance and marks the order as `Paid`.
-3. **Admin Picking:** Admin calls `POST /api/orders/{id}/pick` to assign the order to themselves.
-4. **Processing & Completion:** Admin processes the top-up and calls `POST /api/orders/{id}/complete` to finish.
-5. **Cancellation (Optional):** If needed, calling `POST /api/orders/{id}/cancel` will automatically restore stock and refund the wallet (if already paid).
+| **Auth** | POST | `/api/auth/register` | Register new account | No | Public |
+| | POST | `/api/auth/login` | Login and get Token | No | Public |
+| | PUT | `/api/auth/password` | Change password | Yes | Member |
+| **User** | GET | `/api/users/me` | Get profile | Yes | Member |
+| | GET | `/api/users` | List users | Yes | Admin |
+| | GET | `/api/users/{id}` | User details | Yes | Admin |
+| **Game** | GET | `/api/games` | List all games | No | Public |
+| | POST | `/api/games` | Create game | Yes | Admin |
+| **Wallet** | GET | `/api/wallet` | Check balance | Yes | Member |
+| | GET | `/api/wallet/transactions` | Transaction history | Yes | Member |
+| | POST | `/api/wallet/transactions/deposit`| Top-up | Yes | Member |
+| **Order** | POST | `/api/orders/place` | Place order | Yes | Member |
+| | POST | `/api/orders/{id}/pay` | Pay order | Yes | Member |
+| | GET | `/api/orders/me` | My orders | Yes | Member |
+| | POST | `/api/orders/{id}/pick` | Admin: Pick order | Yes | Admin |
+| | POST | `/api/orders/{id}/complete`| Admin: Complete | Yes | Admin |
+| | POST | `/api/orders/{id}/cancel` | Cancel & Refund | Yes | Member/Admin|
 
 ## 6. Important Notes
-- **Request Body/DTO Details:** Please refer to the [Swagger UI](http://localhost:5000/swagger) for the exact structure of each request.
-- **HTTP Status Codes:** 
-  - `200 OK`: Success.
-  - `201 Created`: Resource created successfully.
-  - `401 Unauthorized`: Invalid or expired token.
-  - `403 Forbidden`: Insufficient permissions (Admin only).
-  - `400 Bad Request`: Invalid input data.
-  - `404 Not Found`: Resource not found.
+
+### HTTP Status Codes
+| Code | Meaning |
+| :--- | :--- |
+| `200` | OK - Success |
+| `201` | Created - Resource created |
+| `400` | Bad Request - Invalid input or rule violation |
+| `401` | Unauthorized - Invalid or expired token |
+| `403` | Forbidden - Insufficient permissions (Admin only) |
+| `500` | Internal Server Error - Server-side fault |
+
+### Data Types
+- **Decimals**: Handle `Balance` and `Price` as numeric types.
+- **Dates**: ISO 8601 format (`YYYY-MM-DDTHH:mm:ssZ`).
+
+## ✨ 7. Core Workflows
+
+### 👤 User Flow
+1. **Onboarding**: `Register` → `Login` → Wallet is automatically created on first use (deposit or order).
+2. **Deposit**: `POST /api/wallet/transactions/deposit` (Credits balance directly in Dev).
+3. **Purchasing**:
+   - `POST /api/orders/place`: Reserves stock, order status becomes **Pending (1)**.
+   - `POST /api/orders/{id}/pay`: Debits wallet, order status becomes **Paid (2)**.
+4. **Tracking**: Call `GET /api/orders/me` to track the order fulfillment status.
+
+### 🛠 Admin Flow
+1. **Fulfillment**: Call `GET /api/orders` to find orders with status **Paid (2)**.
+2. **Picking**: Call `POST /api/orders/{id}/pick` to assign the order (Status: **Processing (3)**).
+3. **Processing**: Perform the actual game top-up based on the `GameAccountInfo`.
+4. **Completion**: Call `POST /api/orders/{id}/complete` to finish (Status: **Completed (4)**).
+
