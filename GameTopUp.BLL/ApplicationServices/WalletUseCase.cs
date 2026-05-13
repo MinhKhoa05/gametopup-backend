@@ -2,7 +2,6 @@ using GameTopUp.BLL.Common;
 using GameTopUp.BLL.DTOs.Wallets;
 using GameTopUp.BLL.Services;
 using GameTopUp.DAL;
-using GameTopUp.DAL.Entities;
 
 namespace GameTopUp.BLL.ApplicationServices
 {

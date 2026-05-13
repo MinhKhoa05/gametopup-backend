@@ -1,6 +1,5 @@
 using GameTopUp.BLL.Common;
 using GameTopUp.BLL.Exceptions;
-using GameTopUp.DAL;
 using GameTopUp.DAL.Entities;
 using GameTopUp.DAL.Interfaces;
 using GameTopUp.BLL.DTOs.Wallets;
@@ -38,7 +37,7 @@ namespace GameTopUp.BLL.Services
             long? orderId = null)
         {
             // WHY: Ví đã được đảm bảo tạo ở bước đăng ký nên chỉ cần lấy và khóa.
-            var wallet = await _walletRepo.GetWithLockOrThrowAsync(userId);
+            var wallet = await _walletRepo.GetWithLockByUserIdAsync(userId);
 
             if (amount <= 0) throw new BusinessException("Số tiền nạp phải lớn hơn 0.");
 
@@ -73,7 +72,7 @@ namespace GameTopUp.BLL.Services
             long? orderId = null)
         {
             // WHY: Ví đã được đảm bảo tạo ở bước đăng ký nên chỉ cần lấy và khóa.
-            var wallet = await _walletRepo.GetWithLockOrThrowAsync(userId);
+            var wallet = await _walletRepo.GetWithLockByUserIdAsync(userId);
 
             if (amount <= 0) throw new BusinessException("Số tiền trừ phải lớn hơn 0.");
             if (wallet.Balance < amount) throw new BusinessException("Số dư ví không đủ.");

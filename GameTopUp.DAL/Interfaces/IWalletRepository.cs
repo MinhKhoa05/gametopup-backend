@@ -6,8 +6,7 @@ namespace GameTopUp.DAL.Interfaces
     {
         Task<Wallet?> GetByUserIdAsync(long userId);
         Task<Wallet?> GetWithLockByUserIdAsync(long userId);
-        Task<Wallet> GetWithLockOrThrowAsync(long userId);
-        Task CreateAsync(Wallet wallet);
+        Task UpsertWalletAsync(Wallet wallet);
         Task<int> UpdateBalanceAsync(long walletId, decimal newBalance);
     }
 }

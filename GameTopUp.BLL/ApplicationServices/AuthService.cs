@@ -3,7 +3,7 @@ using GameTopUp.BLL.DTOs.Auths;
 using GameTopUp.BLL.DTOs.Users;
 using GameTopUp.BLL.Exceptions;
 using GameTopUp.BLL.Services;
-using GameTopUp.DAL.Entities;
+using GameTopUp.DAL;
 
 namespace GameTopUp.BLL.ApplicationServices
 {

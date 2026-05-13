@@ -1,6 +1,5 @@
 using GameTopUp.DAL.Entities;
 using GameTopUp.DAL.Interfaces;
-using GameTopUp.BLL.Exceptions;
 
 namespace GameTopUp.DAL.Repositories
 {
