@@ -22,6 +22,7 @@ namespace GameTopUp.DAL
 
             // Cấu hình Dommel để thực hiện chuyển đổi tương tự khi sinh câu lệnh SQL tự động.
             DommelMapper.SetColumnNameResolver(new SnakeCaseResolver());
+            DommelMapper.AddSqlBuilder(typeof(MySqlConnector.MySqlConnection), new Dommel.MySqlSqlBuilder());
         }
 
         public DatabaseContext(DbConnection connection)

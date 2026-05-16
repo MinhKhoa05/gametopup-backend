@@ -4,19 +4,20 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace GameTopUp.Tests.IntegrationTests
+namespace GameTopUp.Tests.IntegrationTests.Infrastructure
 {
+    // Bypass JWT: Inject danh tính (User/Admin) tùy biến qua Request Headers.
     public class TestAuthHandler : AuthenticationHandler<AuthenticationSchemeOptions>
     {
         public TestAuthHandler(IOptionsMonitor<AuthenticationSchemeOptions> options,
-            ILoggerFactory logger, UrlEncoder encoder, ISystemClock clock)
-            : base(options, logger, encoder, clock)
+            ILoggerFactory logger, UrlEncoder encoder)
+            : base(options, logger, encoder)
         {
         }
 
         protected override Task<AuthenticateResult> HandleAuthenticateAsync()
         {
-            // Allow dynamic UserID and Role via headers for multi-user testing
+            // Dynamic Identity: Cho phép test case đóng vai nhiều user để kiểm tra Permission.
             var userId = Context.Request.Headers["X-Test-UserId"].FirstOrDefault() ?? "1";
             var role = Context.Request.Headers["X-Test-Role"].FirstOrDefault() ?? "Admin";
             var username = Context.Request.Headers["X-Test-Username"].FirstOrDefault() ?? "TestUser";
@@ -26,6 +27,7 @@ namespace GameTopUp.Tests.IntegrationTests
                 new Claim(ClaimTypes.Role, role),
                 new Claim(ClaimTypes.NameIdentifier, userId)
             };
+
             var identity = new ClaimsIdentity(claims, "Test");
             var principal = new ClaimsPrincipal(identity);
             var ticket = new AuthenticationTicket(principal, "Test");

@@ -34,7 +34,11 @@ namespace GameTopUp.DAL.Repositories
 
         public async Task<long> CreateAsync(Game game)
         {
-            return await _database.InsertAsync<Game, long>(game);
+            var sql = @"INSERT INTO games (name, image_url, is_active) 
+                        VALUES (@Name, @ImageUrl, @IsActive);
+                        SELECT LAST_INSERT_ID();";
+            
+            return await _database.ScalarAsync<long>(sql, game);
         }
 
         public async Task<int> UpdateAsync(Game game)

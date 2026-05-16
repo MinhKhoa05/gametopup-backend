@@ -7,7 +7,9 @@ using GameTopUp.DAL.Entities;
 using Xunit;
 using GameTopUp.API;
 
-namespace GameTopUp.Tests.IntegrationTests
+using GameTopUp.Tests.IntegrationTests.Infrastructure;
+
+namespace GameTopUp.Tests.IntegrationTests.Scenarios
 {
     [Collection("IntegrationTests")]
     public class GamePackageApiTests : IAsyncLifetime
@@ -34,7 +36,17 @@ namespace GameTopUp.Tests.IntegrationTests
         private async Task<long> CreateGameAsync(string name, bool isActive = true)
         {
             var request = new CreateGameRequest { Name = name, IsActive = isActive };
+            _client.DefaultRequestHeaders.Remove("X-Test-Role");
+            _client.DefaultRequestHeaders.Add("X-Test-Role", "Admin");
+            
             var response = await _client.PostAsJsonAsync("/api/games", request);
+            
+            if (!response.IsSuccessStatusCode)
+            {
+                var content = await response.Content.ReadAsStringAsync();
+                throw new Exception($"CreateGameAsync failed with {response.StatusCode}. Content: {content}");
+            }
+
             var result = await response.Content.ReadFromJsonAsync<ApiResponseTestWrapper<Game>>();
             return result!.Data!.Id;
         }

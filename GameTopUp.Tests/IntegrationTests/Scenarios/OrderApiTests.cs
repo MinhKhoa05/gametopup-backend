@@ -7,7 +7,9 @@ using Dapper;
 using Microsoft.Extensions.DependencyInjection;
 using GameTopUp.API;
 
-namespace GameTopUp.Tests.IntegrationTests
+using GameTopUp.Tests.IntegrationTests.Infrastructure;
+
+namespace GameTopUp.Tests.IntegrationTests.Scenarios
 {
     [Collection("IntegrationTests")]
     public class OrderApiTests : IAsyncLifetime
@@ -39,8 +41,8 @@ namespace GameTopUp.Tests.IntegrationTests
             var db = scope.ServiceProvider.GetRequiredService<DAL.DatabaseContext>();
             var sql = @"INSERT INTO users (username, email, password_hash, is_active, created_at, updated_at) 
                         VALUES (@Username, @Email, 'hash', 1, @Now, @Now); 
-                        SELECT last_insert_rowid();";
-            return await db.Connection.QuerySingleAsync<long>(sql, new { Username = username, Email = email, Now = DateTime.UtcNow.ToString("O") });
+                        SELECT LAST_INSERT_ID();";
+            return await db.Connection.QuerySingleAsync<long>(sql, new { Username = username, Email = email, Now = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss") });
         }
 
         private async Task SeedWalletAsync(long userId, decimal balance)
@@ -49,14 +51,14 @@ namespace GameTopUp.Tests.IntegrationTests
             var db = scope.ServiceProvider.GetRequiredService<DAL.DatabaseContext>();
             var sql = @"INSERT INTO wallets (user_id, balance, created_at, updated_at) 
                         VALUES (@UserId, @Balance, @Now, @Now);";
-            await db.Connection.ExecuteAsync(sql, new { UserId = userId, Balance = balance, Now = DateTime.UtcNow.ToString("O") });
+            await db.Connection.ExecuteAsync(sql, new { UserId = userId, Balance = balance, Now = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss") });
         }
 
         private async Task<long> SeedGameAsync(string name)
         {
             using var scope = _factory.Services.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<DAL.DatabaseContext>();
-            var sql = "INSERT INTO games (name, is_active) VALUES (@Name, 1); SELECT last_insert_rowid();";
+            var sql = "INSERT INTO games (name, is_active) VALUES (@Name, 1); SELECT LAST_INSERT_ID();";
             return await db.Connection.QuerySingleAsync<long>(sql, new { Name = name });
         }
 
@@ -66,7 +68,7 @@ namespace GameTopUp.Tests.IntegrationTests
             var db = scope.ServiceProvider.GetRequiredService<DAL.DatabaseContext>();
             var sql = @"INSERT INTO game_packages (name, game_id, normalized_name, sale_price, original_price, import_price) 
                         VALUES (@Name, @GameId, @Normalized, @Price, @Price, @Price); 
-                        SELECT last_insert_rowid();";
+                        SELECT LAST_INSERT_ID();";
             return await db.Connection.QuerySingleAsync<long>(sql, new 
             { 
                 Name = name, 
@@ -82,14 +84,14 @@ namespace GameTopUp.Tests.IntegrationTests
             var db = scope.ServiceProvider.GetRequiredService<DAL.DatabaseContext>();
             var sql = @"INSERT INTO orders (user_id, game_account_info, game_package_id, unit_price, quantity, status, created_at, updated_at) 
                         VALUES (@UserId, 'test_acc', @PackageId, @Price, 1, @Status, @Now, @Now); 
-                        SELECT last_insert_rowid();";
+                        SELECT LAST_INSERT_ID();";
             return await db.Connection.QuerySingleAsync<long>(sql, new 
             { 
                 UserId = userId, 
                 PackageId = packageId,
                 Price = total, 
                 Status = (int)status, 
-                Now = DateTime.UtcNow.ToString("O") 
+                Now = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss") 
             });
         }
 
@@ -139,14 +141,14 @@ namespace GameTopUp.Tests.IntegrationTests
 
         #endregion
 
-        [Fact(Skip = "SQLite does not support 'FOR UPDATE'. Migration to Testcontainers MySQL is planned to verify Race Conditions.")]
+        [Fact]
         public async Task PickOrder_ConcurrentRequests_OnlyOneShouldSucceed()
         {
             // Arrange
             var gameId = await SeedGameAsync("Test Game");
             var packageId = await SeedGamePackageAsync(gameId, "Test Package", 100);
             var customerId = await SeedUserAsync("customer_pick", "customer_pick@test.com");
-            var orderId = await SeedOrderAsync(customerId, packageId, 100, OrderStatus.Pending);
+            var orderId = await SeedOrderAsync(customerId, packageId, 100, OrderStatus.Paid);
 
             int concurrentRequests = 10;
             var tasks = new List<Task<HttpResponseMessage>>();
@@ -154,7 +156,10 @@ namespace GameTopUp.Tests.IntegrationTests
             // Act
             for (int i = 0; i < concurrentRequests; i++)
             {
-                tasks.Add(_client.PostAsync($"/api/orders/{orderId}/pick", null));
+                var request = new HttpRequestMessage(HttpMethod.Post, $"/api/orders/{orderId}/pick");
+                request.Headers.Add("X-Test-UserId", (i + 100).ToString()); // Different Admin IDs
+                request.Headers.Add("X-Test-Role", "Admin");
+                tasks.Add(_client.SendAsync(request));
             }
 
             var responses = await Task.WhenAll(tasks);
@@ -170,10 +175,10 @@ namespace GameTopUp.Tests.IntegrationTests
             // Kiểm tra trạng thái cuối cùng trong DB
             var order = await GetOrderFromDbAsync(orderId);
             order!.Status.Should().Be(OrderStatus.Processing);
-            order.AssignTo.Should().Be(1); // TestAuthHandler hardcoded ID 1
+            order.AssignTo.Should().BeInRange(100, 109);
         }
 
-        [Fact(Skip = "SQLite does not support 'FOR UPDATE'. Migration to Testcontainers MySQL is planned to verify Race Conditions.")]
+        [Fact]
         public async Task CancelOrder_ConcurrentRequests_AllShouldReturnOk_ButOnlyOneRefund()
         {
             // Arrange
@@ -184,14 +189,21 @@ namespace GameTopUp.Tests.IntegrationTests
             decimal orderTotal = 200;
             await SeedWalletAsync(customerId, initialBalance);
             var orderId = await SeedOrderAsync(customerId, packageId, orderTotal, OrderStatus.Pending);
-
+            
+            using var scope = _factory.Services.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<DAL.DatabaseContext>();
+            await db.Connection.ExecuteAsync("UPDATE orders SET status = @Status WHERE id = @Id", new { Status = (int)OrderStatus.Paid, Id = orderId });
+            
             int concurrentRequests = 10;
             var tasks = new List<Task<HttpResponseMessage>>();
 
             // Act
             for (int i = 0; i < concurrentRequests; i++)
             {
-                tasks.Add(_client.PostAsync($"/api/orders/{orderId}/cancel", null));
+                var request = new HttpRequestMessage(HttpMethod.Post, $"/api/orders/{orderId}/cancel");
+                request.Headers.Add("X-Test-UserId", customerId.ToString());
+                request.Headers.Add("X-Test-Role", "User");
+                tasks.Add(_client.SendAsync(request));
             }
 
             var responses = await Task.WhenAll(tasks);
@@ -216,7 +228,7 @@ namespace GameTopUp.Tests.IntegrationTests
             historyCount.Should().Be(1);
         }
 
-        [Fact(Skip = "SQLite does not support 'FOR UPDATE' locking. Planned for MySQL Testcontainers.")]
+        [Fact]
         public async Task CompleteOrder_ShouldSucceed_WhenAdminCompletesAssignedOrder()
         {
             // Arrange
@@ -252,7 +264,7 @@ namespace GameTopUp.Tests.IntegrationTests
             historyCount.Should().Be(2); // 1 for Pick, 1 for Complete
         }
 
-        [Fact(Skip = "SQLite does not support 'FOR UPDATE'. Migration to Testcontainers MySQL is planned to verify Race Conditions.")]
+        [Fact]
         public async Task CompleteOrder_ConcurrentRequests_ShouldBeIdempotent()
         {
             // Arrange
@@ -424,7 +436,7 @@ namespace GameTopUp.Tests.IntegrationTests
             response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
         }
 
-        [Fact(Skip = "SQLite limitations with concurrent writes/locks. Planned for MySQL Testcontainers.")]
+        [Fact]
         public async Task PlaceOrder_Concurrent_ShouldNotExceedStock()
         {
             // Arrange

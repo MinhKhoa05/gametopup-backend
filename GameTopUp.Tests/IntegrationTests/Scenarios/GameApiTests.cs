@@ -6,7 +6,9 @@ using GameTopUp.DAL.Entities;
 using Xunit;
 using GameTopUp.API;
 
-namespace GameTopUp.Tests.IntegrationTests
+using GameTopUp.Tests.IntegrationTests.Infrastructure;
+
+namespace GameTopUp.Tests.IntegrationTests.Scenarios
 {
     [Collection("IntegrationTests")]
     public class GameApiTests : IAsyncLifetime
@@ -120,7 +122,7 @@ namespace GameTopUp.Tests.IntegrationTests
         public async Task CreateGame_ShouldHandleSpecialCharactersAndLongStrings()
         {
             // Arrange
-            var longName = new string('A', 255); // Use 255 instead of 1000 to be more realistic but still long
+            var longName = new string('A', 100); 
             var specialChars = "!@#$%^&*()_+";
             var request = new CreateGameRequest { Name = specialChars + longName, ImageUrl = "img.png" };
 

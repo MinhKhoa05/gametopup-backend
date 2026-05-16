@@ -22,14 +22,16 @@ Rules for all AI Roles working on GameTopUp Backend. Mandatory.
 
 | Exception Type | HTTP Status | Description |
 | :--- | :--- | :--- |
-| `NotFoundException` | 404 Not Found | Khi không tìm thấy tài nguyên (ID, Email, v.v.) |
-| `BusinessException` | 400 Bad Request | Lỗi nghiệp vụ (Email tồn tại, không đủ số dư, v.v.) |
-| `UnauthorizedException` | 401 Unauthorized | Lỗi xác thực hoặc Token hết hạn |
-| `ForbiddenException` | 403 Forbidden | Không có quyền truy cập tài nguyên |
-| `Internal Exception` | 500 Error | Lỗi hệ thống không xác định |
+| `NotFoundException` | 404 Not Found | Resource not found (ID, Email, etc.) |
+| `BusinessException` | 400 Bad Request | Business logic error (Email exists, insufficient balance, etc.) |
+| `UnauthorizedException` | 401 Unauthorized | Authentication error or expired Token |
+| `ForbiddenException` | 403 Forbidden | Access denied for the resource |
+| `Internal Exception` | 500 Error | Unknown system error |
 
 **Comments**
-- Explain WHY (Rationale), not WHAT.
+- Explicit, concise, contextual, neutral tone.
+- NO "WHY:", NO "Rationale:", NO "noisy tokens". 
+- Focus strictly on technical rationale or non-obvious risks.
 - Use explicit code blocks `{ ... }` for business logic; avoid expression-bodied `=>` for complex methods.
 
 ## 2. Data Access (Dapper/Dommel)
@@ -108,11 +110,13 @@ Rules for all AI Roles working on GameTopUp Backend. Mandatory.
 - **Update Memory**: After finishing a task, important lessons must be recorded back into `memory.md`.
 
 ## 15. Testing Standards
-- **SQLite In-Memory**: Connection persistence must be managed via `TestDatabaseContext` (overriding `Dispose`) to prevent schema loss.
-- **Source of Truth**: `CustomWebApplicationFactory` must maintain an up-to-date schema script including all audit and normalization columns.
-- **API Deserialization**: Integration tests must use `ApiResponseTestWrapper<T>` to handle wrapped responses.
-- **State Verification**: Tests must verify actual database changes (e.g., checking `IsActive` for soft delete) rather than just asserting HTTP status codes.
-- **Consistency**: All Test Classes must call `MapsterConfig.RegisterMappings()` in their constructor.
+- **MariaDB Testcontainers**: Use Docker containers for Integration Testing to match Production environment.
+- **Async Lifecycle**: Mandatory use of `IAsyncLifetime` for container start/stop (prevents deadlock).
+- **One-time Initialization**: Use `SemaphoreSlim` to initialize schema exactly once across tests.
+- **Source of Truth**: `CustomWebApplicationFactory` maintains the schema script synchronized with Entities.
+- **API Deserialization**: Use `ApiResponseTestWrapper<T>` to handle wrapped responses in tests.
+- **State Verification**: Verify actual database state (e.g., `IsActive` for soft delete) instead of just HTTP status codes.
+- **Sequential Execution**: Disable parallelism (`DisableTestParallelization = true`) for stable `ResetDatabaseAsync`.
 
 ## 16. Race Condition Safety
 - **Assume Concurrency**: Always assume Race Conditions can occur at any step, even after a logic check (`if exists`).
@@ -128,7 +132,7 @@ try
 catch (Exception ex) when (ex.Message.Contains("Duplicate", StringComparison.OrdinalIgnoreCase) ||
                            ex.Message.Contains("UNIQUE", StringComparison.OrdinalIgnoreCase))
 {
-    // Rationale: Race condition safety - DB constraint catches concurrent duplicate creation.
+    // Race condition safety - DB constraint catches concurrent duplicate creation.
     throw new BusinessException("This resource already exists or is being processed.");
 }
 ```
@@ -156,7 +160,7 @@ DEV MUST choose one of the following remediation actions:
 
 **Option A — Add Comments** (when logic is inherently complex but necessary):
 ```csharp
-// We check balance BEFORE deducting to avoid a negative-balance race window.
+// Check balance BEFORE deducting to avoid a negative-balance race window.
 // The DB constraint is the final safety net (Rule 16), but this early-exit is cheaper.
 if (wallet.Balance < request.Amount)
     throw new BusinessException("Insufficient balance.");
@@ -176,7 +180,7 @@ var totalByType = groupedByType.ToDictionary(g => g.Key, g => g.Sum(x => x.Value
 ### REVIEWER Checklist (KISS)
 - [ ] Can a new developer understand this method in < 60 seconds?
 - [ ] Is every abstraction justified?
-- [ ] Are there comments explaining WHY (not WHAT) for any non-obvious logic?
+- [ ] Are there comments explaining rationale (not what) for any non-obvious logic?
 
 ### Core Mantra
 > **Simple > Clever. Readable > Compact. Obvious > Elegant.**

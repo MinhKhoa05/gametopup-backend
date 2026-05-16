@@ -1,4 +1,4 @@
-namespace GameTopUp.Tests.IntegrationTests
+namespace GameTopUp.Tests.IntegrationTests.Infrastructure
 {
     /// <summary>
     /// Shared wrapper for deserializing ApiResponse in integration tests.

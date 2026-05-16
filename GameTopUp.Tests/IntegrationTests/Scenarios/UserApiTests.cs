@@ -8,7 +8,9 @@ using Dapper;
 using Microsoft.Extensions.DependencyInjection;
 using GameTopUp.API;
 
-namespace GameTopUp.Tests.IntegrationTests
+using GameTopUp.Tests.IntegrationTests.Infrastructure;
+
+namespace GameTopUp.Tests.IntegrationTests.Scenarios
 {
     [Collection("IntegrationTests")]
     public class UserApiTests : IAsyncLifetime
@@ -38,14 +40,14 @@ namespace GameTopUp.Tests.IntegrationTests
             var db = scope.ServiceProvider.GetRequiredService<DAL.DatabaseContext>();
             var sql = @"INSERT INTO users (username, email, password_hash, is_active, created_at, updated_at) 
                         VALUES (@Username, @Email, 'hashed_pass', @IsActive, @Now, @Now); 
-                        SELECT last_insert_rowid();";
+                        SELECT LAST_INSERT_ID();";
             
             return await db.Connection.QuerySingleAsync<long>(sql, new 
-            { 
+            {
                 Username = username, 
                 Email = email, 
                 IsActive = isActive ? 1 : 0,
-                Now = DateTime.UtcNow.ToString("O")
+                Now = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss")
             });
         }
 
