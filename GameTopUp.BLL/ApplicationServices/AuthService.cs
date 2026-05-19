@@ -51,7 +51,7 @@ namespace GameTopUp.BLL.ApplicationServices
             });
         }
 
-        public async Task<LoginResponseDTO> LoginAsync(LoginRequest request)
+        public async Task<AuthResponseDTO> LoginAsync(LoginRequest request)
         {
             var user = await _user.GetByEmailAsync(request.Email);
 
@@ -78,7 +78,7 @@ namespace GameTopUp.BLL.ApplicationServices
             // Lưu refresh token xuống DB.
             await _refreshTokenService.SaveRefreshTokenAsync(user.Id, hash, refreshTokeneExpireDays);
 
-            return new LoginResponseDTO
+            return new AuthResponseDTO
             {
                 AccessToken = accessToken,
                 RefreshToken = refreshToken,
@@ -86,16 +86,14 @@ namespace GameTopUp.BLL.ApplicationServices
             };
         }
 
-        public async Task<LoginResponseDTO> RefreshAsync(
-            RefreshTokenRequestDTO request)
+        public async Task<AuthResponseDTO> RefreshAsync(string refreshTokenString)
         {
             // Hash token trước khi validate trong DB.
-            var hash = _token.HashToken(request.RefreshToken);
+            var hash = _token.HashToken(refreshTokenString);
 
             var refreshToken =
                 await _refreshTokenService.ValidateAndGetAsync(hash)
-                ?? throw new BusinessException(
-                    "Refresh Token không hợp lệ.");
+                ?? throw new BusinessException("Refresh Token không hợp lệ.");
 
             // Lấy lại thông tin user từ UserId trong refresh token.
             var user = await _user.GetByIdAsync(refreshToken.UserId);
@@ -113,21 +111,16 @@ namespace GameTopUp.BLL.ApplicationServices
                 // Revoke token cũ để tránh reuse token.
                 await _refreshTokenService.RevokeTokenAsync(hash);
 
-                var accessToken =
-                    _token.GenerateAccessToken(tokenRequest);
+                var accessToken = _token.GenerateAccessToken(tokenRequest);
 
                 // Tạo refresh token mới.
-                var newRefreshToken =
-                    _token.GenerateRefreshToken();
+                var newRefreshToken = _token.GenerateRefreshToken();
 
-                var newHash =
-                    _token.HashToken(newRefreshToken);
+                var newHash = _token.HashToken(newRefreshToken);
 
-                await _refreshTokenService.SaveRefreshTokenAsync(user.Id,
-                    newHash,
-                    7);
+                await _refreshTokenService.SaveRefreshTokenAsync(user.Id, newHash, 7);
 
-                return new LoginResponseDTO
+                return new AuthResponseDTO
                 {
                     AccessToken = accessToken,
                     RefreshToken = newRefreshToken

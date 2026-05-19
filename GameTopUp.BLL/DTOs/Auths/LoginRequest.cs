@@ -4,13 +4,13 @@ namespace GameTopUp.BLL.DTOs.Auths
 {
     public class LoginRequest
     {
-        [Required(ErrorMessage = "Email kh�ng du?c d? tr?ng")]
-        [EmailAddress(ErrorMessage = "Email kh�ng h?p l?")]
+        [Required(ErrorMessage = "Email không được để trống")]
+        [EmailAddress(ErrorMessage = "Email không hợp lệ")]
 
         public string Email { get; set; } = null!;
 
-        [Required(ErrorMessage = "M?t kh?u kh�ng du?c d? tr?ng")]
-        [MinLength(8, ErrorMessage = "M?t kh?u ph?i �t nh?t 8 k� t?")]
+        [Required(ErrorMessage = "Mật khẩu không được để trống")]
+        [MinLength(8, ErrorMessage = "Mật khẩu phải ít nhất 8 ký tự")]
         public string Password { get; set; } = null!;
     }
 }

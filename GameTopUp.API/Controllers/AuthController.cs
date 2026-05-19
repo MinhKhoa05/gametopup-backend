@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Authorization;
 using GameTopUp.BLL.DTOs.Auths;
 using GameTopUp.BLL.DTOs.Users;
 using GameTopUp.BLL.ApplicationServices;
+using GameTopUp.BLL.Exceptions;
+using GameTopUp.API.Extensions;
 
 namespace GameTopUp.API.Controllers
 {
@@ -29,21 +31,7 @@ namespace GameTopUp.API.Controllers
         {
             var loginResponse = await _auth.LoginAsync(loginRequest);
 
-            if (!Response.HasStarted)
-            {
-                // Cấu hình Cookie cho Refresh Token
-                if (!string.IsNullOrEmpty(loginResponse.RefreshToken))
-                {
-                    var refreshTokenOptions = new CookieOptions
-                    {
-                        HttpOnly = true, // Quan trọng: Chống tấn công XSS (Javascript không đọc được)
-                        Secure = false,  // Sửa thành true khi chạy HTTPS
-                        SameSite = SameSiteMode.Lax, // Chống CSRF ở mức độ cơ bản
-                        Expires = DateTime.UtcNow.AddDays(7) // Thường là 7 ngày hoặc theo cấu hình hệ thống
-                    };
-                    Response.Cookies.Append("refreshToken", loginResponse.RefreshToken, refreshTokenOptions);
-                }
-            }
+            Response.SetRefreshToken(loginResponse.RefreshToken);
 
             return ApiOk(loginResponse, "Đăng nhập thành công.");
         }
@@ -57,18 +45,33 @@ namespace GameTopUp.API.Controllers
         }
 
         [HttpPost("refresh")]
-        public async Task<IActionResult> Refresh(RefreshTokenRequestDTO request)
+        public async Task<IActionResult> Refresh()
         {
-            var result = await _auth.RefreshAsync(request);
+            var refreshToken = Request.GetRefreshToken();
+            if (string.IsNullOrEmpty(refreshToken))
+            {
+                throw new BusinessException("Refresh Token không hợp lệ hoặc đã hết hạn.");
+            }
+
+            var result = await _auth.RefreshAsync(refreshToken);
+
+            Response.SetRefreshToken(result.RefreshToken);
+
             return ApiOk(result, "Làm mới token thành công.");
         }
 
         [Authorize]
         [HttpPost("logout")]
-        public async Task<IActionResult> Logout(RefreshTokenRequestDTO request)
+        public async Task<IActionResult> Logout()
         {
-            // Note: Chúng ta truyền refresh token lên để revoke nó trong DB
-            await _auth.LogoutAsync(request.RefreshToken);
+            var refreshToken = Request.GetRefreshToken();
+            if (!string.IsNullOrEmpty(refreshToken))
+            {
+                await _auth.LogoutAsync(refreshToken);
+            }
+
+            Response.DeleteRefreshToken();
+
             return ApiOk(null, "Đăng xuất thành công.");
         }
     }

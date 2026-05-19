@@ -86,6 +86,8 @@ namespace GameTopUp.Tests.IntegrationTests.Infrastructure
 
         protected override void ConfigureWebHost(IWebHostBuilder builder)
         {
+            builder.UseSetting("Jwt:Key", "SuperSecretTestKeyThatIsVeryLongAndSecure12345!");
+            
             builder.ConfigureServices(services =>
             {
                 // Cách ly môi trường: Gỡ bỏ cấu hình DB thực tế.

@@ -7,6 +7,7 @@ using GameTopUp.DAL.Interfaces;
 using Xunit;
 using FluentAssertions;
 using GameTopUp.BLL.Config;
+using Mapster;
 
 namespace GameTopUp.Tests.UnitTests.Services
 {
@@ -42,10 +43,17 @@ namespace GameTopUp.Tests.UnitTests.Services
 
             // Assert
             result.Should().HaveCount(2);
-            var first = result.First();
-            first.Id.Should().Be(101);
-            first.Username.Should().Be("nguyenvana");
-            first.Email.Should().Be("vana@gmail.com");
+            var list = result.ToList();
+            
+            list[0].Id.Should().Be(101);
+            list[0].Username.Should().Be("nguyenvana");
+            list[0].Email.Should().Be("vana@gmail.com");
+            list[0].Role.Should().Be("Member");
+
+            list[1].Id.Should().Be(102);
+            list[1].Username.Should().Be("tranvanb");
+            list[1].Email.Should().Be("vanb@yahoo.com");
+            list[1].Role.Should().Be("Admin");
         }
 
         [Fact]
@@ -149,6 +157,19 @@ namespace GameTopUp.Tests.UnitTests.Services
             // Rationale: We verify that the service checks for existence before calling delete
             _userRepoMock.Verify(r => r.GetByIdAsync(77), Times.Once);
             _userRepoMock.Verify(r => r.DeleteAsync(77), Times.Once);
+        }
+
+        [Fact]
+        public void Mapster_ShouldMapEnumToStringByName_Globally()
+        {
+            // Arrange
+            var status = OrderStatus.Processing;
+
+            // Act
+            var result = status.Adapt<string>();
+
+            // Assert
+            result.Should().Be("Processing");
         }
 
         #endregion

@@ -1,7 +1,9 @@
 using Mapster;
 using GameTopUp.BLL.DTOs.GamePackages;
+using GameTopUp.BLL.DTOs.Users;
 using GameTopUp.BLL.Utils;
 using GameTopUp.DAL.Entities;
+using System;
 
 namespace GameTopUp.BLL.Config
 {
@@ -9,11 +11,16 @@ namespace GameTopUp.BLL.Config
     {
         public static void RegisterMappings()
         {
-            TypeAdapterConfig.GlobalSettings.Default.IgnoreNullValues(true);
+            TypeAdapterConfig<Enum, string>.NewConfig()
+                .MapWith(src => src.ToString());
 
             TypeAdapterConfig<UpdateGamePackageRequest, GamePackage>
                 .NewConfig()
-                .Map(dest => dest.NormalizedName, src => NormalizeName.Normalize(src.Name!), srcCond => srcCond.Name != null);
+                .Map(
+                    dest => dest.NormalizedName,
+                    src => NormalizeName.Normalize(src.Name!),
+                    srcCond => srcCond.Name != null
+                );
         }
     }
 }
