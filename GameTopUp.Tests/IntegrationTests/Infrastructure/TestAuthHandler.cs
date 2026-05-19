@@ -25,7 +25,7 @@ namespace GameTopUp.Tests.IntegrationTests.Infrastructure
                 return Task.FromResult(AuthenticateResult.NoResult());
             }
 
-            var role = Context.Request.Headers["X-Test-Role"].FirstOrDefault() ?? "User";
+            var role = Context.Request.Headers["X-Test-Role"].FirstOrDefault() ?? "Member";
             var username = Context.Request.Headers["X-Test-Username"].FirstOrDefault() ?? "TestUser";
 
             var claims = new[] { 

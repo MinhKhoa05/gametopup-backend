@@ -11,34 +11,19 @@ using GameTopUp.Tests.IntegrationTests.Infrastructure;
 namespace GameTopUp.Tests.IntegrationTests.Scenarios
 {
     [Collection("IntegrationTests")]
-    public class OrderApiTests : IAsyncLifetime
+    public class OrderApiTests : BaseIntegrationTest
     {
-        private readonly HttpClient _client;
-        private readonly CustomWebApplicationFactory<Program> _factory;
-
-        public OrderApiTests(CustomWebApplicationFactory<Program> factory)
+        public OrderApiTests(CustomWebApplicationFactory<Program> factory) : base(factory)
         {
-            _factory = factory;
-            _client = _factory.CreateClient();
-        }
-
-        public async Task InitializeAsync()
-        {
-            await _factory.ResetDatabaseAsync();
-        }
-
-        public Task DisposeAsync()
-        {
-            return Task.CompletedTask;
         }
 
         private async Task<(Game Game, GamePackage Package, User Customer)> SeedBaseDataAsync(
             string prefix,
             Action<GamePackage>? customizePackage = null)
         {
-            var game = await _factory.SeedGameAsync($"{prefix} Game");
-            var package = await _factory.SeedGamePackageAsync(game.Id, $"{prefix} Package", customizePackage);
-            var customer = await _factory.SeedUserAsync($"{prefix.ToLower()}_customer");
+            var game = await Factory.SeedGameAsync($"{prefix} Game");
+            var package = await Factory.SeedGamePackageAsync(game.Id, $"{prefix} Package", customizePackage);
+            var customer = await Factory.SeedUserAsync($"{prefix.ToLower()}_customer");
             return (game, package, customer);
         }
 
@@ -47,7 +32,7 @@ namespace GameTopUp.Tests.IntegrationTests.Scenarios
         {
             // Arrange
             var (_, package, customer) = await SeedBaseDataAsync("Pick");
-            var seededOrder = await _factory.SeedOrderAsync(customer.Id, package.Id, customize: o => o.Status = OrderStatus.Paid);
+            var seededOrder = await Factory.SeedOrderAsync(customer.Id, package.Id, customize: o => o.Status = OrderStatus.Paid);
             var orderId = seededOrder.Id;
 
             int concurrentRequests = 10;
@@ -59,7 +44,7 @@ namespace GameTopUp.Tests.IntegrationTests.Scenarios
                 var req = new HttpRequestMessage(HttpMethod.Post, $"/api/orders/{orderId}/pick")
                     .WithTestAuth(i + 100, "Admin");
                 
-                tasks.Add(_client.SendAsync(req));
+                tasks.Add(Client.SendAsync(req));
             }
 
             var responses = await Task.WhenAll(tasks);
@@ -73,7 +58,7 @@ namespace GameTopUp.Tests.IntegrationTests.Scenarios
             failureCount.Should().Be(concurrentRequests - 1, "All other requests should fail with 400");
 
             // Kiểm tra trạng thái cuối cùng trong DB
-            var order = await _factory.GetOrderAsync(orderId);
+            var order = await Factory.GetOrderAsync(orderId);
             order!.Status.Should().Be(OrderStatus.Processing);
             order.AssignTo.Should().BeInRange(100, 109);
         }
@@ -92,8 +77,8 @@ namespace GameTopUp.Tests.IntegrationTests.Scenarios
             int orderQuantity = 1;
             decimal orderTotal = packagePrice * orderQuantity;
             
-            await _factory.SeedWalletAsync(customer.Id, initialBalance);
-            var seededOrder = await _factory.SeedOrderAsync(customer.Id, package.Id, customize: o => 
+            await Factory.SeedWalletAsync(customer.Id, initialBalance);
+            var seededOrder = await Factory.SeedOrderAsync(customer.Id, package.Id, customize: o => 
             {
                 o.Quantity = orderQuantity;
                 o.UnitPrice = packagePrice;
@@ -110,7 +95,7 @@ namespace GameTopUp.Tests.IntegrationTests.Scenarios
             {
                 var req = new HttpRequestMessage(HttpMethod.Post, $"/api/orders/{orderId}/cancel")
                     .WithTestAuth(customerId, "User");
-                tasks.Add(_client.SendAsync(req));
+                tasks.Add(Client.SendAsync(req));
             }
 
             var responses = await Task.WhenAll(tasks);
@@ -123,19 +108,19 @@ namespace GameTopUp.Tests.IntegrationTests.Scenarios
             }
 
             // Kiểm tra Database: Số dư chỉ được hoàn 1 lần duy nhất
-            var wallet = await _factory.GetWalletAsync(customerId);
+            var wallet = await Factory.GetWalletAsync(customerId);
             wallet!.Balance.Should().Be(initialBalance + orderTotal);
 
             // Kiểm tra Database: Tồn kho được hoàn trả lại đúng 1 lần (từ 10 tăng lên 11)
-            var packageInDb = await _factory.GetPackageAsync(package.Id);
+            var packageInDb = await Factory.GetPackageAsync(package.Id);
             packageInDb!.StockQuantity.Should().Be(11);
 
             // Kiểm tra Database: Trạng thái đơn hàng là Cancelled
-            var order = await _factory.GetOrderAsync(orderId);
+            var order = await Factory.GetOrderAsync(orderId);
             order!.Status.Should().Be(OrderStatus.Cancelled);
 
             // Kiểm tra History: Chỉ có 1 bản ghi log cho việc hủy
-            var historyCount = await _factory.GetOrderHistoryCountAsync(orderId);
+            var historyCount = await Factory.GetOrderHistoryCountAsync(orderId);
             historyCount.Should().Be(1);
         }
 
@@ -145,31 +130,31 @@ namespace GameTopUp.Tests.IntegrationTests.Scenarios
             // Arrange
             var (_, package, customer) = await SeedBaseDataAsync("Complete");
             // Đơn hàng phải được THANH TOÁN (Paid) thì Admin mới Pick được
-            var seededOrder = await _factory.SeedOrderAsync(customer.Id, package.Id, customize: o => o.Status = OrderStatus.Paid);
+            var seededOrder = await Factory.SeedOrderAsync(customer.Id, package.Id, customize: o => o.Status = OrderStatus.Paid);
 
             // Seed Admin để đảm bủo ID tồn tại trong DB cho FK AssignTo
-            var admin = await _factory.SeedUserAsync("admin_comp");
+            var admin = await Factory.SeedUserAsync("admin_comp");
             var orderId = seededOrder.Id;
             var adminId = admin.Id;
 
             // Admin picks the order first
             var pickRequest = new HttpRequestMessage(HttpMethod.Post, $"/api/orders/{orderId}/pick")
                 .WithTestAuth(adminId, "Admin");
-            var pickResponse = await _client.SendAsync(pickRequest);
+            var pickResponse = await Client.SendAsync(pickRequest);
             pickResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
             // Act
             var request = new HttpRequestMessage(HttpMethod.Post, $"/api/orders/{orderId}/complete")
                 .WithTestAuth(adminId, "Admin");
-            var response = await _client.SendAsync(request);
+            var response = await Client.SendAsync(request);
 
             // Assert
             response.StatusCode.Should().Be(HttpStatusCode.OK);
             
-            var order = await _factory.GetOrderAsync(orderId);
+            var order = await Factory.GetOrderAsync(orderId);
             order!.Status.Should().Be(OrderStatus.Completed);
 
-            var historyCount = await _factory.GetOrderHistoryCountAsync(orderId);
+            var historyCount = await Factory.GetOrderHistoryCountAsync(orderId);
             historyCount.Should().Be(2); // 1 for Pick, 1 for Complete
         }
 
@@ -179,15 +164,15 @@ namespace GameTopUp.Tests.IntegrationTests.Scenarios
             // Arrange
             var (_, package, customer) = await SeedBaseDataAsync("CompRace");
             // Đơn hàng phải được THANH TOÁN (Paid) thì Admin mới Pick được
-            var seededOrder = await _factory.SeedOrderAsync(customer.Id, package.Id, customize: o => o.Status = OrderStatus.Paid);
+            var seededOrder = await Factory.SeedOrderAsync(customer.Id, package.Id, customize: o => o.Status = OrderStatus.Paid);
             var orderId = seededOrder.Id;
-            var admin = await _factory.SeedUserAsync("admin_comp_race", u => u.Role = UserRole.Admin);
+            var admin = await Factory.SeedUserAsync("admin_comp_race", u => u.Role = UserRole.Admin);
             var adminId = admin.Id;
 
             // Admin picks the order
             var pickRequest = new HttpRequestMessage(HttpMethod.Post, $"/api/orders/{orderId}/pick")
                 .WithTestAuth(adminId, "Admin");
-            await _client.SendAsync(pickRequest);
+            await Client.SendAsync(pickRequest);
 
             int concurrentRequests = 10;
             var tasks = new List<Task<HttpResponseMessage>>();
@@ -197,7 +182,7 @@ namespace GameTopUp.Tests.IntegrationTests.Scenarios
             {
                 var req = new HttpRequestMessage(HttpMethod.Post, $"/api/orders/{orderId}/complete")
                     .WithTestAuth(adminId, "Admin");
-                tasks.Add(_client.SendAsync(req));
+                tasks.Add(Client.SendAsync(req));
             }
 
             var responses = await Task.WhenAll(tasks);
@@ -208,10 +193,10 @@ namespace GameTopUp.Tests.IntegrationTests.Scenarios
                 response.StatusCode.Should().Be(HttpStatusCode.OK);
             }
 
-            var order = await _factory.GetOrderAsync(orderId);
+            var order = await Factory.GetOrderAsync(orderId);
             order!.Status.Should().Be(OrderStatus.Completed);
 
-            var historyCount = await _factory.GetOrderHistoryCountAsync(orderId);
+            var historyCount = await Factory.GetOrderHistoryCountAsync(orderId);
             historyCount.Should().Be(2);
         }
         
@@ -230,17 +215,17 @@ namespace GameTopUp.Tests.IntegrationTests.Scenarios
             var request = new HttpRequestMessage(HttpMethod.Post, "api/orders/place")
                 .WithTestAuth(customerId, "User")
                 .WithJson(placeDto);
-            var response = await _client.SendAsync(request);
+            var response = await Client.SendAsync(request);
             
             response.StatusCode.Should().Be(HttpStatusCode.Created);
 
             var orderId = await response.ReadDataAsync<long>();
             
             // Assert
-            var order = await _factory.GetOrderAsync(orderId);
+            var order = await Factory.GetOrderAsync(orderId);
             order!.Status.Should().Be(OrderStatus.Pending);
 
-            var packageInDb = await _factory.GetPackageAsync(packageId);
+            var packageInDb = await Factory.GetPackageAsync(packageId);
             packageInDb!.StockQuantity.Should().Be(8); // Ban đầu là 10, mua 2, kiểm tra còn 8.
         }
 
@@ -253,11 +238,11 @@ namespace GameTopUp.Tests.IntegrationTests.Scenarios
             var packageId = package.Id;
             var placeDto = new { GamePackageId = packageId, Quantity = 1, GameAccountInfo = "race_player" };
 
-            // Tạo 10 User khác nhau để bypass rule "mỗi user chỉ có 1 đơn Pending"
+            // Tạo 10 User khaân nhau để bypass rule "mỗi user chỉ có 1 đơn Pending"
             var userIds = new List<long>();
             for (int i = 1; i <= concurrentRequests; i++)
             {
-                var user = await _factory.SeedUserAsync($"race_user_{i}");
+                var user = await Factory.SeedUserAsync($"race_user_{i}");
                 userIds.Add(user.Id);
             }
 
@@ -268,13 +253,13 @@ namespace GameTopUp.Tests.IntegrationTests.Scenarios
                 var req = new HttpRequestMessage(HttpMethod.Post, "api/orders/place")
                     .WithTestAuth(userId, "User")
                     .WithJson(placeDto);
-                tasks.Add(_client.SendAsync(req));
+                tasks.Add(Client.SendAsync(req));
             }
 
             var responses = await Task.WhenAll(tasks);
 
             // Assert
-            var packageInDb = await _factory.GetPackageAsync(packageId);
+            var packageInDb = await Factory.GetPackageAsync(packageId);
             packageInDb!.StockQuantity.Should().Be(0);
 
             var successCount = responses.Count(r => r.StatusCode == HttpStatusCode.Created);

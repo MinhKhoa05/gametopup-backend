@@ -10,33 +10,17 @@ using GameTopUp.Tests.IntegrationTests.Infrastructure;
 namespace GameTopUp.Tests.IntegrationTests.Scenarios
 {
     [Collection("IntegrationTests")]
-    public class GameApiTests : IAsyncLifetime
+    public class GameApiTests : BaseIntegrationTest
     {
-        private readonly HttpClient _client;
-        private readonly CustomWebApplicationFactory<Program> _factory;
-
-        public GameApiTests(CustomWebApplicationFactory<Program> factory)
+        public GameApiTests(CustomWebApplicationFactory<Program> factory) : base(factory)
         {
-            _factory = factory;
-            _client = _factory.CreateClient();
-        }
-
-        public async Task InitializeAsync()
-        {
-            await _factory.ResetDatabaseAsync();
-        }
-
-        public Task DisposeAsync()
-        {
-            return Task.CompletedTask;
         }
 
         [Fact]
         public async Task GetAllGames_ShouldReturnWrappedOk()
         {
             // Act
-            var request = new HttpRequestMessage(HttpMethod.Get, "/api/games");
-            var response = await _client.SendAsync(request);
+            var response = await Client.GetAsync("/api/games");
 
             // Assert
             response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -48,8 +32,7 @@ namespace GameTopUp.Tests.IntegrationTests.Scenarios
         public async Task GetGameById_ShouldReturnNotFound_WhenIdDoesNotExist()
         {
             // Act
-            var request = new HttpRequestMessage(HttpMethod.Get, "/api/games/9999");
-            var response = await _client.SendAsync(request);
+            var response = await Client.GetAsync("/api/games/9999");
 
             // Assert
             response.StatusCode.Should().Be(HttpStatusCode.NotFound);
@@ -62,7 +45,7 @@ namespace GameTopUp.Tests.IntegrationTests.Scenarios
         public async Task CreateGame_ShouldReturnCreated_WithCorrectData()
         {
             // Arrange
-            var admin = await _factory.SeedUserAsync("admin_game", u => u.Role = UserRole.Admin);
+            var admin = await Factory.SeedUserAsync("admin_game", u => u.Role = UserRole.Admin);
             var createDto = new CreateGameRequest 
             { 
                 Name = "Genshin Impact", 
@@ -74,7 +57,7 @@ namespace GameTopUp.Tests.IntegrationTests.Scenarios
             var request = new HttpRequestMessage(HttpMethod.Post, "/api/games")
                 .WithTestAuth(admin.Id, "Admin")
                 .WithJson(createDto);
-            var response = await _client.SendAsync(request);
+            var response = await Client.SendAsync(request);
 
             // Assert
             response.StatusCode.Should().Be(HttpStatusCode.Created);
@@ -89,18 +72,18 @@ namespace GameTopUp.Tests.IntegrationTests.Scenarios
         public async Task DeleteGame_ShouldPerformHardDelete_Successfully()
         {
             // Arrange - Create a game first
-            var admin = await _factory.SeedUserAsync("admin_del_game", u => u.Role = UserRole.Admin);
+            var admin = await Factory.SeedUserAsync("admin_del_game", u => u.Role = UserRole.Admin);
             var createRequest = new HttpRequestMessage(HttpMethod.Post, "/api/games")
                 .WithTestAuth(admin.Id, "Admin")
                 .WithJson(new CreateGameRequest { Name = "Hard Delete Test" });
-            var createResponse = await _client.SendAsync(createRequest);
+            var createResponse = await Client.SendAsync(createRequest);
             var game = await createResponse.ReadDataAsync<Game>();
             var gameId = game!.Id;
             
             // Act - Delete it
             var request = new HttpRequestMessage(HttpMethod.Delete, $"/api/games/{gameId}")
                 .WithTestAuth(admin.Id, "Admin");
-            var response = await _client.SendAsync(request);
+            var response = await Client.SendAsync(request);
 
             // Assert
             response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -109,8 +92,7 @@ namespace GameTopUp.Tests.IntegrationTests.Scenarios
             wrapper.Message.Should().Contain("Xóa Game thành công");
 
             // Verify it's really gone
-            var getRequest = new HttpRequestMessage(HttpMethod.Get, $"/api/games/{gameId}");
-            var getResponse = await _client.SendAsync(getRequest);
+            var getResponse = await Client.GetAsync($"/api/games/{gameId}");
             getResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
 
@@ -118,14 +100,14 @@ namespace GameTopUp.Tests.IntegrationTests.Scenarios
         public async Task CreateGame_ShouldReturnBadRequest_WhenNameIsEmpty()
         {
             // Arrange
-            var admin = await _factory.SeedUserAsync("admin_bad_game", u => u.Role = UserRole.Admin);
+            var admin = await Factory.SeedUserAsync("admin_bad_game", u => u.Role = UserRole.Admin);
             var createDto = new CreateGameRequest { Name = "", ImageUrl = "img.png" };
 
             // Act
             var request = new HttpRequestMessage(HttpMethod.Post, "/api/games")
                 .WithTestAuth(admin.Id, "Admin")
                 .WithJson(createDto);
-            var response = await _client.SendAsync(request);
+            var response = await Client.SendAsync(request);
 
             // Assert
             response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
@@ -135,7 +117,7 @@ namespace GameTopUp.Tests.IntegrationTests.Scenarios
         public async Task CreateGame_ShouldHandleSpecialCharactersAndLongStrings()
         {
             // Arrange
-            var admin = await _factory.SeedUserAsync("admin_special_game", u => u.Role = UserRole.Admin);
+            var admin = await Factory.SeedUserAsync("admin_special_game", u => u.Role = UserRole.Admin);
             var longName = new string('A', 100); 
             var specialChars = "!@#$%^&*()_+";
             var createDto = new CreateGameRequest { Name = specialChars + longName, ImageUrl = "img.png" };
@@ -144,7 +126,7 @@ namespace GameTopUp.Tests.IntegrationTests.Scenarios
             var request = new HttpRequestMessage(HttpMethod.Post, "/api/games")
                 .WithTestAuth(admin.Id, "Admin")
                 .WithJson(createDto);
-            var response = await _client.SendAsync(request);
+            var response = await Client.SendAsync(request);
 
             // Assert
             response.StatusCode.Should().Be(HttpStatusCode.Created);

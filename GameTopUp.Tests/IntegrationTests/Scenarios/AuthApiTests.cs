@@ -1,5 +1,8 @@
 using System.Net;
+using System.Net.Http;
 using System.Net.Http.Json;
+using System.Linq;
+using System.Threading.Tasks;
 using FluentAssertions;
 using GameTopUp.BLL.DTOs.Auths;
 using GameTopUp.BLL.DTOs.Users;
@@ -10,106 +13,53 @@ using GameTopUp.Tests.IntegrationTests.Infrastructure;
 namespace GameTopUp.Tests.IntegrationTests.Scenarios
 {
     [Collection("IntegrationTests")]
-    public class AuthApiTests : IAsyncLifetime
+    public class AuthApiTests : BaseIntegrationTest
     {
-        private readonly HttpClient _client;
-        private readonly CustomWebApplicationFactory<Program> _factory;
-
-        public AuthApiTests(CustomWebApplicationFactory<Program> factory)
+        public AuthApiTests(CustomWebApplicationFactory<Program> factory) : base(factory)
         {
-            _factory = factory;
-            _client = _factory.CreateClient();
-        }
-
-        public async Task InitializeAsync()
-        {
-            await _factory.ResetDatabaseAsync();
-        }
-
-        public Task DisposeAsync()
-        {
-            return Task.CompletedTask;
         }
 
         [Fact]
         public async Task Register_ShouldCreateUser_WhenDataIsValid()
         {
-            // Arrange
-            var registerRequest = new CreateUserRequest
-            {
-                Name = "testregister",
-                Email = "testregister@test.com",
-                Password = "Password123!"
-            };
-
             // Act
-            var response = await _client.PostAsJsonAsync("/api/auth/register", registerRequest);
+            var response = await RegisterAsync("testregister", "testregister@test.com", "Password123!");
 
             // Assert
-            var content = await response.Content.ReadAsStringAsync();
-            response.StatusCode.Should().Be(HttpStatusCode.Created, $"Register failed: {content}");
+            response.StatusCode.Should().Be(HttpStatusCode.Created);
         }
 
         [Fact]
         public async Task Login_ShouldSetCookieAndReturnAccessToken_WhenCredentialsAreValid()
         {
-            // Arrange - Register the user first
-            var registerRequest = new CreateUserRequest
-            {
-                Name = "testlogin",
-                Email = "testlogin@test.com",
-                Password = "Password123!"
-            };
-            await _client.PostAsJsonAsync("/api/auth/register", registerRequest);
-
-            var loginRequest = new LoginRequest
-            {
-                Email = "testlogin@test.com",
-                Password = "Password123!"
-            };
+            // Arrange
+            await RegisterAsync("testlogin", "testlogin@test.com", "Password123!");
 
             // Act
-            var response = await _client.PostAsJsonAsync("/api/auth/login", loginRequest);
+            var response = await LoginAsync("testlogin@test.com", "Password123!");
 
             // Assert
             response.StatusCode.Should().Be(HttpStatusCode.OK);
-            
-            // Verify Cookie
-            response.Headers.Contains("Set-Cookie").Should().BeTrue();
-            var setCookieHeader = response.Headers.GetValues("Set-Cookie").FirstOrDefault();
-            setCookieHeader.Should().NotBeNull();
-            setCookieHeader.Should().Contain("refreshToken=");
+            response.GetCookie("refreshToken").Should().NotBeEmpty();
 
-            // Verify body
             var result = await response.Content.ReadFromJsonAsync<ApiResponseTestWrapper<AuthResponseDTO>>();
             result!.Success.Should().BeTrue();
             result.Data!.AccessToken.Should().NotBeNullOrEmpty();
-            result.Data.RefreshToken.Should().BeNullOrEmpty(); // RefreshToken must be kept in cookie, not body
+            result.Data.RefreshToken.Should().BeNullOrEmpty(); // Kept in cookie only
         }
 
         [Fact]
         public async Task Login_ShouldReturnBadRequest_WhenPasswordIncorrect()
         {
-            // Arrange - Register the user first
-            var registerRequest = new CreateUserRequest
-            {
-                Name = "testloginbad",
-                Email = "testloginbad@test.com",
-                Password = "Password123!"
-            };
-            await _client.PostAsJsonAsync("/api/auth/register", registerRequest);
-
-            var loginRequest = new LoginRequest
-            {
-                Email = "testloginbad@test.com",
-                Password = "WrongPassword!"
-            };
+            // Arrange
+            await RegisterAsync("testloginbad", "testloginbad@test.com", "Password123!");
 
             // Act
-            var response = await _client.PostAsJsonAsync("/api/auth/login", loginRequest);
+            var response = await LoginAsync("testloginbad@test.com", "WrongPassword!");
 
             // Assert
             response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+
             var result = await response.Content.ReadFromJsonAsync<ApiResponseTestWrapper<object>>();
             result!.Success.Should().BeFalse();
             result.Message.Should().Be("Email hoặc mật khẩu không chính xác.");
@@ -118,46 +68,20 @@ namespace GameTopUp.Tests.IntegrationTests.Scenarios
         [Fact]
         public async Task Refresh_ShouldReturnNewTokens_WhenValidCookieProvided()
         {
-            // Arrange - Register and Login to get the cookie
-            var registerRequest = new CreateUserRequest
-            {
-                Name = "testrefresh",
-                Email = "testrefresh@test.com",
-                Password = "Password123!"
-            };
-            await _client.PostAsJsonAsync("/api/auth/register", registerRequest);
+            // Arrange - Register & Login to get the cookie via private helper
+            var authInfo = await RegisterAndLoginAsync("testrefresh", "testrefresh@test.com", "Password123!");
+            var refreshToken = authInfo.RefreshToken;
 
-            var loginRequest = new LoginRequest
-            {
-                Email = "testrefresh@test.com",
-                Password = "Password123!"
-            };
-            var loginResponse = await _client.PostAsJsonAsync("/api/auth/login", loginRequest);
-            var setCookieHeader = loginResponse.Headers.GetValues("Set-Cookie").FirstOrDefault();
-            var cookieParts = setCookieHeader!.Split(';');
-            var tokenPart = cookieParts.FirstOrDefault(p => p.Trim().StartsWith("refreshToken="));
-            var refreshTokenValue = tokenPart!.Split('=')[1];
-
-            var refreshRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/api/auth/refresh");
-            refreshRequestMessage.Headers.Add("Cookie", $"refreshToken={refreshTokenValue}");
-
-            // Act
-            var response = await _client.SendAsync(refreshRequestMessage);
+            // Act - Send refresh request with Cookie using the fluent extension WithCookie
+            var response = await Client.SendAsync(new HttpRequestMessage(HttpMethod.Post, "/api/auth/refresh")
+                .WithCookie("refreshToken", refreshToken));
 
             // Assert
             response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-            // Verify new Cookie is set and different
-            response.Headers.Contains("Set-Cookie").Should().BeTrue();
-            var newSetCookieHeader = response.Headers.GetValues("Set-Cookie").FirstOrDefault();
-            newSetCookieHeader.Should().NotBeNull();
-            newSetCookieHeader.Should().Contain("refreshToken=");
-            var newCookieParts = newSetCookieHeader!.Split(';');
-            var newTokenPart = newCookieParts.FirstOrDefault(p => p.Trim().StartsWith("refreshToken="));
-            var newRefreshTokenValue = newTokenPart!.Split('=')[1];
-            newRefreshTokenValue.Should().NotBe(refreshTokenValue);
+            var newRefreshToken = response.GetCookie("refreshToken");
+            newRefreshToken.Should().NotBeNullOrEmpty().And.NotBe(refreshToken);
 
-            // Verify new access token in body
             var result = await response.Content.ReadFromJsonAsync<ApiResponseTestWrapper<AuthResponseDTO>>();
             result!.Success.Should().BeTrue();
             result.Data!.AccessToken.Should().NotBeNullOrEmpty();
@@ -166,15 +90,13 @@ namespace GameTopUp.Tests.IntegrationTests.Scenarios
         [Fact]
         public async Task Refresh_ShouldReturnBadRequest_WhenInvalidCookieProvided()
         {
-            // Arrange
-            var refreshRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/api/auth/refresh");
-            refreshRequestMessage.Headers.Add("Cookie", "refreshToken=invalidtoken123");
-
-            // Act
-            var response = await _client.SendAsync(refreshRequestMessage);
+            // Act - Send refresh request with invalid cookie using WithCookie
+            var response = await Client.SendAsync(new HttpRequestMessage(HttpMethod.Post, "/api/auth/refresh")
+                .WithCookie("refreshToken", "invalidtoken123"));
 
             // Assert
             response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+
             var result = await response.Content.ReadFromJsonAsync<ApiResponseTestWrapper<object>>();
             result!.Success.Should().BeFalse();
             result.Message.Should().Be("Refresh Token không hợp lệ.");
@@ -183,47 +105,63 @@ namespace GameTopUp.Tests.IntegrationTests.Scenarios
         [Fact]
         public async Task Logout_ShouldClearCookieAndRevokeToken_WhenAuthorized()
         {
-            // Arrange - Register and Login to get accessToken and refreshToken
-            var registerRequest = new CreateUserRequest
-            {
-                Name = "testlogout",
-                Email = "testlogout@test.com",
-                Password = "Password123!"
-            };
-            await _client.PostAsJsonAsync("/api/auth/register", registerRequest);
+            // Arrange - Register & Login via private helper
+            var authInfo = await RegisterAndLoginAsync("testlogout", "testlogout@test.com", "Password123!");
 
-            var loginRequest = new LoginRequest
-            {
-                Email = "testlogout@test.com",
-                Password = "Password123!"
-            };
-            var loginResponse = await _client.PostAsJsonAsync("/api/auth/login", loginRequest);
-            var setCookieHeader = loginResponse.Headers.GetValues("Set-Cookie").FirstOrDefault();
-            var cookieParts = setCookieHeader!.Split(';');
-            var tokenPart = cookieParts.FirstOrDefault(p => p.Trim().StartsWith("refreshToken="));
-            var refreshTokenValue = tokenPart!.Split('=')[1];
-
-            var loginData = await loginResponse.Content.ReadFromJsonAsync<ApiResponseTestWrapper<AuthResponseDTO>>();
-            var accessToken = loginData!.Data!.AccessToken;
-
-            var logoutRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/api/auth/logout");
-            logoutRequestMessage.Headers.Add("Cookie", $"refreshToken={refreshTokenValue}");
-            logoutRequestMessage.Headers.Add("Authorization", $"Bearer {accessToken}");
-            logoutRequestMessage.Headers.Add("X-Test-UserId", loginData!.Data!.User!.Id.ToString());
-            logoutRequestMessage.Headers.Add("X-Test-Role", "Member");
-
-            // Act
-            var response = await _client.SendAsync(logoutRequestMessage);
+            // Act - Send logout using standard HttpClient extensions WithCookie and WithTestAuth
+            var response = await Client.SendAsync(new HttpRequestMessage(HttpMethod.Post, "/api/auth/logout")
+                .WithCookie("refreshToken", authInfo.RefreshToken)
+                .WithTestAuth(authInfo.User!.Id, "Member", authInfo.User.Username));
 
             // Assert
             response.StatusCode.Should().Be(HttpStatusCode.OK);
 
-            // Verify cookie is deleted/cleared in response
-            response.Headers.Contains("Set-Cookie").Should().BeTrue();
-            var deleteCookieHeader = response.Headers.GetValues("Set-Cookie").FirstOrDefault();
-            deleteCookieHeader.Should().NotBeNull();
-            deleteCookieHeader.Should().Contain("refreshToken=");
-            (deleteCookieHeader!.Contains("refreshToken=;") || deleteCookieHeader.Contains("expires=")).Should().BeTrue();
+            var cookieHeader = response.Headers.GetValues("Set-Cookie").FirstOrDefault();
+            cookieHeader.Should().NotBeNull().And.Contain("refreshToken=");
+            (cookieHeader!.Contains("refreshToken=;") || cookieHeader.Contains("expires=")).Should().BeTrue();
         }
+
+        #region PRIVATE AUTH HELPERS
+
+        private async Task<HttpResponseMessage> RegisterAsync(string username, string email, string password)
+        {
+            var registerRequest = new CreateUserRequest
+            {
+                Name = username,
+                Email = email,
+                Password = password
+            };
+            return await Client.PostAsJsonAsync("/api/auth/register", registerRequest);
+        }
+
+        private async Task<HttpResponseMessage> LoginAsync(string email, string password)
+        {
+            var loginRequest = new LoginRequest
+            {
+                Email = email,
+                Password = password
+            };
+            return await Client.PostAsJsonAsync("/api/auth/login", loginRequest);
+        }
+
+        private async Task<AuthResponseDTO> RegisterAndLoginAsync(
+            string username,
+            string email, 
+            string password)
+        {
+            var regResponse = await RegisterAsync(username, email, password);
+            regResponse.EnsureSuccessStatusCode();
+
+            var loginResponse = await LoginAsync(email, password);
+            loginResponse.EnsureSuccessStatusCode();
+
+            var data = await loginResponse.Content.ReadFromJsonAsync<ApiResponseTestWrapper<AuthResponseDTO>>();
+            var dto = data!.Data!;
+            dto.RefreshToken = loginResponse.GetCookie("refreshToken");
+
+            return dto;
+        }
+
+        #endregion
     }
 }

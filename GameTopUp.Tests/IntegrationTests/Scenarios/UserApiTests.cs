@@ -12,38 +12,23 @@ using GameTopUp.Tests.IntegrationTests.Infrastructure;
 namespace GameTopUp.Tests.IntegrationTests.Scenarios
 {
     [Collection("IntegrationTests")]
-    public class UserApiTests : IAsyncLifetime
+    public class UserApiTests : BaseIntegrationTest
     {
-        private readonly HttpClient _client;
-        private readonly CustomWebApplicationFactory<Program> _factory;
-
-        public UserApiTests(CustomWebApplicationFactory<Program> factory)
+        public UserApiTests(CustomWebApplicationFactory<Program> factory) : base(factory)
         {
-            _factory = factory;
-            _client = _factory.CreateClient();
-        }
-
-        public async Task InitializeAsync()
-        {
-            await _factory.ResetDatabaseAsync();
-        }
-
-        public Task DisposeAsync()
-        {
-            return Task.CompletedTask;
         }
 
         [Fact]
         public async Task GetAllUsers_ShouldReturnWrappedList()
         {
             // Arrange
-            var user = await _factory.SeedUserAsync("user_list_1");
-            await _factory.SeedUserAsync("user_list_2");
+            var user = await Factory.SeedUserAsync("user_list_1");
+            await Factory.SeedUserAsync("user_list_2");
 
             // Act
             var request = new HttpRequestMessage(HttpMethod.Get, "/api/users")
                 .WithTestAuth(user.Id, "Admin");
-            var response = await _client.SendAsync(request);
+            var response = await Client.SendAsync(request);
 
             // Assert
             response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -57,13 +42,13 @@ namespace GameTopUp.Tests.IntegrationTests.Scenarios
         public async Task GetUserById_ShouldReturnCorrectData_WhenUserExists()
         {
             // Arrange
-            var user = await _factory.SeedUserAsync("integration_test_user", u => u.Email = "integration@test.vn");
+            var user = await Factory.SeedUserAsync("integration_test_user", u => u.Email = "integration@test.vn");
             var id = user.Id;
 
             // Act
             var request = new HttpRequestMessage(HttpMethod.Get, $"/api/users/{id}")
                 .WithTestAuth(user.Id, "Member");
-            var response = await _client.SendAsync(request);
+            var response = await Client.SendAsync(request);
 
             // Assert
             response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -79,12 +64,12 @@ namespace GameTopUp.Tests.IntegrationTests.Scenarios
         public async Task GetUserById_ShouldReturnNotFound_WhenUserDoesNotExist()
         {
             // Arrange
-            var user = await _factory.SeedUserAsync("temp_user");
+            var user = await Factory.SeedUserAsync("temp_user");
 
             // Act
             var request = new HttpRequestMessage(HttpMethod.Get, "/api/users/9999")
                 .WithTestAuth(user.Id, "Member");
-            var response = await _client.SendAsync(request);
+            var response = await Client.SendAsync(request);
 
             // Assert
             response.StatusCode.Should().Be(HttpStatusCode.NotFound);
@@ -98,7 +83,7 @@ namespace GameTopUp.Tests.IntegrationTests.Scenarios
         public async Task UpdateUser_ShouldActuallyUpdateDatabase()
         {
             // Arrange
-            var user = await _factory.SeedUserAsync("original_name");
+            var user = await Factory.SeedUserAsync("original_name");
             var id = user.Id;
             var updateDto = new UpdateUserRequest { Username = "updated_name" };
 
@@ -106,12 +91,12 @@ namespace GameTopUp.Tests.IntegrationTests.Scenarios
             var request = new HttpRequestMessage(HttpMethod.Put, $"/api/users/{id}")
                 .WithTestAuth(user.Id, "Member")
                 .WithJson(updateDto);
-            var response = await _client.SendAsync(request);
+            var response = await Client.SendAsync(request);
 
             // Assert
             response.StatusCode.Should().Be(HttpStatusCode.OK);
             
-            var userInDb = await _factory.GetUserAsync(id);
+            var userInDb = await Factory.GetUserAsync(id);
             userInDb!.Username.Should().Be("updated_name");
         }
 
@@ -119,19 +104,19 @@ namespace GameTopUp.Tests.IntegrationTests.Scenarios
         public async Task DeleteUser_ShouldPerformSoftDelete_BySettingIsActiveToFalse()
         {
             // Arrange
-            var user = await _factory.SeedUserAsync("soft_delete_me");
+            var user = await Factory.SeedUserAsync("soft_delete_me");
             var id = user.Id;
 
             // Act
             var request = new HttpRequestMessage(HttpMethod.Delete, $"/api/users/{id}")
                 .WithTestAuth(user.Id, "Admin");
-            var response = await _client.SendAsync(request);
+            var response = await Client.SendAsync(request);
 
             // Assert
             response.StatusCode.Should().Be(HttpStatusCode.OK);
             
             // Verify in Database
-            var userInDb = await _factory.GetUserAsync(id);
+            var userInDb = await Factory.GetUserAsync(id);
             userInDb!.IsActive.Should().BeFalse();
         }
     }

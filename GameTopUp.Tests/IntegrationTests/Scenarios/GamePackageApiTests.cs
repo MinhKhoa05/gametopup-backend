@@ -10,33 +10,18 @@ using GameTopUp.Tests.IntegrationTests.Infrastructure;
 namespace GameTopUp.Tests.IntegrationTests.Scenarios
 {
     [Collection("IntegrationTests")]
-    public class GamePackageApiTests : IAsyncLifetime
+    public class GamePackageApiTests : BaseIntegrationTest
     {
-        private readonly HttpClient _client;
-        private readonly CustomWebApplicationFactory<Program> _factory;
-
-        public GamePackageApiTests(CustomWebApplicationFactory<Program> factory)
+        public GamePackageApiTests(CustomWebApplicationFactory<Program> factory) : base(factory)
         {
-            _factory = factory;
-            _client = _factory.CreateClient();
-        }
-
-        public async Task InitializeAsync()
-        {
-            await _factory.ResetDatabaseAsync();
-        }
-
-        public Task DisposeAsync()
-        {
-            return Task.CompletedTask;
         }
 
         [Fact]
         public async Task CreatePackage_ShouldReturnCreated_WhenDataIsValid()
         {
             // Arrange
-            var admin = await _factory.SeedUserAsync("admin_pack", u => u.Role = UserRole.Admin);
-            var game = await _factory.SeedGameAsync("Active Game For Package");
+            var admin = await Factory.SeedUserAsync("admin_pack", u => u.Role = UserRole.Admin);
+            var game = await Factory.SeedGameAsync("Active Game For Package");
             var createDto = new CreateGamePackageRequest 
             { 
                 GameId = game.Id, 
@@ -50,7 +35,7 @@ namespace GameTopUp.Tests.IntegrationTests.Scenarios
             var request = new HttpRequestMessage(HttpMethod.Post, "/api/game-packages")
                 .WithTestAuth(admin.Id, "Admin")
                 .WithJson(createDto);
-            var response = await _client.SendAsync(request);
+            var response = await Client.SendAsync(request);
 
             // Assert
             response.StatusCode.Should().Be(HttpStatusCode.Created);
@@ -64,17 +49,15 @@ namespace GameTopUp.Tests.IntegrationTests.Scenarios
         public async Task GetPackagesByGameId_ShouldReturnOnlyActivePackages()
         {
             // Arrange
-            var game = await _factory.SeedGameAsync("Game with many packages");
+            var game = await Factory.SeedGameAsync("Game with many packages");
             
             // Seed 1 active package directly in DB
-            await _factory.SeedGamePackageAsync(game.Id, "Active Pack", customize: p => p.IsActive = true);
+            await Factory.SeedGamePackageAsync(game.Id, "Active Pack", customize: p => p.IsActive = true);
             
             // Seed 1 inactive package directly in DB
-            await _factory.SeedGamePackageAsync(game.Id, "Inactive Pack", customize: p => p.IsActive = false);
+            await Factory.SeedGamePackageAsync(game.Id, "Inactive Pack", customize: p => p.IsActive = false);
 
-            // Act
-            var request = new HttpRequestMessage(HttpMethod.Get, $"/api/game-packages/game/{game.Id}");
-            var response = await _client.SendAsync(request);
+            var response = await Client.GetAsync($"/api/game-packages/game/{game.Id}");
 
             // Assert
             response.StatusCode.Should().Be(HttpStatusCode.OK);
@@ -88,21 +71,20 @@ namespace GameTopUp.Tests.IntegrationTests.Scenarios
         public async Task DeletePackage_ShouldPerformHardDelete()
         {
             // Arrange
-            var admin = await _factory.SeedUserAsync("admin_del_pack", u => u.Role = UserRole.Admin);
-            var game = await _factory.SeedGameAsync("Game for Delete Pack");
-            var package = await _factory.SeedGamePackageAsync(game.Id, "To Be Deleted");
+            var admin = await Factory.SeedUserAsync("admin_del_pack", u => u.Role = UserRole.Admin);
+            var game = await Factory.SeedGameAsync("Game for Delete Pack");
+            var package = await Factory.SeedGamePackageAsync(game.Id, "To Be Deleted");
 
             // Act
             var request = new HttpRequestMessage(HttpMethod.Delete, $"/api/game-packages/{package.Id}")
                 .WithTestAuth(admin.Id, "Admin");
-            var response = await _client.SendAsync(request);
+            var response = await Client.SendAsync(request);
 
             // Assert
             response.StatusCode.Should().Be(HttpStatusCode.OK);
             
             // Verify hard delete by trying to get it (Public endpoint)
-            var getRequest = new HttpRequestMessage(HttpMethod.Get, $"/api/game-packages/{package.Id}");
-            var getResponse = await _client.SendAsync(getRequest);
+            var getResponse = await Client.GetAsync($"/api/game-packages/{package.Id}");
             getResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
     }
