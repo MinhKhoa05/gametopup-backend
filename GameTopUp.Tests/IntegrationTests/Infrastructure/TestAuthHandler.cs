@@ -18,8 +18,14 @@ namespace GameTopUp.Tests.IntegrationTests.Infrastructure
         protected override Task<AuthenticateResult> HandleAuthenticateAsync()
         {
             // Dynamic Identity: Cho phép test case đóng vai nhiều user để kiểm tra Permission.
-            var userId = Context.Request.Headers["X-Test-UserId"].FirstOrDefault() ?? "1";
-            var role = Context.Request.Headers["X-Test-Role"].FirstOrDefault() ?? "Admin";
+            var userId = Context.Request.Headers["X-Test-UserId"].FirstOrDefault();
+            if (string.IsNullOrEmpty(userId))
+            {
+                // Không có header => Xem như ẩn danh (Anonymous)
+                return Task.FromResult(AuthenticateResult.NoResult());
+            }
+
+            var role = Context.Request.Headers["X-Test-Role"].FirstOrDefault() ?? "User";
             var username = Context.Request.Headers["X-Test-Username"].FirstOrDefault() ?? "TestUser";
 
             var claims = new[] { 

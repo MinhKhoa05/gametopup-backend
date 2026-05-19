@@ -1,5 +1,4 @@
 using System.Net;
-using System.Net.Http.Json;
 using FluentAssertions;
 using GameTopUp.BLL.DTOs.Users;
 using GameTopUp.DAL.Entities;
@@ -34,93 +33,85 @@ namespace GameTopUp.Tests.IntegrationTests.Scenarios
             return Task.CompletedTask;
         }
 
-        private async Task<long> SeedUserAsync(string username, string email, bool isActive = true)
-        {
-            using var scope = _factory.Services.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<DAL.DatabaseContext>();
-            var sql = @"INSERT INTO users (username, email, password_hash, is_active, created_at, updated_at) 
-                        VALUES (@Username, @Email, 'hashed_pass', @IsActive, @Now, @Now); 
-                        SELECT LAST_INSERT_ID();";
-            
-            return await db.Connection.QuerySingleAsync<long>(sql, new 
-            {
-                Username = username, 
-                Email = email, 
-                IsActive = isActive ? 1 : 0,
-                Now = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss")
-            });
-        }
-
-        private async Task<User?> GetUserFromDbAsync(long id)
-        {
-            using var scope = _factory.Services.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<DAL.DatabaseContext>();
-            return await db.Connection.QueryFirstOrDefaultAsync<User>("SELECT * FROM users WHERE id = @Id", new { Id = id });
-        }
-
         [Fact]
         public async Task GetAllUsers_ShouldReturnWrappedList()
         {
             // Arrange
-            await SeedUserAsync("user_list_1", "list1@test.com");
-            await SeedUserAsync("user_list_2", "list2@test.com");
+            var user = await _factory.SeedUserAsync("user_list_1");
+            await _factory.SeedUserAsync("user_list_2");
 
             // Act
-            var response = await _client.GetAsync("/api/users");
+            var request = new HttpRequestMessage(HttpMethod.Get, "/api/users")
+                .WithTestAuth(user.Id, "Admin");
+            var response = await _client.SendAsync(request);
 
             // Assert
             response.StatusCode.Should().Be(HttpStatusCode.OK);
-            var result = await response.Content.ReadFromJsonAsync<ApiResponseTestWrapper<List<UserResponseDTO>>>();
-            result!.Success.Should().BeTrue();
-            result.Data.Should().NotBeNull();
-            result.Data!.Any(u => u.Username == "user_list_1").Should().BeTrue();
+            
+            var users = await response.ReadDataAsync<List<UserResponseDTO>>();
+            users.Should().NotBeNull();
+            users!.Any(u => u.Username == "user_list_1").Should().BeTrue();
         }
 
         [Fact]
         public async Task GetUserById_ShouldReturnCorrectData_WhenUserExists()
         {
             // Arrange
-            var id = await SeedUserAsync("integration_test_user", "integration@test.vn");
+            var user = await _factory.SeedUserAsync("integration_test_user", u => u.Email = "integration@test.vn");
+            var id = user.Id;
 
             // Act
-            var response = await _client.GetAsync($"/api/users/{id}");
+            var request = new HttpRequestMessage(HttpMethod.Get, $"/api/users/{id}")
+                .WithTestAuth(user.Id, "Member");
+            var response = await _client.SendAsync(request);
 
             // Assert
             response.StatusCode.Should().Be(HttpStatusCode.OK);
-            var result = await response.Content.ReadFromJsonAsync<ApiResponseTestWrapper<UserResponseDTO>>();
-            result!.Data.Should().NotBeNull();
-            result.Data!.Id.Should().Be(id);
-            result.Data.Username.Should().Be("integration_test_user");
-            result.Data.Email.Should().Be("integration@test.vn");
+            
+            var userResult = await response.ReadDataAsync<UserResponseDTO>();
+            userResult.Should().NotBeNull();
+            userResult!.Id.Should().Be(id);
+            userResult.Username.Should().Be("integration_test_user");
+            userResult.Email.Should().Be("integration@test.vn");
         }
 
         [Fact]
         public async Task GetUserById_ShouldReturnNotFound_WhenUserDoesNotExist()
         {
+            // Arrange
+            var user = await _factory.SeedUserAsync("temp_user");
+
             // Act
-            var response = await _client.GetAsync("/api/users/9999");
+            var request = new HttpRequestMessage(HttpMethod.Get, "/api/users/9999")
+                .WithTestAuth(user.Id, "Member");
+            var response = await _client.SendAsync(request);
 
             // Assert
             response.StatusCode.Should().Be(HttpStatusCode.NotFound);
-            var result = await response.Content.ReadFromJsonAsync<ApiResponseTestWrapper<object>>();
-            result!.Success.Should().BeFalse();
-            result.Message.Should().Be("Người dùng không tồn tại.");
+            
+            var wrapper = await response.ReadAsApiResult<object>();
+            wrapper!.Success.Should().BeFalse();
+            wrapper.Message.Should().Be("Người dùng không tồn tại.");
         }
 
         [Fact]
         public async Task UpdateUser_ShouldActuallyUpdateDatabase()
         {
             // Arrange
-            var id = await SeedUserAsync("original_name", "orig@test.com");
-            var request = new UpdateUserRequest { Username = "updated_name" };
+            var user = await _factory.SeedUserAsync("original_name");
+            var id = user.Id;
+            var updateDto = new UpdateUserRequest { Username = "updated_name" };
 
             // Act
-            var response = await _client.PutAsJsonAsync($"/api/users/{id}", request);
+            var request = new HttpRequestMessage(HttpMethod.Put, $"/api/users/{id}")
+                .WithTestAuth(user.Id, "Member")
+                .WithJson(updateDto);
+            var response = await _client.SendAsync(request);
 
             // Assert
             response.StatusCode.Should().Be(HttpStatusCode.OK);
             
-            var userInDb = await GetUserFromDbAsync(id);
+            var userInDb = await _factory.GetUserAsync(id);
             userInDb!.Username.Should().Be("updated_name");
         }
 
@@ -128,18 +119,20 @@ namespace GameTopUp.Tests.IntegrationTests.Scenarios
         public async Task DeleteUser_ShouldPerformSoftDelete_BySettingIsActiveToFalse()
         {
             // Arrange
-            var id = await SeedUserAsync("soft_delete_me", "soft@delete.com", isActive: true);
+            var user = await _factory.SeedUserAsync("soft_delete_me");
+            var id = user.Id;
 
             // Act
-            var response = await _client.DeleteAsync($"/api/users/{id}");
+            var request = new HttpRequestMessage(HttpMethod.Delete, $"/api/users/{id}")
+                .WithTestAuth(user.Id, "Admin");
+            var response = await _client.SendAsync(request);
 
             // Assert
             response.StatusCode.Should().Be(HttpStatusCode.OK);
             
             // Verify in Database
-            var userInDb = await GetUserFromDbAsync(id);
+            var userInDb = await _factory.GetUserAsync(id);
             userInDb!.IsActive.Should().BeFalse();
         }
-
     }
 }

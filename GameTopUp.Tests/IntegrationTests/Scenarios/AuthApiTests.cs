@@ -209,6 +209,8 @@ namespace GameTopUp.Tests.IntegrationTests.Scenarios
             var logoutRequestMessage = new HttpRequestMessage(HttpMethod.Post, "/api/auth/logout");
             logoutRequestMessage.Headers.Add("Cookie", $"refreshToken={refreshTokenValue}");
             logoutRequestMessage.Headers.Add("Authorization", $"Bearer {accessToken}");
+            logoutRequestMessage.Headers.Add("X-Test-UserId", loginData!.Data!.User!.Id.ToString());
+            logoutRequestMessage.Headers.Add("X-Test-Role", "Member");
 
             // Act
             var response = await _client.SendAsync(logoutRequestMessage);

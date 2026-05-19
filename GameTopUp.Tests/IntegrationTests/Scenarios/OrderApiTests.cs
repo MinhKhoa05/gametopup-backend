@@ -1,5 +1,4 @@
 using System.Net;
-using System.Net.Http.Json;
 using FluentAssertions;
 using GameTopUp.DAL.Entities;
 using Xunit;
@@ -33,122 +32,23 @@ namespace GameTopUp.Tests.IntegrationTests.Scenarios
             return Task.CompletedTask;
         }
 
-        #region Seeding Helpers
-
-        private async Task<long> SeedUserAsync(string username, string email)
+        private async Task<(Game Game, GamePackage Package, User Customer)> SeedBaseDataAsync(
+            string prefix,
+            Action<GamePackage>? customizePackage = null)
         {
-            using var scope = _factory.Services.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<DAL.DatabaseContext>();
-            var sql = @"INSERT INTO users (username, email, password_hash, is_active, created_at, updated_at) 
-                        VALUES (@Username, @Email, 'hash', 1, @Now, @Now); 
-                        SELECT LAST_INSERT_ID();";
-            return await db.Connection.QuerySingleAsync<long>(sql, new { Username = username, Email = email, Now = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss") });
+            var game = await _factory.SeedGameAsync($"{prefix} Game");
+            var package = await _factory.SeedGamePackageAsync(game.Id, $"{prefix} Package", customizePackage);
+            var customer = await _factory.SeedUserAsync($"{prefix.ToLower()}_customer");
+            return (game, package, customer);
         }
-
-        private async Task SeedWalletAsync(long userId, decimal balance)
-        {
-            using var scope = _factory.Services.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<DAL.DatabaseContext>();
-            var sql = @"INSERT INTO wallets (user_id, balance, created_at, updated_at) 
-                        VALUES (@UserId, @Balance, @Now, @Now);";
-            await db.Connection.ExecuteAsync(sql, new { UserId = userId, Balance = balance, Now = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss") });
-        }
-
-        private async Task<long> SeedGameAsync(string name)
-        {
-            using var scope = _factory.Services.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<DAL.DatabaseContext>();
-            var sql = "INSERT INTO games (name, is_active) VALUES (@Name, 1); SELECT LAST_INSERT_ID();";
-            return await db.Connection.QuerySingleAsync<long>(sql, new { Name = name });
-        }
-
-        private async Task<long> SeedGamePackageAsync(long gameId, string name, decimal price)
-        {
-            using var scope = _factory.Services.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<DAL.DatabaseContext>();
-            var sql = @"INSERT INTO game_packages (name, game_id, normalized_name, sale_price, original_price, import_price) 
-                        VALUES (@Name, @GameId, @Normalized, @Price, @Price, @Price); 
-                        SELECT LAST_INSERT_ID();";
-            return await db.Connection.QuerySingleAsync<long>(sql, new 
-            { 
-                Name = name, 
-                GameId = gameId, 
-                Normalized = name.ToLower(), 
-                Price = price 
-            });
-        }
-
-        private async Task<long> SeedOrderAsync(long userId, long packageId, decimal total, OrderStatus status)
-        {
-            using var scope = _factory.Services.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<DAL.DatabaseContext>();
-            var sql = @"INSERT INTO orders (user_id, game_account_info, game_package_id, unit_price, quantity, status, created_at, updated_at) 
-                        VALUES (@UserId, 'test_acc', @PackageId, @Price, 1, @Status, @Now, @Now); 
-                        SELECT LAST_INSERT_ID();";
-            return await db.Connection.QuerySingleAsync<long>(sql, new 
-            { 
-                UserId = userId, 
-                PackageId = packageId,
-                Price = total, 
-                Status = (int)status, 
-                Now = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss") 
-            });
-        }
-
-        private async Task<Order?> GetOrderFromDbAsync(long id)
-        {
-            using var scope = _factory.Services.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<DAL.DatabaseContext>();
-            return await db.Connection.QueryFirstOrDefaultAsync<Order>("SELECT * FROM orders WHERE id = @Id", new { Id = id });
-        }
-
-        private async Task<decimal> GetWalletBalanceAsync(long userId)
-        {
-            using var scope = _factory.Services.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<DAL.DatabaseContext>();
-            return await db.Connection.QuerySingleAsync<decimal>("SELECT balance FROM wallets WHERE user_id = @UserId", new { UserId = userId });
-        }
-
-        private async Task<int> GetOrderHistoryCountAsync(long orderId)
-        {
-            using var scope = _factory.Services.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<DAL.DatabaseContext>();
-            return await db.Connection.QuerySingleAsync<int>("SELECT COUNT(*) FROM order_history WHERE order_id = @OrderId", new { OrderId = orderId });
-        }
-
-        private async Task UpdatePackageStockAsync(long packageId, int stock)
-        {
-            using var scope = _factory.Services.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<DAL.DatabaseContext>();
-            var sql = "UPDATE game_packages SET stock_quantity = @Stock WHERE id = @Id";
-            await db.Connection.ExecuteAsync(sql, new { Stock = stock, Id = packageId });
-        }
-
-        private async Task UpdatePackageStatusAsync(long packageId, bool isActive)
-        {
-            using var scope = _factory.Services.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<DAL.DatabaseContext>();
-            var sql = "UPDATE game_packages SET is_active = @IsActive WHERE id = @Id";
-            await db.Connection.ExecuteAsync(sql, new { IsActive = isActive ? 1 : 0, Id = packageId });
-        }
-
-        private async Task<int> GetPackageStockAsync(long packageId)
-        {
-            using var scope = _factory.Services.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<DAL.DatabaseContext>();
-            return await db.Connection.QuerySingleAsync<int>("SELECT stock_quantity FROM game_packages WHERE id = @Id", new { Id = packageId });
-        }
-
-        #endregion
 
         [Fact]
         public async Task PickOrder_ConcurrentRequests_OnlyOneShouldSucceed()
         {
             // Arrange
-            var gameId = await SeedGameAsync("Test Game");
-            var packageId = await SeedGamePackageAsync(gameId, "Test Package", 100);
-            var customerId = await SeedUserAsync("customer_pick", "customer_pick@test.com");
-            var orderId = await SeedOrderAsync(customerId, packageId, 100, OrderStatus.Paid);
+            var (_, package, customer) = await SeedBaseDataAsync("Pick");
+            var seededOrder = await _factory.SeedOrderAsync(customer.Id, package.Id, customize: o => o.Status = OrderStatus.Paid);
+            var orderId = seededOrder.Id;
 
             int concurrentRequests = 10;
             var tasks = new List<Task<HttpResponseMessage>>();
@@ -156,10 +56,10 @@ namespace GameTopUp.Tests.IntegrationTests.Scenarios
             // Act
             for (int i = 0; i < concurrentRequests; i++)
             {
-                var request = new HttpRequestMessage(HttpMethod.Post, $"/api/orders/{orderId}/pick");
-                request.Headers.Add("X-Test-UserId", (i + 100).ToString()); // Different Admin IDs
-                request.Headers.Add("X-Test-Role", "Admin");
-                tasks.Add(_client.SendAsync(request));
+                var req = new HttpRequestMessage(HttpMethod.Post, $"/api/orders/{orderId}/pick")
+                    .WithTestAuth(i + 100, "Admin");
+                
+                tasks.Add(_client.SendAsync(req));
             }
 
             var responses = await Task.WhenAll(tasks);
@@ -173,7 +73,7 @@ namespace GameTopUp.Tests.IntegrationTests.Scenarios
             failureCount.Should().Be(concurrentRequests - 1, "All other requests should fail with 400");
 
             // Kiểm tra trạng thái cuối cùng trong DB
-            var order = await GetOrderFromDbAsync(orderId);
+            var order = await _factory.GetOrderAsync(orderId);
             order!.Status.Should().Be(OrderStatus.Processing);
             order.AssignTo.Should().BeInRange(100, 109);
         }
@@ -182,17 +82,25 @@ namespace GameTopUp.Tests.IntegrationTests.Scenarios
         public async Task CancelOrder_ConcurrentRequests_AllShouldReturnOk_ButOnlyOneRefund()
         {
             // Arrange
-            var gameId = await SeedGameAsync("Test Game Cancel");
-            var packageId = await SeedGamePackageAsync(gameId, "Test Package Cancel", 200);
-            var customerId = await SeedUserAsync("customer_cancel", "customer_cancel@test.com");
+            decimal packagePrice = 200;
+            var (_, package, customer) = await SeedBaseDataAsync("Cancel", p => 
+            {
+                p.SalePrice = packagePrice;
+                p.StockQuantity = 10;
+            });
             decimal initialBalance = 500;
-            decimal orderTotal = 200;
-            await SeedWalletAsync(customerId, initialBalance);
-            var orderId = await SeedOrderAsync(customerId, packageId, orderTotal, OrderStatus.Pending);
+            int orderQuantity = 1;
+            decimal orderTotal = packagePrice * orderQuantity;
             
-            using var scope = _factory.Services.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<DAL.DatabaseContext>();
-            await db.Connection.ExecuteAsync("UPDATE orders SET status = @Status WHERE id = @Id", new { Status = (int)OrderStatus.Paid, Id = orderId });
+            await _factory.SeedWalletAsync(customer.Id, initialBalance);
+            var seededOrder = await _factory.SeedOrderAsync(customer.Id, package.Id, customize: o => 
+            {
+                o.Quantity = orderQuantity;
+                o.UnitPrice = packagePrice;
+                o.Status = OrderStatus.Paid;
+            });
+            var customerId = customer.Id;
+            var orderId = seededOrder.Id;
             
             int concurrentRequests = 10;
             var tasks = new List<Task<HttpResponseMessage>>();
@@ -200,10 +108,9 @@ namespace GameTopUp.Tests.IntegrationTests.Scenarios
             // Act
             for (int i = 0; i < concurrentRequests; i++)
             {
-                var request = new HttpRequestMessage(HttpMethod.Post, $"/api/orders/{orderId}/cancel");
-                request.Headers.Add("X-Test-UserId", customerId.ToString());
-                request.Headers.Add("X-Test-Role", "User");
-                tasks.Add(_client.SendAsync(request));
+                var req = new HttpRequestMessage(HttpMethod.Post, $"/api/orders/{orderId}/cancel")
+                    .WithTestAuth(customerId, "User");
+                tasks.Add(_client.SendAsync(req));
             }
 
             var responses = await Task.WhenAll(tasks);
@@ -216,15 +123,19 @@ namespace GameTopUp.Tests.IntegrationTests.Scenarios
             }
 
             // Kiểm tra Database: Số dư chỉ được hoàn 1 lần duy nhất
-            var finalBalance = await GetWalletBalanceAsync(customerId);
-            finalBalance.Should().Be(initialBalance + orderTotal);
+            var wallet = await _factory.GetWalletAsync(customerId);
+            wallet!.Balance.Should().Be(initialBalance + orderTotal);
+
+            // Kiểm tra Database: Tồn kho được hoàn trả lại đúng 1 lần (từ 10 tăng lên 11)
+            var packageInDb = await _factory.GetPackageAsync(package.Id);
+            packageInDb!.StockQuantity.Should().Be(11);
 
             // Kiểm tra Database: Trạng thái đơn hàng là Cancelled
-            var order = await GetOrderFromDbAsync(orderId);
+            var order = await _factory.GetOrderAsync(orderId);
             order!.Status.Should().Be(OrderStatus.Cancelled);
 
             // Kiểm tra History: Chỉ có 1 bản ghi log cho việc hủy
-            var historyCount = await GetOrderHistoryCountAsync(orderId);
+            var historyCount = await _factory.GetOrderHistoryCountAsync(orderId);
             historyCount.Should().Be(1);
         }
 
@@ -232,35 +143,33 @@ namespace GameTopUp.Tests.IntegrationTests.Scenarios
         public async Task CompleteOrder_ShouldSucceed_WhenAdminCompletesAssignedOrder()
         {
             // Arrange
-            var gameId = await SeedGameAsync("Game Complete");
-            var packageId = await SeedGamePackageAsync(gameId, "Pkg Complete", 100);
-            var customerId = await SeedUserAsync("cust_comp", "cust_comp@test.com");
+            var (_, package, customer) = await SeedBaseDataAsync("Complete");
             // Đơn hàng phải được THANH TOÁN (Paid) thì Admin mới Pick được
-            var orderId = await SeedOrderAsync(customerId, packageId, 100, OrderStatus.Paid);
+            var seededOrder = await _factory.SeedOrderAsync(customer.Id, package.Id, customize: o => o.Status = OrderStatus.Paid);
 
-            // Seed Admin để đảm bảo ID tồn tại trong DB cho FK AssignTo
-            var adminId = await SeedUserAsync("admin_comp", "admin_comp@test.com");
+            // Seed Admin để đảm bủo ID tồn tại trong DB cho FK AssignTo
+            var admin = await _factory.SeedUserAsync("admin_comp");
+            var orderId = seededOrder.Id;
+            var adminId = admin.Id;
 
             // Admin picks the order first
-            var pickRequest = new HttpRequestMessage(HttpMethod.Post, $"/api/orders/{orderId}/pick");
-            pickRequest.Headers.Add("X-Test-UserId", adminId.ToString());
-            pickRequest.Headers.Add("X-Test-Role", "Admin");
+            var pickRequest = new HttpRequestMessage(HttpMethod.Post, $"/api/orders/{orderId}/pick")
+                .WithTestAuth(adminId, "Admin");
             var pickResponse = await _client.SendAsync(pickRequest);
             pickResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
             // Act
-            var completeRequest = new HttpRequestMessage(HttpMethod.Post, $"/api/orders/{orderId}/complete");
-            completeRequest.Headers.Add("X-Test-UserId", adminId.ToString());
-            completeRequest.Headers.Add("X-Test-Role", "Admin");
-            var response = await _client.SendAsync(completeRequest);
+            var request = new HttpRequestMessage(HttpMethod.Post, $"/api/orders/{orderId}/complete")
+                .WithTestAuth(adminId, "Admin");
+            var response = await _client.SendAsync(request);
 
             // Assert
             response.StatusCode.Should().Be(HttpStatusCode.OK);
             
-            var order = await GetOrderFromDbAsync(orderId);
+            var order = await _factory.GetOrderAsync(orderId);
             order!.Status.Should().Be(OrderStatus.Completed);
 
-            var historyCount = await GetOrderHistoryCountAsync(orderId);
+            var historyCount = await _factory.GetOrderHistoryCountAsync(orderId);
             historyCount.Should().Be(2); // 1 for Pick, 1 for Complete
         }
 
@@ -268,14 +177,17 @@ namespace GameTopUp.Tests.IntegrationTests.Scenarios
         public async Task CompleteOrder_ConcurrentRequests_ShouldBeIdempotent()
         {
             // Arrange
-            var gameId = await SeedGameAsync("Game Comp Race");
-            var packageId = await SeedGamePackageAsync(gameId, "Pkg Comp Race", 100);
-            var customerId = await SeedUserAsync("cust_race", "cust_race@test.com");
+            var (_, package, customer) = await SeedBaseDataAsync("CompRace");
             // Đơn hàng phải được THANH TOÁN (Paid) thì Admin mới Pick được
-            var orderId = await SeedOrderAsync(customerId, packageId, 100, OrderStatus.Paid);
+            var seededOrder = await _factory.SeedOrderAsync(customer.Id, package.Id, customize: o => o.Status = OrderStatus.Paid);
+            var orderId = seededOrder.Id;
+            var admin = await _factory.SeedUserAsync("admin_comp_race", u => u.Role = UserRole.Admin);
+            var adminId = admin.Id;
 
             // Admin picks the order
-            await _client.PostAsync($"/api/orders/{orderId}/pick", null);
+            var pickRequest = new HttpRequestMessage(HttpMethod.Post, $"/api/orders/{orderId}/pick")
+                .WithTestAuth(adminId, "Admin");
+            await _client.SendAsync(pickRequest);
 
             int concurrentRequests = 10;
             var tasks = new List<Task<HttpResponseMessage>>();
@@ -283,7 +195,9 @@ namespace GameTopUp.Tests.IntegrationTests.Scenarios
             // Act
             for (int i = 0; i < concurrentRequests; i++)
             {
-                tasks.Add(_client.PostAsync($"/api/orders/{orderId}/complete", null));
+                var req = new HttpRequestMessage(HttpMethod.Post, $"/api/orders/{orderId}/complete")
+                    .WithTestAuth(adminId, "Admin");
+                tasks.Add(_client.SendAsync(req));
             }
 
             var responses = await Task.WhenAll(tasks);
@@ -294,11 +208,10 @@ namespace GameTopUp.Tests.IntegrationTests.Scenarios
                 response.StatusCode.Should().Be(HttpStatusCode.OK);
             }
 
-            var order = await GetOrderFromDbAsync(orderId);
+            var order = await _factory.GetOrderAsync(orderId);
             order!.Status.Should().Be(OrderStatus.Completed);
 
-            // History should only contain 1 Pick and 1 Complete log
-            var historyCount = await GetOrderHistoryCountAsync(orderId);
+            var historyCount = await _factory.GetOrderHistoryCountAsync(orderId);
             historyCount.Should().Be(2);
         }
         
@@ -308,81 +221,61 @@ namespace GameTopUp.Tests.IntegrationTests.Scenarios
         public async Task PlaceOrder_HappyPath_ShouldCreateOrderAndDecreaseStock()
         {
             // Arrange
-            var gameId = await SeedGameAsync("Happy Game");
-            var packageId = await SeedGamePackageAsync(gameId, "Happy Pkg", 100);
-            await UpdatePackageStockAsync(packageId, 10);
-            
-            // Seed User mới để đảm bảo không bị trùng Pending Order từ các test case khác
-            var customerId = await SeedUserAsync("happy_customer", "happy@test.com");
-            
-            var request = new { GamePackageId = packageId, Quantity = 2, GameAccountInfo = "player_123" };
+            var (_, package, customer) = await SeedBaseDataAsync("Happy", p => p.StockQuantity = 10);
+            var customerId = customer.Id;
+            var packageId = package.Id;
+            var placeDto = new { GamePackageId = packageId, Quantity = 2, GameAccountInfo = "player_123" };
 
             // Act
-            var httpRequest = new HttpRequestMessage(HttpMethod.Post, "api/orders/place")
-            {
-                Content = JsonContent.Create(request)
-            };
-            httpRequest.Headers.Add("X-Test-UserId", customerId.ToString());
-            httpRequest.Headers.Add("X-Test-Role", "User");
-
-            var response = await _client.SendAsync(httpRequest);
+            var request = new HttpRequestMessage(HttpMethod.Post, "api/orders/place")
+                .WithTestAuth(customerId, "User")
+                .WithJson(placeDto);
+            var response = await _client.SendAsync(request);
             
             response.StatusCode.Should().Be(HttpStatusCode.Created);
 
-            var result = await response.Content.ReadFromJsonAsync<ApiResponseTestWrapper<long>>();
-            var orderId = result!.Data;
+            var orderId = await response.ReadDataAsync<long>();
             
             // Assert
-            // USER_TASK: Kiểm tra response status là OK hoặc Created.
-            // Kiểm tra trong DB xem đơn hàng đã được tạo chưa (status Pending, UserId, Quantity...).
-            // Kiểm tra xem Stock của package có giảm đi đúng 2 đơn vị không.
-            // // TODO: USER IMPLEMENT
-            var order = await GetOrderFromDbAsync(orderId);
+            var order = await _factory.GetOrderAsync(orderId);
             order!.Status.Should().Be(OrderStatus.Pending);
 
-            var stockQuantity = await GetPackageStockAsync(packageId);
-            stockQuantity.Should().Be(8); // Ban đầu là 10, mua 2, kiểm tra còn 8.
+            var packageInDb = await _factory.GetPackageAsync(packageId);
+            packageInDb!.StockQuantity.Should().Be(8); // Ban đầu là 10, mua 2, kiểm tra còn 8.
         }
-
 
         [Fact]
         public async Task PlaceOrder_Concurrent_ShouldNotExceedStock()
         {
             // Arrange
-            var gameId = await SeedGameAsync("Race Game");
-            var packageId = await SeedGamePackageAsync(gameId, "Race Pkg", 100);
-            await UpdatePackageStockAsync(packageId, 5); // Chỉ có 5 item
-            
+            var (_, package, _) = await SeedBaseDataAsync("Race", p => p.StockQuantity = 5); // Chỉ có 5 item
             int concurrentRequests = 10;
-            var request = new { GamePackageId = packageId, Quantity = 1, GameAccountInfo = "race_player" };
+            var packageId = package.Id;
+            var placeDto = new { GamePackageId = packageId, Quantity = 1, GameAccountInfo = "race_player" };
 
             // Tạo 10 User khác nhau để bypass rule "mỗi user chỉ có 1 đơn Pending"
             var userIds = new List<long>();
             for (int i = 1; i <= concurrentRequests; i++)
             {
-                userIds.Add(await SeedUserAsync($"race_user_{i}", $"race_{i}@test.com"));
+                var user = await _factory.SeedUserAsync($"race_user_{i}");
+                userIds.Add(user.Id);
             }
 
             // Act
             var tasks = new List<Task<HttpResponseMessage>>();
             foreach (var userId in userIds)
             {
-                var httpRequest = new HttpRequestMessage(HttpMethod.Post, "api/orders/place")
-                {
-                    Content = JsonContent.Create(request)
-                };
-                httpRequest.Headers.Add("X-Test-UserId", userId.ToString());
-                httpRequest.Headers.Add("X-Test-Role", "User");
-                
-                tasks.Add(_client.SendAsync(httpRequest));
+                var req = new HttpRequestMessage(HttpMethod.Post, "api/orders/place")
+                    .WithTestAuth(userId, "User")
+                    .WithJson(placeDto);
+                tasks.Add(_client.SendAsync(req));
             }
 
             var responses = await Task.WhenAll(tasks);
 
             // Assert
-
-            var stockQuantity = await GetPackageStockAsync(packageId);
-            stockQuantity.Should().Be(0);
+            var packageInDb = await _factory.GetPackageAsync(packageId);
+            packageInDb!.StockQuantity.Should().Be(0);
 
             var successCount = responses.Count(r => r.StatusCode == HttpStatusCode.Created);
             successCount.Should().Be(5);
@@ -394,4 +287,3 @@ namespace GameTopUp.Tests.IntegrationTests.Scenarios
         #endregion
     }
 }
-

@@ -16,8 +16,9 @@ appsettings.*.json
 !appsettings.json
 !.env.example
 # Code Coverage Reports
-/*/coveragereport/
-/*/TestResults/
+/coveragereport/
+/coverage/
+/TestResults/
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs

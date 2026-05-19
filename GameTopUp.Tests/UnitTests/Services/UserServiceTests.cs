@@ -40,17 +40,23 @@ namespace GameTopUp.Tests.UnitTests.Services
             // Arrange
             var request = new CreateUserRequest { Name = "New User", Email = "new@test.com", Password = "hashed_password" };
             _userRepoMock.Setup(r => r.GetByEmailAsync(request.Email)).ReturnsAsync((User?)null);
-            _userRepoMock.Setup(r => r.CreateAsync(It.IsAny<User>())).ReturnsAsync(1);
+
+            User? createdUser = null;
+            _userRepoMock
+                .Setup(r => r.CreateAsync(It.IsAny<User>()))
+                .Callback<User>(u => createdUser = u)
+                .ReturnsAsync(1);
 
             // Act
             var userId = await _userService.RegisterWithHashedPasswordAsync(request, request.Password);
 
             // Assert
             userId.Should().Be(1);
-            _userRepoMock.Verify(r => r.CreateAsync(It.Is<User>(u => 
-                u.Username == request.Name && 
-                u.Email == request.Email && 
-                u.PasswordHash == request.Password)), Times.Once);
+
+            createdUser.Should().NotBeNull();
+            createdUser!.Username.Should().Be(request.Name);
+            createdUser.Email.Should().Be(request.Email);
+            createdUser.PasswordHash.Should().Be(request.Password);
         }
 
         [Fact]

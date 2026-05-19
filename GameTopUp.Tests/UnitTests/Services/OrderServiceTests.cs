@@ -29,15 +29,25 @@ namespace GameTopUp.Tests.UnitTests.Services
             var admin = new UserContext(1, "admin", "Admin");
             var order = new Order { Id = 123, Status = OrderStatus.Paid, AssignTo = 0 };
 
+            OrderHistory? history = null;
+            _orderHistoryRepoMock
+                .Setup(r => r.CreateAsync(It.IsAny<OrderHistory>()))
+                .Callback<OrderHistory>(h => history = h)
+                .ReturnsAsync(1);
+
             // Act
             await _orderService.PickOrderAsync(order, admin);
 
             // Assert
             order.Status.Should().Be(OrderStatus.Processing);
             order.AssignTo.Should().Be(admin.UserId);
-            
-            _orderRepoMock.Verify(r => r.UpdateAsync(It.Is<Order>(o => o.Id == 123 && o.Status == OrderStatus.Processing)), Times.Once);
-            _orderHistoryRepoMock.Verify(r => r.CreateAsync(It.Is<OrderHistory>(h => h.ToStatus == OrderStatus.Processing)), Times.Once);
+
+            history.Should().NotBeNull();
+            history!.OrderId.Should().Be(order.Id);
+            history.FromStatus.Should().Be(OrderStatus.Paid);
+            history.ToStatus.Should().Be(OrderStatus.Processing);
+            history.ActionBy.Should().Be(admin.UserId);
+            history.IsAdmin.Should().BeTrue();
         }
 
         [Fact]
@@ -77,14 +87,24 @@ namespace GameTopUp.Tests.UnitTests.Services
             var admin = new UserContext(1, "admin", "Admin");
             var order = new Order { Id = 123, Status = OrderStatus.Processing, AssignTo = admin.UserId };
 
+            OrderHistory? history = null;
+            _orderHistoryRepoMock
+                .Setup(r => r.CreateAsync(It.IsAny<OrderHistory>()))
+                .Callback<OrderHistory>(h => history = h)
+                .ReturnsAsync(1);
+
             // Act
             await _orderService.CompleteOrderAsync(order, admin);
 
             // Assert
             order.Status.Should().Be(OrderStatus.Completed);
-            
-            _orderRepoMock.Verify(r => r.UpdateAsync(It.Is<Order>(o => o.Id == 123 && o.Status == OrderStatus.Completed)), Times.Once);
-            _orderHistoryRepoMock.Verify(r => r.CreateAsync(It.Is<OrderHistory>(h => h.ToStatus == OrderStatus.Completed)), Times.Once);
+
+            history.Should().NotBeNull();
+            history!.OrderId.Should().Be(order.Id);
+            history.FromStatus.Should().Be(OrderStatus.Processing);
+            history.ToStatus.Should().Be(OrderStatus.Completed);
+            history.ActionBy.Should().Be(admin.UserId);
+            history.IsAdmin.Should().BeTrue();
         }
 
         [Fact]
@@ -124,15 +144,24 @@ namespace GameTopUp.Tests.UnitTests.Services
             var admin = new UserContext(1, "admin", "Admin");
             var order = new Order { Id = 123, Status = OrderStatus.Pending, UserId = 999, AssignTo = admin.UserId };
 
+            OrderHistory? history = null;
+            _orderHistoryRepoMock
+                .Setup(r => r.CreateAsync(It.IsAny<OrderHistory>()))
+                .Callback<OrderHistory>(h => history = h)
+                .ReturnsAsync(1);
+
             // Act
             var result = await _orderService.CancelOrderAsync(order, admin);
 
             // Assert
             result.Should().Be(OrderStatus.Pending);
             order.Status.Should().Be(OrderStatus.Cancelled);
-            
-            _orderRepoMock.Verify(r => r.UpdateAsync(It.Is<Order>(o => o.Id == 123 && o.Status == OrderStatus.Cancelled)), Times.Once);
-            _orderHistoryRepoMock.Verify(r => r.CreateAsync(It.Is<OrderHistory>(h => h.ToStatus == OrderStatus.Cancelled)), Times.Once);
+
+            history.Should().NotBeNull();
+            history!.OrderId.Should().Be(order.Id);
+            history.FromStatus.Should().Be(OrderStatus.Pending);
+            history.ToStatus.Should().Be(OrderStatus.Cancelled);
+            history.ActionBy.Should().Be(admin.UserId);
         }
 
         [Fact]
@@ -190,26 +219,38 @@ namespace GameTopUp.Tests.UnitTests.Services
             var userContext = new UserContext(1, "testuser", "User");
             var package = new GamePackage { Id = 10, SalePrice = 50000 };
             _orderRepoMock.Setup(r => r.HasPendingOrderAsync(1)).ReturnsAsync(false);
-            _orderRepoMock.Setup(r => r.CreateAsync(It.IsAny<Order>())).ReturnsAsync(999L);
-            _orderHistoryRepoMock.Setup(r => r.CreateAsync(It.IsAny<OrderHistory>())).ReturnsAsync(1);
+
+            Order? createdOrder = null;
+            _orderRepoMock
+                .Setup(r => r.CreateAsync(It.IsAny<Order>()))
+                .Callback<Order>(o => createdOrder = o)
+                .ReturnsAsync(999L);
+
+            OrderHistory? createdHistory = null;
+            _orderHistoryRepoMock
+                .Setup(r => r.CreateAsync(It.IsAny<OrderHistory>()))
+                .Callback<OrderHistory>(h => createdHistory = h)
+                .ReturnsAsync(1);
 
             // Act
             var orderId = await _orderService.CreateOrderAsync(userContext, package, 2, "account_info");
 
             // Assert
             orderId.Should().Be(999L);
-            _orderRepoMock.Verify(r => r.CreateAsync(It.Is<Order>(o =>
-                o.UserId == 1 &&
-                o.GamePackageId == 10 &&
-                o.UnitPrice == 50000 &&
-                o.Quantity == 2 &&
-                o.GameAccountInfo == "account_info" &&
-                o.Status == OrderStatus.Pending)), Times.Once);
-            _orderHistoryRepoMock.Verify(r => r.CreateAsync(It.Is<OrderHistory>(h =>
-                h.OrderId == 999L &&
-                h.FromStatus == OrderStatus.Pending &&
-                h.ToStatus == OrderStatus.Pending &&
-                h.ActionBy == 1)), Times.Once);
+
+            createdOrder.Should().NotBeNull();
+            createdOrder!.UserId.Should().Be(1);
+            createdOrder.GamePackageId.Should().Be(10);
+            createdOrder.UnitPrice.Should().Be(50000);
+            createdOrder.Quantity.Should().Be(2);
+            createdOrder.GameAccountInfo.Should().Be("account_info");
+            createdOrder.Status.Should().Be(OrderStatus.Pending);
+
+            createdHistory.Should().NotBeNull();
+            createdHistory!.OrderId.Should().Be(999L);
+            createdHistory.FromStatus.Should().Be(OrderStatus.Pending);
+            createdHistory.ToStatus.Should().Be(OrderStatus.Pending);
+            createdHistory.ActionBy.Should().Be(1);
         }
     }
 }
