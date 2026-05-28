@@ -59,7 +59,7 @@ namespace GameTopUp.BLL.UseCases
             // Không tiết lộ email hay password sai để tránh dò tài khoản.
             if (user == null || !_password.Verify(request.Password, user.PasswordHash))
             {
-                throw new BusinessException("Email hoặc mật khẩu không chính xác.");
+                throw new BusinessException(ErrorCodes.InvalidCredentials);
             }
 
             var accessToken = _token.GenerateAccessToken(new TokenPayload
@@ -94,7 +94,7 @@ namespace GameTopUp.BLL.UseCases
 
             var refreshToken =
                 await _refreshTokenService.ValidateAndGetAsync(hash)
-                ?? throw new BusinessException("Refresh Token không hợp lệ.");
+                ?? throw new BusinessException(ErrorCodes.InvalidRefreshToken);
 
             // Lấy lại thông tin user từ UserId trong refresh token.
             var user = await _user.GetByIdAsync(refreshToken.UserId);
@@ -142,7 +142,7 @@ namespace GameTopUp.BLL.UseCases
             // Không cho phép dùng lại mật khẩu cũ.
             if (request.CurrentPassword == request.NewPassword)
             {
-                throw new BusinessException("Mật khẩu mới không được trùng với mật khẩu hiện tại.");
+                throw new BusinessException(ErrorCodes.NewPasswordSameAsCurrent);
             }
 
             _password.Validate(request.NewPassword);
@@ -152,7 +152,7 @@ namespace GameTopUp.BLL.UseCases
             // Kiểm tra mật khẩu hiện tại trước khi đổi.
             if (!_password.Verify(request.CurrentPassword, user.PasswordHash))
             {
-                throw new BusinessException("Mật khẩu hiện tại không chính xác.");
+                throw new BusinessException(ErrorCodes.CurrentPasswordIncorrect);
             }
 
             var hashedPassword =

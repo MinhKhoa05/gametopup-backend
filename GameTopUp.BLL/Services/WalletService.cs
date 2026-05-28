@@ -39,7 +39,7 @@ namespace GameTopUp.BLL.Services
             // WHY: Ví đã được đảm bảo tạo ở bước đăng ký nên chỉ cần lấy và khóa.
             var wallet = await GetWalletWithLockOrThrowAsync(userId);
 
-            if (amount <= 0) throw new BusinessException("Số tiền nạp phải lớn hơn 0.");
+            if (amount <= 0) throw new BusinessException(ErrorCodes.AmountMustBePositive);
 
             decimal balanceBefore = wallet.Balance;
             decimal balanceAfter = balanceBefore + amount;
@@ -74,8 +74,8 @@ namespace GameTopUp.BLL.Services
             // WHY: Ví đã được đảm bảo tạo ở bước đăng ký nên chỉ cần lấy và khóa.
             var wallet = await GetWalletWithLockOrThrowAsync(userId);
 
-            if (amount <= 0) throw new BusinessException("Số tiền trừ phải lớn hơn 0.");
-            if (wallet.Balance < amount) throw new BusinessException("Số dư ví không đủ.");
+            if (amount <= 0) throw new BusinessException(ErrorCodes.AmountMustBePositive);
+            if (wallet.Balance < amount) throw new BusinessException(ErrorCodes.InsufficientWalletBalance);
 
             decimal balanceBefore = wallet.Balance;
             decimal balanceAfter = balanceBefore - amount;
@@ -136,22 +136,17 @@ namespace GameTopUp.BLL.Services
                 $"Duyệt nạp tiền VietQR #{depositCode}: {amount:N0} VND");
         }
 
-        public async Task<TransactionResponseDTO> WithdrawAsync(long userId, decimal amount)
-        {
-            return await DebitAsync(userId, amount, WalletTransactionType.Withdraw, $"Rút tiền từ ví: {amount:N0} VNĐ");
-        }
-
         public async Task<decimal> GetBalanceAsync(UserContext context)
         {
             var wallet = await _walletRepo.GetByUserIdAsync(context.UserId) 
-                ?? throw new NotFoundException("Không tìm thấy ví người dùng.");
+                ?? throw new NotFoundException(ErrorCodes.WalletNotFound);
             return wallet.Balance;
         }
 
         private async Task<Wallet> GetWalletWithLockOrThrowAsync(long userId)
         {
             return await _walletRepo.GetWithLockByUserIdAsync(userId)
-                ?? throw new NotFoundException("Không tìm thấy ví người dùng.");
+                ?? throw new NotFoundException(ErrorCodes.WalletNotFound);
         }
 
         public async Task<List<WalletTransaction>> GetTransactionsAsync(UserContext context)

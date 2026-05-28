@@ -34,21 +34,21 @@ namespace GameTopUp.BLL.Services
         public async Task<Order> GetByIdOrThrowAsync(long orderId)
         {
             return await _orderRepo.GetByIdAsync(orderId)
-                ?? throw new NotFoundException($"Không tìm thấy đơn hàng #{orderId}");
+                ?? throw new NotFoundException(ErrorCodes.OrderNotFound, $"Không tìm thấy đơn hàng #{orderId}");
         }
 
         public async Task<Order> GetWithLockByIdOrThrowAsync(long orderId)
         {
             // WHY: Pessimistic Lock ngăn chặn trạng thái đơn hàng bị thay đổi đồng thời.
             return await _orderRepo.GetWithLockByIdAsync(orderId)
-                ?? throw new NotFoundException($"Không tìm thấy đơn hàng #{orderId}");
+                ?? throw new NotFoundException(ErrorCodes.OrderNotFound, $"Không tìm thấy đơn hàng #{orderId}");
         }
 
         public async Task<long> CreateOrderAsync(UserContext context, GamePackage package, int quantity, string gameAccountInfo)
         {
             if (await _orderRepo.HasPendingOrderAsync(context.UserId))
             {
-                throw new BusinessException("Bạn đang có một đơn hàng chờ thanh toán. Vui lòng hoàn tất hoặc hủy đơn hàng đó trước khi tạo đơn mới.");
+                throw new BusinessException(ErrorCodes.PendingOrderExists);
             }
 
             var order = new Order
@@ -85,7 +85,7 @@ namespace GameTopUp.BLL.Services
             catch (Exception ex) when (ex.Message.Contains("Duplicate", StringComparison.OrdinalIgnoreCase) || 
                                        ex.Message.Contains("UNIQUE", StringComparison.OrdinalIgnoreCase))
             {
-                throw new BusinessException("Bạn đang có một đơn hàng đang chờ thanh toán. Vui lòng thực hiện thanh toán hoặc hủy đơn hàng đó trước khi tạo đơn mới.");
+                throw new BusinessException(ErrorCodes.PendingOrderExists);
             }
         }
 
@@ -96,10 +96,10 @@ namespace GameTopUp.BLL.Services
                 return;
 
             if (order.Status == OrderStatus.Processing)
-                throw new BusinessException("Đơn hàng đã được admin khác tiếp nhận.");
+                throw new BusinessException(ErrorCodes.OrderAlreadyAssigned);
 
             if (order.Status != OrderStatus.Paid)
-                throw new BusinessException("Chỉ có thể tiếp nhận đơn hàng đã thanh toán.");
+                throw new BusinessException(ErrorCodes.OrderMustBePaidToPick);
 
             var fromStatus = order.Status;
 
@@ -130,10 +130,10 @@ namespace GameTopUp.BLL.Services
                 return;
 
             if (order.Status != OrderStatus.Processing)
-                throw new BusinessException("Trạng thái đơn hàng không hợp lệ để hoàn thành.");
+                throw new BusinessException(ErrorCodes.OrderStatusInvalidToComplete);
 
             if (order.AssignTo != admin.UserId)
-                throw new BusinessException("Bạn không thể can thiệp vào đơn hàng của người khác.");
+                throw new BusinessException(ErrorCodes.CannotModifyOthersOrder);
 
             var fromStatus = order.Status;
 
@@ -161,16 +161,16 @@ namespace GameTopUp.BLL.Services
             if (order.Status == OrderStatus.Cancelled) return null;
 
             if (order.Status == OrderStatus.Completed)
-                throw new BusinessException("Đơn hàng đã hoàn thành không thể hủy.");
+                throw new BusinessException(ErrorCodes.CompletedOrderCannotBeCancelled);
 
             bool isOwner = order.UserId == user.UserId;
             bool isAssignedAdmin = order.AssignTo == user.UserId;
 
             if (!isOwner && !isAssignedAdmin)
-                throw new ForbiddenException("Bạn không thể can thiệp vào đơn hàng của người khác.");
+                throw new ForbiddenException(ErrorCodes.CannotModifyOthersOrder);
             
             if (order.Status == OrderStatus.Processing && order.UserId == user.UserId)
-                throw new ForbiddenException("Đơn hàng đang được xử lý, không thể hủy.");
+                throw new ForbiddenException(ErrorCodes.ProcessingOrderCannotBeCancelled);
 
             var oldStatus = order.Status;
 
@@ -197,10 +197,10 @@ namespace GameTopUp.BLL.Services
         public void ValidateForPayment(Order order, UserContext user)
         {
             if (order.UserId != user.UserId) 
-                throw new BusinessException("Bạn không có quyền thanh toán đơn hàng này.");
+                throw new BusinessException(ErrorCodes.PaymentForbidden);
                 
             if (order.Status != OrderStatus.Pending) 
-                throw new BusinessException("Đơn hàng không ở trạng thái chờ thanh toán.");
+                throw new BusinessException(ErrorCodes.OrderNotPendingPayment);
         }
 
         public async Task MarkAsPaidAsync(Order order, UserContext user)

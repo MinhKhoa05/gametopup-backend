@@ -7,9 +7,12 @@ namespace GameTopUp.BLL.Exceptions
     /// </summary>
     public class BusinessException : Exception
     {
-        public BusinessException(string message = "")
-            : base(message)
+        public string ErrorCode { get; }
+
+        public BusinessException(string errorCode = ErrorCodes.BadRequest, string? message = null)
+            : base(message ?? errorCode)
         {
+            ErrorCode = errorCode;
         }
     }
 }

@@ -27,7 +27,7 @@ namespace GameTopUp.BLL.Services.Auth
         {
             if (!IsStrongPassword(password))
             {
-                throw new BusinessException("Mật khẩu không đủ mạnh. Yêu cầu: ít nhất 8 ký tự, bao gồm chữ hoa, chữ thường, số và ký tự đặc biệt.");
+                throw new BusinessException(ErrorCodes.WeakPassword);
             }
         }
 

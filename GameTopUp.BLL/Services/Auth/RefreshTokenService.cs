@@ -63,7 +63,7 @@ namespace GameTopUp.BLL.Services.Auth
 
             // Throw exception để tầng trên xử lý response phù hợp.
             if (!success)
-                throw new BusinessException("Revoke thất bại");
+                throw new BusinessException(ErrorCodes.RevokeTokenFailed);
         }
     }
 }

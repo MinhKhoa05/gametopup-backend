@@ -51,7 +51,7 @@ namespace GameTopUp.API.Middlewares
             {
                 statusCode = HttpStatusCode.NotFound;
             }
-            else if (ex is UnauthorizedException || ex is UnauthorizedAccessException)
+            else if (ex is UnauthorizedAccessException)
             {
                 statusCode = HttpStatusCode.Unauthorized;
             }
@@ -68,13 +68,17 @@ namespace GameTopUp.API.Middlewares
 
             // Nếu là lỗi hệ thống (500), ẩn chi tiết lỗi để bảo mật. 
             // Ngược lại, trả về thông báo lỗi nghiệp vụ cụ thể cho người dùng.
-            var message = "Hệ thống đang bận một chút hoặc có sự cố nhỏ. Bạn vui lòng thử lại sau vài giây nhé!";
+            var message = ErrorCodes.InternalServerError;
+            string? errorCode = ErrorCodes.InternalServerError;
             if (statusCode != HttpStatusCode.InternalServerError)
             {
                 message = ex.Message;
+                errorCode = ex is BusinessException businessException
+                    ? businessException.ErrorCode
+                    : message;
             }
 
-            var response = ApiResponse.Fail(message);
+            var response = ApiResponse.Fail(message, errorCode: errorCode);
 
             var options = new JsonSerializerOptions
             {

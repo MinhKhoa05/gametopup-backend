@@ -23,7 +23,7 @@ namespace GameTopUp.BLL.Services
 
         public async Task<UserResponseDTO> GetByIdAsync(long id)
         {
-            var user = await _userRepo.GetByIdAsync(id) ?? throw new NotFoundException("Người dùng không tồn tại.");
+            var user = await _userRepo.GetByIdAsync(id) ?? throw new NotFoundException(ErrorCodes.UserNotFound);
             return user.Adapt<UserResponseDTO>();
         }
 
@@ -32,7 +32,7 @@ namespace GameTopUp.BLL.Services
             var existingUser = await _userRepo.GetByEmailAsync(request.Email);
             if (existingUser != null)
             {
-                throw new BusinessException("Email này đã được sử dụng trong hệ thống.");
+                throw new BusinessException(ErrorCodes.EmailExists);
             }
 
             return await _userRepo.CreateAsync(new User
@@ -46,14 +46,14 @@ namespace GameTopUp.BLL.Services
 
         public async Task UpdateProfileAsync(long id, UpdateUserRequest request)
         {
-            var user = await _userRepo.GetByIdAsync(id) ?? throw new NotFoundException("Người dùng không tồn tại.");
+            var user = await _userRepo.GetByIdAsync(id) ?? throw new NotFoundException(ErrorCodes.UserNotFound);
             request.Adapt(user);
             await _userRepo.UpdateAsync(user);
         }
 
         public async Task DeleteAsync(long id)
         {
-            var user = await _userRepo.GetByIdAsync(id) ?? throw new NotFoundException("Người dùng không tồn tại.");
+            var user = await _userRepo.GetByIdAsync(id) ?? throw new NotFoundException(ErrorCodes.UserNotFound);
             await _userRepo.DeleteAsync(id);
         }
 
@@ -64,7 +64,7 @@ namespace GameTopUp.BLL.Services
 
         public async Task<User> GetProfileAsync(long userId)
         {
-            var user = await _userRepo.GetByIdAsync(userId) ?? throw new NotFoundException("Người dùng không tồn tại.");
+            var user = await _userRepo.GetByIdAsync(userId) ?? throw new NotFoundException(ErrorCodes.UserNotFound);
             return user;
         }
 

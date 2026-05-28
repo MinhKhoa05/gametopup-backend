@@ -39,7 +39,7 @@ namespace GameTopUp.BLL.Services
             var package = await _packageRepo.GetByIdAsync(id);
             if (package == null)
             {
-                throw new NotFoundException("Gói nạp không tồn tại.");
+                throw new NotFoundException(ErrorCodes.GamePackageNotFound);
             }
             return package;
         }
@@ -98,7 +98,7 @@ namespace GameTopUp.BLL.Services
             ValidateStockQuantity(quantity);
 
             var affectedRows = await _packageRepo.DecreaseStockAsync(id, quantity);
-            if (affectedRows == 0) throw new BusinessException("Không đủ số lượng trong kho.");
+            if (affectedRows == 0) throw new BusinessException(ErrorCodes.InsufficientStock);
         }
 
         public async Task<GamePackage> GetAvailablePackageAsync(long id, int quantity)
@@ -106,8 +106,8 @@ namespace GameTopUp.BLL.Services
             ValidateStockQuantity(quantity);
 
             var package = await GetPackageByIdOrThrowAsync(id);
-            if (!package.IsActive) throw new BusinessException("Gói nạp hiện không khả dụng.");
-            if (package.StockQuantity < quantity) throw new BusinessException("Số lượng trong kho không đủ.");
+            if (!package.IsActive) throw new BusinessException(ErrorCodes.GamePackageInactive);
+            if (package.StockQuantity < quantity) throw new BusinessException(ErrorCodes.InsufficientStock);
 
             return package;
         }
@@ -117,12 +117,12 @@ namespace GameTopUp.BLL.Services
             var game = await _gameRepo.GetByIdAsync(gameId);
             if (game == null)
             {
-                throw new NotFoundException("Game không tồn tại.");
+                throw new NotFoundException(ErrorCodes.GameNotFound);
             }
 
             if (!game.IsActive)
             {
-                throw new BusinessException("Không thể thêm gói nạp vào Game đang ở trạng thái ngừng hoạt động.");
+                throw new BusinessException(ErrorCodes.InactiveGameCannotAddPackage);
             }
         }
 
@@ -145,7 +145,7 @@ namespace GameTopUp.BLL.Services
 
         private static void ValidateStockQuantity(int quantity)
         {
-            if (quantity <= 0) throw new BusinessException("Số lượng phải lớn hơn 0.");
+            if (quantity <= 0) throw new BusinessException(ErrorCodes.StockQuantityMustBePositive);
         }
 
     }

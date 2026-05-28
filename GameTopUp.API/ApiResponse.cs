@@ -11,6 +11,8 @@ namespace GameTopUp.API
 
         public string? Message { get; set; }
 
+        public string? ErrorCode { get; set; }
+
         public object? Data { get; set; }
 
         private ApiResponse() 
@@ -27,12 +29,13 @@ namespace GameTopUp.API
             };
         }
 
-        public static ApiResponse Fail(string message, object? data = null)
+        public static ApiResponse Fail(string message, object? data = null, string? errorCode = null)
         {
             return new ApiResponse
             {
                 Success = false,
                 Message = message,
+                ErrorCode = errorCode,
                 Data = data
             };
         }

@@ -50,7 +50,7 @@ namespace GameTopUp.BLL.ExternalServices
 
             if (!response.IsSuccessStatusCode)
             {
-                throw new BusinessException($"Upload Cloudinary thất bại: {responseBody}");
+                throw new BusinessException(ErrorCodes.CloudinaryUploadFailed, $"Upload Cloudinary thất bại: {responseBody}");
             }
 
             return ParseUploadResponse(responseBody, fileName);
@@ -62,7 +62,7 @@ namespace GameTopUp.BLL.ExternalServices
                 string.IsNullOrWhiteSpace(_settings.ApiKey) ||
                 string.IsNullOrWhiteSpace(_settings.ApiSecret))
             {
-                throw new BusinessException("Chưa cấu hình Cloudinary.");
+                throw new BusinessException(ErrorCodes.CloudinarySettingsMissing);
             }
         }
 

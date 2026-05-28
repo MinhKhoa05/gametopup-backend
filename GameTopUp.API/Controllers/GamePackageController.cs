@@ -56,7 +56,7 @@ namespace GameTopUp.API.Controllers
         {
             if (image == null)
             {
-                throw new BusinessException("Vui lòng chọn file ảnh.");
+                throw new BusinessException(ErrorCodes.ImageRequired);
             }
 
             await using var imageStream = image.OpenReadStream();

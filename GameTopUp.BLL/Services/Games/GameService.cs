@@ -22,7 +22,7 @@ namespace GameTopUp.BLL.Services
 
         public async Task<Game> GetGameByIdAsync(long id)
         {
-            var game = await _gameRepo.GetByIdAsync(id) ?? throw new NotFoundException("Game không tồn tại.");
+            var game = await _gameRepo.GetByIdAsync(id) ?? throw new NotFoundException(ErrorCodes.GameNotFound);
             return game;
         }
 

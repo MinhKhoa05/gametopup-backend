@@ -28,14 +28,6 @@ namespace GameTopUp.BLL.UseCases
             return await _depositRequestService.CreateAsync(context, amount);
         }
 
-        public async Task<TransactionResponseDTO> WithdrawAsync(UserContext context, decimal amount)
-        {
-            return await _database.ExecuteInTransactionAsync(async () =>
-            {
-                return await _walletService.WithdrawAsync(context.UserId, amount);
-            });
-        }
-
         public async Task<DepositRequestResponseDTO> ApproveDepositRequestAsync(long requestId, UserContext admin, string? note = null)
         {
             return await _database.ExecuteInTransactionAsync(async () =>
@@ -46,7 +38,7 @@ namespace GameTopUp.BLL.UseCases
                     return _depositRequestService.MapToResponse(request);
 
                 if (request.Status != WalletDepositRequestStatus.UserConfirmed)
-                    throw new BusinessException("Chỉ có thể duyệt yêu cầu đã được user xác nhận chuyển khoản.");
+                    throw new BusinessException(ErrorCodes.DepositApproveOnlyUserConfirmed);
 
                 await _walletService.DepositFromVietQrAsync(request.UserId, request.Amount, request.Code);
                 await _depositRequestService.MarkApprovedAsync(request, admin, note);

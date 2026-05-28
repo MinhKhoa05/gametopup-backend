@@ -1,6 +1,7 @@
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using GameTopUp.BLL.Exceptions;
 using GameTopUp.BLL.Options;
 
 namespace GameTopUp.API.Extensions
@@ -70,24 +71,24 @@ namespace GameTopUp.API.Extensions
                 {
                     // Tùy chỉnh phản hồi khi người dùng truy cập tài nguyên yêu cầu đăng nhập nhưng chưa có Token.
                     context.HandleResponse();
-                    await WriteErrorResponse(context.HttpContext, StatusCodes.Status401Unauthorized, "Yêu cầu đăng nhập để thực hiện hành động này.");
+                    await WriteErrorResponse(context.HttpContext, StatusCodes.Status401Unauthorized, ErrorCodes.Unauthorized);
                 },
 
                 OnAuthenticationFailed = async context =>
                 {
                     // Xử lý khi Token bị sai định dạng, bị sửa đổi hoặc đã hết hạn.
-                    await WriteErrorResponse(context.HttpContext, StatusCodes.Status401Unauthorized, "Phiên đăng nhập không hợp lệ hoặc đã hết hạn.");
+                    await WriteErrorResponse(context.HttpContext, StatusCodes.Status401Unauthorized, ErrorCodes.Unauthorized);
                 },
 
                 OnForbidden = async context =>
                 {
                     // Xử lý khi người dùng không có quyền truy cập endpoint có phân quyền
-                    await WriteErrorResponse(context.HttpContext, StatusCodes.Status403Forbidden, "Bạn không có quyền truy cập tài nguyên này.");
+                    await WriteErrorResponse(context.HttpContext, StatusCodes.Status403Forbidden, ErrorCodes.Forbidden);
                 }
             };
         }
 
-        private static async Task WriteErrorResponse(HttpContext context, int statusCode,  string message)
+        private static async Task WriteErrorResponse(HttpContext context, int statusCode, string errorCode, string? message = null)
         {
             context.Response.StatusCode = statusCode;
             context.Response.ContentType = "application/json";
@@ -96,7 +97,8 @@ namespace GameTopUp.API.Extensions
             await context.Response.WriteAsJsonAsync(new 
             { 
                 success = false,
-                message = message 
+                message = message ?? errorCode,
+                errorCode = errorCode
             });
         }
     }

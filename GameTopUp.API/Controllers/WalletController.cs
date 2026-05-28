@@ -47,13 +47,6 @@ namespace GameTopUp.API.Controllers
             return ApiCreated(response, "Tạo yêu cầu nạp tiền thành công.");
         }
 
-        [HttpPost("transactions/withdraw")]
-        public async Task<IActionResult> Withdraw([FromBody] WalletTransactionRequest request)
-        {
-            var response = await _walletUseCase.WithdrawAsync(CurrentUser, request.Amount);
-            return ApiOk(response, "Rút tiền thành công.");
-        }
-
         [HttpPost("deposit-requests")]
         public async Task<IActionResult> CreateDepositRequest([FromBody] CreateDepositRequest request)
         {

@@ -61,13 +61,13 @@ namespace GameTopUp.BLL.Services
             var request = await GetByIdOrThrowAsync(requestId);
 
             if (request.UserId != context.UserId)
-                throw new ForbiddenException("Bạn không có quyền cập nhật yêu cầu nạp tiền này.");
+                throw new ForbiddenException(ErrorCodes.DepositRequestForbidden);
 
             if (request.Status == WalletDepositRequestStatus.UserConfirmed)
                 return MapToResponse(request);
 
             if (request.Status != WalletDepositRequestStatus.Pending)
-                throw new BusinessException("Chỉ có thể xác nhận chuyển khoản cho yêu cầu đang chờ.");
+                throw new BusinessException(ErrorCodes.DepositConfirmOnlyPending);
 
             request.Status = WalletDepositRequestStatus.UserConfirmed;
             request.UserConfirmedAt = DateTime.UtcNow;
@@ -80,7 +80,7 @@ namespace GameTopUp.BLL.Services
         public async Task<WalletDepositRequest> GetWithLockByIdOrThrowAsync(long requestId)
         {
             return await _depositRequestRepo.GetWithLockByIdAsync(requestId)
-                ?? throw new NotFoundException($"Không tìm thấy yêu cầu nạp tiền #{requestId}.");
+                ?? throw new NotFoundException(ErrorCodes.DepositRequestNotFound, $"Không tìm thấy yêu cầu nạp tiền #{requestId}.");
         }
 
         public async Task MarkApprovedAsync(WalletDepositRequest request, UserContext admin, string? note = null)
@@ -89,7 +89,7 @@ namespace GameTopUp.BLL.Services
                 return;
 
             if (request.Status != WalletDepositRequestStatus.UserConfirmed)
-                throw new BusinessException("Chỉ có thể duyệt yêu cầu đã được user xác nhận chuyển khoản.");
+                throw new BusinessException(ErrorCodes.DepositApproveOnlyUserConfirmed);
 
             request.Status = WalletDepositRequestStatus.Approved;
             request.ReviewedBy = admin.UserId;
@@ -106,7 +106,7 @@ namespace GameTopUp.BLL.Services
                 return;
 
             if (request.Status == WalletDepositRequestStatus.Approved)
-                throw new BusinessException("Yêu cầu đã duyệt không thể từ chối.");
+                throw new BusinessException(ErrorCodes.ApprovedDepositCannotBeRejected);
 
             request.Status = WalletDepositRequestStatus.Rejected;
             request.ReviewedBy = admin.UserId;
@@ -140,13 +140,13 @@ namespace GameTopUp.BLL.Services
         private async Task<WalletDepositRequest> GetByIdOrThrowAsync(long requestId)
         {
             return await _depositRequestRepo.GetByIdAsync(requestId)
-                ?? throw new NotFoundException($"Không tìm thấy yêu cầu nạp tiền #{requestId}.");
+                ?? throw new NotFoundException(ErrorCodes.DepositRequestNotFound, $"Không tìm thấy yêu cầu nạp tiền #{requestId}.");
         }
 
         private void ValidateAmount(decimal amount)
         {
-            if (amount <= 0) throw new BusinessException("Số tiền nạp phải lớn hơn 0.");
-            if (amount != decimal.Truncate(amount)) throw new BusinessException("Số tiền nạp VietQR phải là số nguyên VNĐ.");
+            if (amount <= 0) throw new BusinessException(ErrorCodes.AmountMustBePositive);
+            if (amount != decimal.Truncate(amount)) throw new BusinessException(ErrorCodes.DepositAmountMustBeInteger);
         }
 
         private void ValidateVietQrSettings()
@@ -155,7 +155,7 @@ namespace GameTopUp.BLL.Services
                 string.IsNullOrWhiteSpace(_vietQrSettings.AccountNo) ||
                 string.IsNullOrWhiteSpace(_vietQrSettings.AccountName))
             {
-                throw new BusinessException("Chưa cấu hình thông tin tài khoản VietQR.");
+                throw new BusinessException(ErrorCodes.VietQrSettingsMissing);
             }
         }
 

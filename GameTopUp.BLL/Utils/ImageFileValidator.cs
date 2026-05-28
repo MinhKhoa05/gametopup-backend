@@ -14,12 +14,12 @@ namespace GameTopUp.BLL.Utils
 
         public static void Validate(string fileName, string contentType, long fileLength)
         {
-            if (fileLength <= 0) throw new BusinessException("File ảnh không hợp lệ.");
-            if (fileLength > MaxImageBytes) throw new BusinessException("Ảnh tải lên không được vượt quá 5MB.");
+            if (fileLength <= 0) throw new BusinessException(ErrorCodes.InvalidImageFile);
+            if (fileLength > MaxImageBytes) throw new BusinessException(ErrorCodes.ImageTooLarge);
             if (!AllowedContentTypes.Contains(contentType))
-                throw new BusinessException("Chỉ hỗ trợ ảnh JPG, PNG hoặc WEBP.");
+                throw new BusinessException(ErrorCodes.UnsupportedImageType);
             if (string.IsNullOrWhiteSpace(fileName))
-                throw new BusinessException("Tên file ảnh không hợp lệ.");
+                throw new BusinessException(ErrorCodes.InvalidImageFileName);
         }
     }
 }

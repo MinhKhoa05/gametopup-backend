@@ -6,8 +6,8 @@ namespace GameTopUp.BLL.Exceptions
     /// </summary>
     public class ForbiddenException : BusinessException
     {
-        public ForbiddenException(string message = "Bạn không có quyền thực hiện hành động này.")
-            : base(message)
+        public ForbiddenException(string errorCode = ErrorCodes.Forbidden, string? message = null)
+            : base(errorCode, message)
         {
         }
     }
