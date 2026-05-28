@@ -1,6 +1,6 @@
 using GameTopUp.DAL.Entities;
 using GameTopUp.DAL.Interfaces.Orders;
-using GameTopUp.BLL.Common;
+using GameTopUp.BLL.Context;
 using GameTopUp.BLL.Exceptions;
 
 namespace GameTopUp.BLL.Services
@@ -51,39 +51,25 @@ namespace GameTopUp.BLL.Services
                 throw new BusinessException(ErrorCodes.PendingOrderExists);
             }
 
-            var order = new Order
-            {
-                UserId = context.UserId,
-                GamePackageId = package.Id,
-                UnitPrice = package.SalePrice,
-                Quantity = quantity,
-                GameAccountInfo = gameAccountInfo,
-                Status = OrderStatus.Pending,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
-            };
+            var order = Order.CreatePending(context.UserId, package, quantity, gameAccountInfo);
 
             try
             {
                 var newOrderId = await _orderRepo.CreateAsync(order);
                 order.Id = newOrderId;
 
-                // Save history
-                await _orderHistoryRepo.CreateAsync(new OrderHistory
-                {
-                    OrderId = newOrderId,
-                    FromStatus = order.Status,
-                    ToStatus = order.Status,
-                    Note = "Đơn hàng được tạo (Chờ thanh toán).",
-                    ActionBy = context.UserId,
-                    IsAdmin = false,
-                    CreatedAt = DateTime.UtcNow
-                });
+                var history = OrderHistory.Create(
+                    newOrderId,
+                    order.Status,
+                    order.Status,
+                    "Đơn hàng được tạo (Chờ thanh toán).",
+                    context.UserId);
+
+                await _orderHistoryRepo.CreateAsync(history);
 
                 return newOrderId;
             }
-            catch (Exception ex) when (ex.Message.Contains("Duplicate", StringComparison.OrdinalIgnoreCase) || 
-                                       ex.Message.Contains("UNIQUE", StringComparison.OrdinalIgnoreCase))
+            catch (Exception ex) when (IsDuplicatePendingOrder(ex))
             {
                 throw new BusinessException(ErrorCodes.PendingOrderExists);
             }
@@ -110,17 +96,15 @@ namespace GameTopUp.BLL.Services
 
             await _orderRepo.UpdateAsync(order);
 
-            // Save history
-            await _orderHistoryRepo.CreateAsync(new OrderHistory
-            {
-                OrderId = order.Id,
-                FromStatus = fromStatus,
-                ToStatus = OrderStatus.Processing,
-                Note = $"Admin {admin.Username} tiếp nhận đơn hàng.",
-                ActionBy = admin.UserId,
-                IsAdmin = true,
-                CreatedAt = DateTime.UtcNow
-            });
+            var history = OrderHistory.Create(
+                order.Id,
+                fromStatus,
+                OrderStatus.Processing,
+                $"Admin {admin.Username} tiếp nhận đơn hàng.",
+                admin.UserId,
+                isAdmin: true);
+
+            await _orderHistoryRepo.CreateAsync(history);
         }
 
         public async Task CompleteOrderAsync(Order order, UserContext admin)
@@ -142,17 +126,15 @@ namespace GameTopUp.BLL.Services
 
             await _orderRepo.UpdateAsync(order);
 
-            // Save history
-            await _orderHistoryRepo.CreateAsync(new OrderHistory
-            {
-                OrderId = order.Id,
-                FromStatus = fromStatus,
-                ToStatus = OrderStatus.Completed,
-                Note = $"Admin {admin.Username} xác nhận hoàn thành.",
-                ActionBy = admin.UserId,
-                IsAdmin = true,
-                CreatedAt = DateTime.UtcNow
-            });
+            var history = OrderHistory.Create(
+                order.Id,
+                fromStatus,
+                OrderStatus.Completed,
+                $"Admin {admin.Username} xác nhận hoàn thành.",
+                admin.UserId,
+                isAdmin: true);
+
+            await _orderHistoryRepo.CreateAsync(history);
         }
 
         public async Task<OrderStatus?> CancelOrderAsync(Order order, UserContext user, string? reason = null)
@@ -179,18 +161,14 @@ namespace GameTopUp.BLL.Services
 
             await _orderRepo.UpdateAsync(order);
 
-            // Save history
-            var note = $"Hủy đơn hàng." + (string.IsNullOrEmpty(reason) ? "" : $" Lý do: {reason}");
-            await _orderHistoryRepo.CreateAsync(new OrderHistory
-            {
-                OrderId = order.Id,
-                FromStatus = oldStatus,
-                ToStatus = OrderStatus.Cancelled,
-                Note = note,
-                ActionBy = user.UserId,
-                CreatedAt = DateTime.UtcNow
-            });
+            var history = OrderHistory.Create(
+                order.Id,
+                oldStatus,
+                OrderStatus.Cancelled,
+                BuildCancelNote(reason),
+                user.UserId);
 
+            await _orderHistoryRepo.CreateAsync(history);
             return oldStatus;
         }
 
@@ -211,17 +189,26 @@ namespace GameTopUp.BLL.Services
             
             await _orderRepo.UpdateAsync(order);
 
-            // Save history
-            await _orderHistoryRepo.CreateAsync(new OrderHistory
-            {
-                OrderId = order.Id,
-                FromStatus = fromStatus, 
-                ToStatus = order.Status,
-                Note = "Thanh toán đơn hàng thành công.",
-                ActionBy = user.UserId,
-                IsAdmin = false,
-                CreatedAt = DateTime.UtcNow
-            });
+            var history = OrderHistory.Create(
+                order.Id,
+                fromStatus,
+                order.Status,
+                "Thanh toán đơn hàng thành công.",
+                user.UserId);
+
+            await _orderHistoryRepo.CreateAsync(history);
+        }
+
+        private static string BuildCancelNote(string? reason)
+        {
+            return "H\u1EE7y \u0111\u01A1n h\u00E0ng." +
+                   (string.IsNullOrEmpty(reason) ? "" : $" L\u00FD do: {reason}");
+        }
+
+        private static bool IsDuplicatePendingOrder(Exception ex)
+        {
+            return ex.Message.Contains("Duplicate", StringComparison.OrdinalIgnoreCase) ||
+                   ex.Message.Contains("UNIQUE", StringComparison.OrdinalIgnoreCase);
         }
     }
 }

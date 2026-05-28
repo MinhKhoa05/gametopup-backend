@@ -20,6 +20,32 @@ namespace GameTopUp.DAL.Entities
         public string? AdminNote { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+
+        public WalletDepositRequest()
+        {
+        }
+
+        public static WalletDepositRequest CreatePending(
+            long userId,
+            decimal amount,
+            string code,
+            string transferContent,
+            string qrImageUrl)
+        {
+            var now = DateTime.UtcNow;
+
+            return new WalletDepositRequest
+            {
+                UserId = userId,
+                Amount = amount,
+                Code = code,
+                TransferContent = transferContent,
+                QrImageUrl = qrImageUrl,
+                Status = WalletDepositRequestStatus.Pending,
+                CreatedAt = now,
+                UpdatedAt = now
+            };
+        }
     }
 
     public enum WalletDepositRequestStatus

@@ -1,4 +1,4 @@
-using GameTopUp.BLL.Common;
+using GameTopUp.BLL.Context;
 using GameTopUp.BLL.DTOs.Auths;
 using GameTopUp.BLL.DTOs.Users;
 using GameTopUp.BLL.Exceptions;
@@ -18,7 +18,7 @@ namespace GameTopUp.BLL.UseCases
         private readonly RefreshTokenService _refreshTokenService;
         private readonly DatabaseContext _database;
 
-        private const int refreshTokeneExpireDays = 7;
+        private static readonly TimeSpan RefreshTokenLifetime = TimeSpan.FromDays(7);
 
         public AuthUseCase(
             UserService user,
@@ -62,29 +62,17 @@ namespace GameTopUp.BLL.UseCases
                 throw new BusinessException(ErrorCodes.InvalidCredentials);
             }
 
-            var accessToken = _token.GenerateAccessToken(new TokenPayload
+            var payload = TokenPayload.Create(user.Id, user.Username, user.Email, user.Role.ToString());
+            var tokens = await IssueTokenPairAsync(payload, user.Id);
+
+            var response = new AuthResponseDTO
             {
-                UserId = user.Id,
-                Name = user.Username,
-                Email = user.Email,
-                Role = user.Role.ToString()
-            });
-
-            // Tạo refresh token ngẫu nhiên.
-            var refreshToken = _token.GenerateRefreshToken();
-
-            // Chỉ lưu hash để tăng bảo mật.
-            var hash = _token.HashToken(refreshToken);
-
-            // Lưu refresh token xuống DB.
-            await _refreshTokenService.SaveRefreshTokenAsync(user.Id, hash, refreshTokeneExpireDays);
-
-            return new AuthResponseDTO
-            {
-                AccessToken = accessToken,
-                RefreshToken = refreshToken,
+                AccessToken = tokens.AccessToken,
+                RefreshToken = tokens.RefreshToken,
                 User = user.Adapt<UserResponseDTO>()
             };
+
+            return response;
         }
 
         public async Task<AuthResponseDTO> RefreshAsync(string refreshTokenString)
@@ -99,33 +87,21 @@ namespace GameTopUp.BLL.UseCases
             // Lấy lại thông tin user từ UserId trong refresh token.
             var user = await _user.GetByIdAsync(refreshToken.UserId);
 
-            var tokenPayload = new TokenPayload
-            {
-                UserId = user.Id,
-                Name = user.Username,
-                Email = user.Email,
-                Role = user.Role.ToString()
-            };
+            var tokenPayload = TokenPayload.Create(user.Id, user.Username, user.Email, user.Role);
 
             return await _database.ExecuteInTransactionAsync(async () =>
             {
                 // Revoke token cũ để tránh reuse token.
                 await _refreshTokenService.RevokeTokenAsync(hash);
 
-                var accessToken = _token.GenerateAccessToken(tokenPayload);
-
-                // Tạo refresh token mới.
-                var newRefreshToken = _token.GenerateRefreshToken();
-
-                var newHash = _token.HashToken(newRefreshToken);
-
-                await _refreshTokenService.SaveRefreshTokenAsync(user.Id, newHash, 7);
-
-                return new AuthResponseDTO
+                var tokens = await IssueTokenPairAsync(tokenPayload, user.Id);
+                var response = new AuthResponseDTO
                 {
-                    AccessToken = accessToken,
-                    RefreshToken = newRefreshToken
+                    AccessToken = tokens.AccessToken,
+                    RefreshToken = tokens.RefreshToken
                 };
+
+                return response;
             });
         }
 
@@ -160,5 +136,17 @@ namespace GameTopUp.BLL.UseCases
 
             await _user.ChangePasswordAsync(context.UserId, hashedPassword);
         }
+
+        private async Task<(string AccessToken, string RefreshToken)> IssueTokenPairAsync(TokenPayload payload, long userId)
+        {
+            var accessToken = _token.GenerateAccessToken(payload);
+            var refreshToken = _token.GenerateRefreshToken();
+            var refreshTokenHash = _token.HashToken(refreshToken);
+
+            await _refreshTokenService.SaveRefreshTokenAsync(userId, refreshTokenHash, RefreshTokenLifetime);
+
+            return (accessToken, refreshToken);
+        }
+
     }
 }

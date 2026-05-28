@@ -21,6 +21,30 @@ namespace GameTopUp.DAL.Entities
 
         public bool IsAdmin { get; set; }
 
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime CreatedAt { get; set; }
+
+        public OrderHistory()
+        {
+        }
+
+        public static OrderHistory Create(
+            long orderId,
+            OrderStatus fromStatus,
+            OrderStatus toStatus,
+            string? note,
+            long actionBy,
+            bool isAdmin = false)
+        {
+            return new OrderHistory
+            {
+                OrderId = orderId,
+                FromStatus = fromStatus,
+                ToStatus = toStatus,
+                Note = note,
+                ActionBy = actionBy,
+                IsAdmin = isAdmin,
+                CreatedAt = DateTime.UtcNow
+            };
+        }
     }
 }

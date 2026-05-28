@@ -1,6 +1,6 @@
 using FluentAssertions;
 using GameTopUp.DAL.Interfaces.Wallets;
-using GameTopUp.BLL.Common;
+using GameTopUp.BLL.Context;
 using GameTopUp.BLL.Exceptions;
 using GameTopUp.BLL.Options;
 using GameTopUp.BLL.Services;

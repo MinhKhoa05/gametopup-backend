@@ -48,7 +48,18 @@ namespace GameTopUp.BLL.Services
         {
             await ValidateGameForPackageAsync(request.GameId);
 
-            var package = BuildPackage(request);
+            var normalizedName = NormalizeName.Normalize(request.Name);
+            var package = GamePackage.Create(
+                request.Name,
+                normalizedName,
+                request.ImageUrl,
+                request.ImagePublicId,
+                request.GameId,
+                request.SalePrice,
+                request.OriginalPrice,
+                request.ImportPrice,
+                request.StockQuantity,
+                request.IsActive);
             package.Id = await _packageRepo.CreateAsync(package);
             return package;
         }
@@ -67,7 +78,18 @@ namespace GameTopUp.BLL.Services
             request.ImageUrl = upload.SecureUrl;
             request.ImagePublicId = upload.PublicId;
 
-            var package = BuildPackage(request);
+            var normalizedName = NormalizeName.Normalize(request.Name);
+            var package = GamePackage.Create(
+                request.Name,
+                normalizedName,
+                request.ImageUrl,
+                request.ImagePublicId,
+                request.GameId,
+                request.SalePrice,
+                request.OriginalPrice,
+                request.ImportPrice,
+                request.StockQuantity,
+                request.IsActive);
             package.Id = await _packageRepo.CreateAsync(package);
             return package;
         }
@@ -124,23 +146,6 @@ namespace GameTopUp.BLL.Services
             {
                 throw new BusinessException(ErrorCodes.InactiveGameCannotAddPackage);
             }
-        }
-
-        private static GamePackage BuildPackage(CreateGamePackageRequest request)
-        {
-            return new GamePackage
-            {
-                Name = request.Name,
-                NormalizedName = NormalizeName.Normalize(request.Name),
-                ImageUrl = request.ImageUrl,
-                ImagePublicId = request.ImagePublicId,
-                GameId = request.GameId,
-                SalePrice = request.SalePrice,
-                OriginalPrice = request.OriginalPrice,
-                ImportPrice = request.ImportPrice,
-                StockQuantity = request.StockQuantity,
-                IsActive = request.IsActive
-            };
         }
 
         private static void ValidateStockQuantity(int quantity)

@@ -28,12 +28,7 @@ namespace GameTopUp.BLL.Services
 
         public async Task<Game> CreateGameAsync(CreateGameRequest request)
         {
-            var game = new Game 
-            { 
-                Name = request.Name, 
-                ImageUrl = request.ImageUrl, 
-                IsActive = request.IsActive 
-            };
+            var game = Game.Create(request.Name, request.ImageUrl, request.IsActive);
             
             game.Id = await _gameRepo.CreateAsync(game);
             return game;

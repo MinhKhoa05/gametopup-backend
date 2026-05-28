@@ -22,6 +22,26 @@ namespace GameTopUp.DAL.Entities
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+
+        public User()
+        {
+        }
+
+        public static User CreateMember(string username, string email, string passwordHash)
+        {
+            var now = DateTime.UtcNow;
+
+            return new User
+            {
+                Username = username,
+                Email = email,
+                PasswordHash = passwordHash,
+                Role = UserRole.Member,
+                IsActive = true,
+                CreatedAt = now,
+                UpdatedAt = now
+            };
+        }
     }
 
     public enum UserRole

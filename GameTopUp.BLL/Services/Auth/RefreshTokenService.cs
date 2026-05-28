@@ -16,23 +16,9 @@ namespace GameTopUp.BLL.Services.Auth
         public async Task SaveRefreshTokenAsync(
             long userId,
             string tokenHash,
-            int expireDays)
+            TimeSpan lifetime)
         {
-            // Dùng chung một mốc thời gian để tránh lệch milliseconds
-            // giữa CreatedAt và ExpiresAt.
-            var now = DateTime.UtcNow;
-
-            var refreshToken = new RefreshToken
-            {
-                UserId = userId,
-                TokenHash = tokenHash,
-
-                // Luôn dùng UTC để tránh lỗi timezone.
-                CreatedAt = now,
-
-                // Refresh token cần thời gian hết hạn rõ ràng.
-                ExpiresAt = now.AddDays(expireDays)
-            };
+            var refreshToken = RefreshToken.Create(userId, tokenHash, lifetime);
 
             // Chỉ lưu hash thay vì raw token để tăng bảo mật.
             await _repo.CreateAsync(refreshToken);

@@ -25,6 +25,27 @@ namespace GameTopUp.DAL.Entities
         public OrderStatus Status { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
+
+        public Order()
+        {
+        }
+
+        public static Order CreatePending(long userId, GamePackage package, int quantity, string gameAccountInfo)
+        {
+            var now = DateTime.UtcNow;
+
+            return new Order
+            {
+                UserId = userId,
+                GamePackageId = package.Id,
+                UnitPrice = package.SalePrice,
+                Quantity = quantity,
+                GameAccountInfo = gameAccountInfo,
+                Status = OrderStatus.Pending,
+                CreatedAt = now,
+                UpdatedAt = now
+            };
+        }
     }
 
     public enum OrderStatus

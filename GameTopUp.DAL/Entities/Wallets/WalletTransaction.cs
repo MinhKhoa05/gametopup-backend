@@ -17,6 +17,32 @@ namespace GameTopUp.DAL.Entities
         public long? OrderId { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        public WalletTransaction()
+        {
+        }
+
+        public static WalletTransaction Create(
+            long userId,
+            decimal amount,
+            decimal balanceBefore,
+            decimal balanceAfter,
+            WalletTransactionType type,
+            string description,
+            long? orderId = null)
+        {
+            return new WalletTransaction
+            {
+                UserId = userId,
+                Amount = amount,
+                BalanceBefore = balanceBefore,
+                BalanceAfter = balanceAfter,
+                Type = type,
+                Description = description,
+                OrderId = orderId,
+                CreatedAt = DateTime.UtcNow
+            };
+        }
     }
 
     public enum WalletTransactionType

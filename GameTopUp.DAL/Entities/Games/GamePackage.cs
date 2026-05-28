@@ -23,5 +23,40 @@ namespace GameTopUp.DAL.Entities
         public bool IsActive { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+
+        public GamePackage()
+        {
+        }
+
+        public static GamePackage Create(
+            string name,
+            string normalizedName,
+            string imageUrl,
+            string? imagePublicId,
+            long gameId,
+            decimal salePrice,
+            decimal originalPrice,
+            decimal importPrice,
+            int stockQuantity,
+            bool isActive)
+        {
+            var now = DateTime.UtcNow;
+
+            return new GamePackage
+            {
+                Name = name,
+                NormalizedName = normalizedName,
+                ImageUrl = imageUrl,
+                ImagePublicId = imagePublicId,
+                GameId = gameId,
+                SalePrice = salePrice,
+                OriginalPrice = originalPrice,
+                ImportPrice = importPrice,
+                StockQuantity = stockQuantity,
+                IsActive = isActive,
+                CreatedAt = now,
+                UpdatedAt = now
+            };
+        }
     }
 }

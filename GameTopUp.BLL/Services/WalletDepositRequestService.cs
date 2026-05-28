@@ -1,4 +1,4 @@
-using GameTopUp.BLL.Common;
+using GameTopUp.BLL.Context;
 using GameTopUp.DAL.Interfaces.Wallets;
 using GameTopUp.BLL.Options;
 using GameTopUp.BLL.DTOs.Wallets;
@@ -28,17 +28,13 @@ namespace GameTopUp.BLL.Services
 
             var code = CreateDepositCode(context.UserId);
             var transferContent = $"NAP {code}";
-            var request = new WalletDepositRequest
-            {
-                UserId = context.UserId,
-                Amount = amount,
-                Code = code,
-                TransferContent = transferContent,
-                QrImageUrl = BuildQrImageUrl(amount, transferContent),
-                Status = WalletDepositRequestStatus.Pending,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
-            };
+            var qrImageUrl = BuildQrImageUrl(amount, transferContent);
+            var request = WalletDepositRequest.CreatePending(
+                context.UserId,
+                amount,
+                code,
+                transferContent,
+                qrImageUrl);
 
             request.Id = await _depositRequestRepo.CreateAsync(request);
             return MapToResponse(request);
@@ -119,7 +115,7 @@ namespace GameTopUp.BLL.Services
 
         public DepositRequestResponseDTO MapToResponse(WalletDepositRequest request)
         {
-            return new DepositRequestResponseDTO
+            var response = new DepositRequestResponseDTO
             {
                 Id = request.Id,
                 UserId = request.UserId,
@@ -135,6 +131,8 @@ namespace GameTopUp.BLL.Services
                 CreatedAt = request.CreatedAt,
                 UpdatedAt = request.UpdatedAt
             };
+
+            return response;
         }
 
         private async Task<WalletDepositRequest> GetByIdOrThrowAsync(long requestId)

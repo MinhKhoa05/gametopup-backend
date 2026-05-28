@@ -1,4 +1,4 @@
-using GameTopUp.BLL.Common;
+using GameTopUp.BLL.Context;
 using GameTopUp.BLL.Exceptions;
 using GameTopUp.DAL.Entities;
 using GameTopUp.DAL.Interfaces.Wallets;
@@ -20,84 +20,69 @@ namespace GameTopUp.BLL.Services
         // WHY: Repo đã dùng ON DUPLICATE KEY nên an toàn gọi nhiều lần không sợ lỗi tạo trùng.
         public async Task CreateWalletAsync(long userId)
         {
-            await _walletRepo.UpsertWalletAsync(new Wallet
-            {
-                UserId = userId,
-                Balance = 0,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
-            });
+            var wallet = Wallet.CreateForUser(userId);
+
+            await _walletRepo.UpsertWalletAsync(wallet);
         }
 
-        private async Task<TransactionResponseDTO> CreditAsync(
-            long userId, 
-            decimal amount, 
-            WalletTransactionType type, 
-            string description, 
+        private Task<TransactionResponseDTO> CreditAsync(
+            long userId,
+            decimal amount,
+            WalletTransactionType type,
+            string description,
             long? orderId = null)
         {
-            // WHY: Ví đã được đảm bảo tạo ở bước đăng ký nên chỉ cần lấy và khóa.
-            var wallet = await GetWalletWithLockOrThrowAsync(userId);
-
             if (amount <= 0) throw new BusinessException(ErrorCodes.AmountMustBePositive);
 
-            decimal balanceBefore = wallet.Balance;
-            decimal balanceAfter = balanceBefore + amount;
+            return ApplyBalanceChangeAsync(userId, amount, type, description, orderId);
+        }
+
+        private Task<TransactionResponseDTO> DebitAsync(
+            long userId,
+            decimal amount,
+            WalletTransactionType type,
+            string description,
+            long? orderId = null)
+        {
+            if (amount <= 0) throw new BusinessException(ErrorCodes.AmountMustBePositive);
+
+            return ApplyBalanceChangeAsync(userId, -amount, type, description, orderId);
+        }
+
+        private async Task<TransactionResponseDTO> ApplyBalanceChangeAsync(
+            long userId,
+            decimal balanceChange,
+            WalletTransactionType type,
+            string description,
+            long? orderId = null)
+        {
+            if (balanceChange == 0) throw new BusinessException(ErrorCodes.AmountMustBePositive);
+
+            var wallet = await GetWalletWithLockOrThrowAsync(userId);
+            var balanceBefore = wallet.Balance;
+            var balanceAfter = balanceBefore + balanceChange;
+
+            if (balanceChange < 0 && balanceAfter < 0)
+                throw new BusinessException(ErrorCodes.InsufficientWalletBalance);
 
             wallet.Balance = balanceAfter;
             wallet.UpdatedAt = DateTime.UtcNow;
 
             await _walletRepo.UpdateBalanceAsync(wallet.Id, wallet.Balance);
 
-            var txId = await _walletTxRepo.CreateAsync(new WalletTransaction
-            {
-                UserId = wallet.UserId,
-                Amount = amount,
-                BalanceBefore = balanceBefore,
-                BalanceAfter = balanceAfter,
-                Type = type,
-                Description = description,
-                OrderId = orderId,
-                CreatedAt = DateTime.UtcNow
-            });
+            var transaction = WalletTransaction.Create(
+                wallet.UserId,
+                balanceChange,
+                balanceBefore,
+                balanceAfter,
+                type,
+                description,
+                orderId);
 
-            return new TransactionResponseDTO { TransactionId = txId };
-        }
+            var txId = await _walletTxRepo.CreateAsync(transaction);
+            var response = new TransactionResponseDTO { TransactionId = txId };
 
-        private async Task<TransactionResponseDTO> DebitAsync(
-            long userId, 
-            decimal amount, 
-            WalletTransactionType type, 
-            string description, 
-            long? orderId = null)
-        {
-            // WHY: Ví đã được đảm bảo tạo ở bước đăng ký nên chỉ cần lấy và khóa.
-            var wallet = await GetWalletWithLockOrThrowAsync(userId);
-
-            if (amount <= 0) throw new BusinessException(ErrorCodes.AmountMustBePositive);
-            if (wallet.Balance < amount) throw new BusinessException(ErrorCodes.InsufficientWalletBalance);
-
-            decimal balanceBefore = wallet.Balance;
-            decimal balanceAfter = balanceBefore - amount;
-
-            wallet.Balance = balanceAfter;
-            wallet.UpdatedAt = DateTime.UtcNow;
-
-            await _walletRepo.UpdateBalanceAsync(wallet.Id, wallet.Balance);
-
-            var txId = await _walletTxRepo.CreateAsync(new WalletTransaction
-            {
-                UserId = wallet.UserId,
-                Amount = -amount,
-                BalanceBefore = balanceBefore,
-                BalanceAfter = balanceAfter,
-                Type = type,
-                Description = description,
-                OrderId = orderId,
-                CreatedAt = DateTime.UtcNow
-            });
-
-            return new TransactionResponseDTO { TransactionId = txId };
+            return response;
         }
 
         public async Task PayOrderAsync(Order order)
@@ -124,16 +109,20 @@ namespace GameTopUp.BLL.Services
 
         public async Task<TransactionResponseDTO> DepositAsync(long userId, decimal amount)
         {
-            return await CreditAsync(userId, amount, WalletTransactionType.Deposit, $"Nạp tiền vào ví: {amount:N0} VNĐ");
+            var description = $"Nạp tiền vào ví: {amount:N0} VNĐ";
+
+            return await CreditAsync(userId, amount, WalletTransactionType.Deposit, description);
         }
 
         public async Task<TransactionResponseDTO> DepositFromVietQrAsync(long userId, decimal amount, string depositCode)
         {
+            var description = $"Duyệt nạp tiền VietQR #{depositCode}: {amount:N0} VND";
+
             return await CreditAsync(
                 userId,
                 amount,
                 WalletTransactionType.Deposit,
-                $"Duyệt nạp tiền VietQR #{depositCode}: {amount:N0} VND");
+                description);
         }
 
         public async Task<decimal> GetBalanceAsync(UserContext context)

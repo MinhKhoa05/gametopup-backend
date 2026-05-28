@@ -35,13 +35,9 @@ namespace GameTopUp.BLL.Services
                 throw new BusinessException(ErrorCodes.EmailExists);
             }
 
-            return await _userRepo.CreateAsync(new User
-            {
-                Username = request.Name,
-                Email = request.Email,
-                PasswordHash = hashedPassword,
-                CreatedAt = DateTime.UtcNow
-            });
+            var user = User.CreateMember(request.Name, request.Email, hashedPassword);
+
+            return await _userRepo.CreateAsync(user);
         }
 
         public async Task UpdateProfileAsync(long id, UpdateUserRequest request)

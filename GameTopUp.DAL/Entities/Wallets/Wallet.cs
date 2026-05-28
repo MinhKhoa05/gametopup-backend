@@ -16,5 +16,22 @@ namespace GameTopUp.DAL.Entities
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+
+        public Wallet()
+        {
+        }
+
+        public static Wallet CreateForUser(long userId)
+        {
+            var now = DateTime.UtcNow;
+
+            return new Wallet
+            {
+                UserId = userId,
+                Balance = 0,
+                CreatedAt = now,
+                UpdatedAt = now
+            };
+        }
     }
 }
