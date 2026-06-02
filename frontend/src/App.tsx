@@ -1,6 +1,8 @@
-import { AppHeader } from './components/layout/AppHeader';
 import { AppFooter } from './components/layout/AppFooter';
+import { AppHeader } from './components/layout/AppHeader';
+import { BottomNav } from './components/layout/BottomNav';
 import { ToastNotification } from './components/common/ToastNotification';
+import { AdminPage } from './features/admin/pages/AdminPage';
 import { useAuthSession } from './features/auth/useAuthSession';
 import { useGameCatalog } from './features/user/games/useGameCatalog';
 import { useCheckoutOrder } from './features/user/orders/useCheckoutOrder';
@@ -11,14 +13,12 @@ import { useWalletTransactions } from './features/user/wallet/useWalletTransacti
 import { useAsyncAction } from './hooks/useAsyncAction';
 import { useRoute } from './hooks/useRoute';
 import { Route } from './lib/routes';
-import { AdminPage } from './features/admin/pages/AdminPage';
 import { AccountPage } from './features/user/pages/AccountPage';
 import { GameDetailPage } from './features/user/pages/GameDetailPage';
 import { GamesPage } from './features/user/pages/GamesPage';
 import { HomePage } from './features/user/pages/HomePage';
 import { OrdersPage } from './features/user/pages/OrdersPage';
 import { WalletPage } from './features/user/pages/WalletPage';
-import { BottomNav } from './components/layout/BottomNav';
 
 export function App() {
   const { route, navigate } = useRoute();
@@ -28,10 +28,13 @@ export function App() {
     execute: action.execute,
   });
   const userOrders = useUserOrders(auth.user, action.execute);
+  const isAdminRoute = route.name === 'admin';
 
   return (
     <div className="main-layout bg-ink text-slate-100">
-      <AppHeader route={route} user={auth.user} wallet={userOrders.wallet} navigate={navigate} onLogout={auth.handleLogout} />
+      {!isAdminRoute && (
+        <AppHeader route={route} user={auth.user} wallet={userOrders.wallet} navigate={navigate} onLogout={auth.handleLogout} />
+      )}
 
       <main className="main-content">
         {route.name === 'home' && (
@@ -45,15 +48,10 @@ export function App() {
           />
         )}
 
-        {route.name !== 'home' && (
+        {!isAdminRoute && route.name !== 'home' && (
           <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
             {route.name === 'games' && !route.gameId && (
-              <GamesRoute
-                authLoading={auth.authLoading}
-                route={route}
-                setError={action.setErrorMessage}
-                navigate={navigate}
-              />
+              <GamesRoute authLoading={auth.authLoading} route={route} setError={action.setErrorMessage} navigate={navigate} />
             )}
 
             {route.name === 'games' && route.gameId && (
@@ -91,29 +89,34 @@ export function App() {
                 form={auth.authForm}
                 setForm={auth.setAuthForm}
                 user={auth.user}
-                wallet={userOrders.wallet}
-                busy={action.isLoading}
-                onSubmit={auth.handleAuth}
-                onLogout={auth.handleLogout}
-              />
-            )}
-
-            {route.name === 'admin' && (
-              <AdminPage
-                busy={action.isLoading}
-                execute={action.execute}
-                navigate={navigate}
-                route={route}
-                setError={action.setErrorMessage}
-                user={auth.user}
-              />
+                  wallet={userOrders.wallet}
+                  ordersCount={userOrders.orders.length}
+                  busy={action.isLoading}
+                  onSubmit={auth.handleAuth}
+                  onLogout={auth.handleLogout}
+                  onProfileUpdated={auth.handleProfileUpdated}
+                  execute={action.execute}
+                  navigate={navigate}
+                />
             )}
           </div>
         )}
+
+        {isAdminRoute && (
+          <AdminPage
+            busy={action.isLoading}
+            execute={action.execute}
+            navigate={navigate}
+            onLogout={auth.handleLogout}
+            route={route}
+            setError={action.setErrorMessage}
+            user={auth.user}
+          />
+        )}
       </main>
 
-      <AppFooter navigate={navigate} />
-      <BottomNav route={route} navigate={navigate} />
+      {!isAdminRoute && <AppFooter navigate={navigate} />}
+      {!isAdminRoute && <BottomNav route={route} navigate={navigate} />}
       <ToastNotification loading={action.isLoading} message={action.successMessage} error={action.errorMessage} />
     </div>
   );
@@ -173,15 +176,7 @@ function GamesRoute({
 }) {
   const catalog = useGameCatalog(route, setError);
 
-  return (
-    <GamesPage
-      games={catalog.filteredGames}
-      loading={authLoading || catalog.gamesLoading}
-      query={catalog.query}
-      setQuery={catalog.setQuery}
-      navigate={navigate}
-    />
-  );
+  return <GamesPage games={catalog.filteredGames} loading={authLoading || catalog.gamesLoading} query={catalog.query} setQuery={catalog.setQuery} navigate={navigate} />;
 }
 
 function GameDetailRoute({

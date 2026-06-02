@@ -5,10 +5,10 @@ START TRANSACTION;
 -- ======================
 -- USERS
 -- ======================
-INSERT INTO `users` (`id`, `username`, `email`, `password_hash`, `role`) VALUES
-(1, 'admin', 'admin@gametopup.com', '$2b$10$bppKKRHPleFWDR2TXpWO1O4ZQ5RmI/Zm6t8hQJxttsaM3Dfq6Ya5u', 1),
-(2, 'customer01', 'customer01@gametopup.com', '$2b$10$bppKKRHPleFWDR2TXpWO1O4ZQ5RmI/Zm6t8hQJxttsaM3Dfq6Ya5u', 0),
-(3, 'customer02', 'customer02@gametopup.com', '$2b$10$bppKKRHPleFWDR2TXpWO1O4ZQ5RmI/Zm6t8hQJxttsaM3Dfq6Ya5u', 0);
+INSERT INTO `users` (`id`, `display_name`, `email`, `password_hash`, `role`) VALUES
+(1, 'Admin GameTopUp', 'admin@gametopup.com', '$2b$10$bppKKRHPleFWDR2TXpWO1O4ZQ5RmI/Zm6t8hQJxttsaM3Dfq6Ya5u', 1),
+(2, 'Khách hàng Demo 1', 'customer01@gametopup.com', '$2b$10$bppKKRHPleFWDR2TXpWO1O4ZQ5RmI/Zm6t8hQJxttsaM3Dfq6Ya5u', 0),
+(3, 'Khách hàng Demo 2', 'customer02@gametopup.com', '$2b$10$bppKKRHPleFWDR2TXpWO1O4ZQ5RmI/Zm6t8hQJxttsaM3Dfq6Ya5u', 0);
 
 -- ======================
 -- WALLETS

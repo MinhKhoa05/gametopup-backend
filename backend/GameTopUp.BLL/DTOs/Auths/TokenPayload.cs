@@ -5,7 +5,7 @@ namespace GameTopUp.BLL.DTOs.Auths
     public class TokenPayload
     {
         public long UserId { get; set; }
-        public string? Name { get; set; }
+        public string? DisplayName { get; set; }
         public string? Email { get; set; }
         public string? Role { get; set; }
 
@@ -13,12 +13,12 @@ namespace GameTopUp.BLL.DTOs.Auths
         {
         }
 
-        public static TokenPayload Create(long userId, string? name, string? email, UserRole? role)
+        public static TokenPayload Create(long userId, string? displayName, string? email, UserRole? role)
         {
             return new TokenPayload
             {
                 UserId = userId,
-                Name = name,
+                DisplayName = displayName,
                 Email = email,
                 Role = role.ToString()
             };

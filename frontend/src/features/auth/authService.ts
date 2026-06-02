@@ -2,11 +2,10 @@ import { api, ApiResponse } from '../../lib/api';
 import { User } from '../../types';
 
 type AuthPayload = {
-  user: RawUser | null;
+  user: RawUser;
 };
 
-type RawUser = User & {
-};
+type RawUser = User;
 
 export async function login(email: string, password: string) {
   const response = await api.post<ApiResponse<AuthPayload>>('/api/auth/login', {
@@ -17,16 +16,16 @@ export async function login(email: string, password: string) {
   return normalizeUser(response.data.data.user);
 }
 
-export async function register(name: string, email: string, password: string) {
-  await api.post<ApiResponse<null>>('/api/auth/register', {
-    name,
+export async function register(displayName: string, email: string, password: string) {
+  await api.post<ApiResponse<void>>('/api/auth/register', {
+    displayName,
     email,
     password,
   });
 }
 
 export async function logout() {
-  await api.post<ApiResponse<null>>('/api/auth/logout');
+  await api.post<ApiResponse<void>>('/api/auth/logout');
 }
 
 export async function getMe() {
@@ -39,8 +38,7 @@ function normalizeUser(user: RawUser | null): User | null {
 
   return {
     id: user.id,
-    name: user.name,
-    username: user.username,
+    displayName: user.displayName ?? user.email,
     email: user.email,
     role: user.role,
     isActive: user.isActive,

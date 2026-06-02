@@ -19,7 +19,7 @@ export async function updateGame(id: number, payload: GamePayload) {
 }
 
 export async function deleteGame(id: number) {
-  await api.delete<ApiResponse<null>>(`/api/games/${id}`);
+  await api.delete<ApiResponse<void>>(`/api/games/${id}`);
 }
 
 export async function createGamePackage(payload: GamePackagePayload) {
@@ -33,7 +33,7 @@ export async function updateGamePackage(id: number, payload: Omit<GamePackagePay
 }
 
 export async function deleteGamePackage(id: number) {
-  await api.delete<ApiResponse<null>>(`/api/game-packages/${id}`);
+  await api.delete<ApiResponse<void>>(`/api/game-packages/${id}`);
 }
 
 export async function getAdminOrders() {

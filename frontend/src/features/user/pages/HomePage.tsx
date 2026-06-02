@@ -25,8 +25,8 @@ export function HomePage({
   wallet: WalletInfo | null;
   authMode: 'login' | 'register';
   setAuthMode: (mode: 'login' | 'register') => void;
-  authForm: { name: string; email: string; password: string };
-  setAuthForm: (form: { name: string; email: string; password: string }) => void;
+  authForm: { displayName: string; email: string; password: string };
+  setAuthForm: (form: { displayName: string; email: string; password: string }) => void;
   busy: boolean;
   navigate: (route: Route) => void;
   onAuth: (event: FormEvent) => void;

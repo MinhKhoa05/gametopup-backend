@@ -149,7 +149,7 @@ namespace GameTopUp.BLL.UseCases
 
         private async Task<(string AccessToken, string RefreshToken)> IssueTokenPairAsync(User user)
         {
-            var tokenPayload = TokenPayload.Create(user.Id, user.Username, user.Email, user.Role);
+            var tokenPayload = TokenPayload.Create(user.Id, user.DisplayName, user.Email, user.Role);
 
             var accessToken = _tokenService.GenerateAccessToken(tokenPayload);
             var refreshToken = _tokenService.GenerateRefreshToken();

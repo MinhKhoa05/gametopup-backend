@@ -73,7 +73,7 @@ namespace GameTopUp.DAL.Repositories.Users
 
         public async Task<bool> ExistsByEmailAsync(string email)
         {
-            const string sql = "SELECT EXISTS(SELECT 1 FROM Users WHERE Email = @Email)";
+            const string sql = "SELECT EXISTS(SELECT 1 FROM users WHERE email = @Email)";
 
             return await _database.ExecuteScalarAsync<bool>(sql, new { Email = email });
         }

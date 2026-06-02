@@ -19,8 +19,7 @@ export type GamePackage = {
 
 export type User = {
   id: number;
-  name?: string;
-  username?: string;
+  displayName?: string;
   email: string;
   role?: number | string;
   isActive?: boolean;

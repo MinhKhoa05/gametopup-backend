@@ -9,9 +9,9 @@ namespace GameTopUp.DAL.Entities
         [Key]
         public long Id { get; set; }
 
-        public string Username { get; set; } = null!; // Nickname hiển thị cho người dùng
+        public string DisplayName { get; set; } = null!;
 
-        public string Email { get; set; } = null!; // Dùng để đăng nhập
+        public string Email { get; set; } = null!;
 
         public string PasswordHash { get; set; } = null!;
 
@@ -33,7 +33,7 @@ namespace GameTopUp.DAL.Entities
 
             return new User
             {
-                Username = displayName,
+                DisplayName = displayName,
                 Email = email,
                 PasswordHash = passwordHash,
                 Role = role,
@@ -48,6 +48,6 @@ namespace GameTopUp.DAL.Entities
     {
         Member = 0,
         Admin = 1,
-        Staff = 2 // Nhân viên nạp thuê
+        Staff = 2
     }
 }

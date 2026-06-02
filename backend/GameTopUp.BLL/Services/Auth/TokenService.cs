@@ -33,7 +33,7 @@ namespace GameTopUp.BLL.Services.Auth
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.NameIdentifier, payload.UserId.ToString()),
-                new Claim(ClaimTypes.Name, payload.Name ?? string.Empty),
+                new Claim(ClaimTypes.Name, payload.DisplayName ?? string.Empty),
                 new Claim(JwtRegisteredClaimNames.Email, payload.Email ?? string.Empty),
                 new Claim(ClaimTypes.Role, payload.Role ?? string.Empty),
 

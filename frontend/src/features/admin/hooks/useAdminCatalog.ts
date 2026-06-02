@@ -4,6 +4,15 @@ import { getApiMessage } from '../../../lib/api';
 import { Game, GamePackage, Order } from '../../../types';
 import { getAdminOrders } from '../services/adminService';
 
+export type AdminCatalogMetrics = {
+  activeGames: number;
+  totalPackages: number;
+  disabledPackages: number;
+  ordersToday: number;
+  paidRevenue: number;
+  pendingOrders: number;
+};
+
 export function useAdminCatalog(setError: (message: string | null) => void) {
   const [games, setGames] = useState<Game[]>([]);
   const [packages, setPackages] = useState<GamePackage[]>([]);
@@ -30,15 +39,15 @@ export function useAdminCatalog(setError: (message: string | null) => void) {
     refresh();
   }, [refresh]);
 
-  const metrics = useMemo(() => {
+  const metrics = useMemo<AdminCatalogMetrics>(() => {
     const paidRevenue = orders
       .filter((order) => order.status !== 5)
       .reduce((sum, order) => sum + (order.total ?? order.unitPrice * order.quantity), 0);
 
     return {
       activeGames: games.filter((game) => game.isActive).length,
-      activePackages: packages.filter((item) => item.isActive).length,
-      lowStockPackages: packages.filter((item) => item.stockQuantity <= 10).length,
+      totalPackages: packages.length,
+      disabledPackages: packages.filter((item) => !item.isActive).length,
       ordersToday: orders.filter((order) => isToday(order.createdAt)).length,
       paidRevenue,
       pendingOrders: orders.filter((order) => order.status === 1 || order.status === 2 || order.status === 3).length,
@@ -50,7 +59,6 @@ export function useAdminCatalog(setError: (message: string | null) => void) {
     loading,
     metrics,
     orders,
-    packages,
     refresh,
   };
 }

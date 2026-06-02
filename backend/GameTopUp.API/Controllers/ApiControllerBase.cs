@@ -26,7 +26,7 @@ namespace GameTopUp.API.Controllers
                 return new UserContext
                 {
                     UserId = long.Parse(userIdClaim.Value),
-                    Username = User.FindFirst(ClaimTypes.Name)?.Value ?? string.Empty,
+                    DisplayName = User.FindFirst(ClaimTypes.Name)?.Value ?? string.Empty,
                     Role = role
                 };
             }

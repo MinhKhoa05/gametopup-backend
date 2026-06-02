@@ -19,11 +19,11 @@ namespace GameTopUp.Tests.IntegrationTests.Infrastructure
             this HttpRequestMessage request,
             long userId,
             string role,
-            string username = "TestUser")
+            string displayName = "TestUser")
         {
             request.Headers.Add("X-Test-UserId", userId.ToString());
             request.Headers.Add("X-Test-Role", role);
-            request.Headers.Add("X-Test-Username", username);
+            request.Headers.Add("X-Test-DisplayName", displayName);
             return request;
         }
 

@@ -1,6 +1,6 @@
 import axios, { AxiosError, AxiosRequestConfig } from 'axios';
 
-export type ApiResponse<T> = {
+export type ApiResponse<T = unknown> = {
   success: boolean;
   message: string;
   data: T;
@@ -73,10 +73,14 @@ api.interceptors.response.use(
 export function getApiMessage(error: unknown) {
   const fallback = 'Không thể kết nối đến hệ thống. Vui lòng thử lại sau.';
 
-  if (!axios.isAxiosError(error)) {
+  if (!axios.isAxiosError<ApiResponse<unknown>>(error)) {
     return fallback;
   }
 
-  const response = (error as AxiosError<ApiResponse<unknown>>).response?.data;
-  return response?.message || response?.errorCode || error.message || fallback;
+  return (
+    error.response?.data?.message ||
+    error.response?.data?.errorCode ||
+    error.message ||
+    fallback
+  );
 }

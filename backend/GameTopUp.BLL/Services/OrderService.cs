@@ -86,7 +86,7 @@ namespace GameTopUp.BLL.Services
             await SaveOrderChangeAsync(
                 order,
                 fromStatus,
-                $"Admin {admin.Username} tiếp nhận đơn hàng.",
+                $"Admin {admin.DisplayName} tiếp nhận đơn hàng.",
                 admin);
 
             return OrderChangeResult.ChangedStatus(order, fromStatus);
@@ -105,7 +105,7 @@ namespace GameTopUp.BLL.Services
             return await UpdateStatusAsync(
                 order,
                 OrderStatus.Completed,
-                $"Admin {admin.Username} xác nhận hoàn thành.",
+                $"Admin {admin.DisplayName} xác nhận hoàn thành.",
                 admin);
         }
 

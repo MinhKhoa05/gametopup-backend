@@ -16,7 +16,7 @@ export function useAuthSession({
   const [user, setUser] = useState<User | null>(null);
   const [authMode, setAuthMode] = useState<AuthMode>('login');
   const [authForm, setAuthForm] = useState({
-    name: '',
+    displayName: '',
     email: 'customer01@gametopup.com',
     password: 'Password123!',
   });
@@ -50,7 +50,7 @@ export function useAuthSession({
 
     await execute(
       async () => {
-        if (authMode === 'register') await register(authForm.name, authForm.email, authForm.password);
+        if (authMode === 'register') await register(authForm.displayName, authForm.email, authForm.password);
         return login(authForm.email, authForm.password);
       },
       {
@@ -73,12 +73,17 @@ export function useAuthSession({
     });
   }
 
+  function handleProfileUpdated(displayName: string) {
+    setUser((current) => (current ? { ...current, displayName } : current));
+  }
+
   return {
     authForm,
     authLoading,
     authMode,
     handleAuth,
     handleLogout,
+    handleProfileUpdated,
     setAuthForm,
     setAuthMode,
     user,

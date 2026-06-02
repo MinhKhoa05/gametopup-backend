@@ -1,5 +1,5 @@
 import { FormEvent } from 'react';
-import { BadgeCheck, ChevronRight, LogOut, ShieldCheck, UserPlus, UserRound, WalletCards } from 'lucide-react';
+import { BadgeCheck, LogOut, ShieldCheck, UserPlus, UserRound, WalletCards } from 'lucide-react';
 import { formatCurrency } from '../../lib/format';
 import { userDisplayName } from '../../lib/labels';
 import { User, WalletInfo } from '../../types';
@@ -8,8 +8,8 @@ import { Field } from '../common/Field';
 export type AuthPanelProps = {
   authMode: 'login' | 'register';
   setAuthMode: (mode: 'login' | 'register') => void;
-  form: { name: string; email: string; password: string };
-  setForm: (form: { name: string; email: string; password: string }) => void;
+  form: { displayName: string; email: string; password: string };
+  setForm: (form: { displayName: string; email: string; password: string }) => void;
   user: User | null;
   wallet: WalletInfo | null;
   busy: boolean;
@@ -68,8 +68,8 @@ export function AuthPanel({ authMode, setAuthMode, form, setForm, user, wallet, 
         {isRegister && (
           <Field
             label="Tên hiển thị"
-            value={form.name}
-            onChange={(value) => setForm({ ...form, name: value })}
+            value={form.displayName}
+            onChange={(value) => setForm({ ...form, displayName: value })}
             placeholder="Nguyễn Văn A"
           />
         )}

@@ -26,10 +26,10 @@ namespace GameTopUp.Tests.IntegrationTests.Infrastructure
             }
 
             var role = Context.Request.Headers["X-Test-Role"].FirstOrDefault() ?? "Member";
-            var username = Context.Request.Headers["X-Test-Username"].FirstOrDefault() ?? "TestUser";
+            var displayName = Context.Request.Headers["X-Test-DisplayName"].FirstOrDefault() ?? "TestUser";
 
             var claims = new[] { 
-                new Claim(ClaimTypes.Name, username),
+                new Claim(ClaimTypes.Name, displayName),
                 new Claim(ClaimTypes.Role, role),
                 new Claim(ClaimTypes.NameIdentifier, userId)
             };

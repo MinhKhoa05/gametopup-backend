@@ -1,7 +1,7 @@
 import { User } from '../types';
 
 export function userDisplayName(user: User | null) {
-  return user?.name || user?.username || user?.email || 'Khách';
+  return user?.displayName || user?.email || 'Khách';
 }
 
 export function statusLabel(status: number) {

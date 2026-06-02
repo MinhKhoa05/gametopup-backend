@@ -7,14 +7,14 @@ SET FOREIGN_KEY_CHECKS = 0;
 -- 1. Table: users
 CREATE TABLE IF NOT EXISTS users (
     id BIGINT SIGNED AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(100) NOT NULL,
+    display_name VARCHAR(100) NOT NULL,
     email VARCHAR(150) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
     role INT DEFAULT 0, -- 0: Member, 1: Admin, 2: Staff
     is_active BOOLEAN DEFAULT TRUE,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    INDEX idx_users_username (username),
+    INDEX idx_users_display_name (display_name),
     INDEX idx_users_created (created_at)
 ) ENGINE=InnoDB;
 
