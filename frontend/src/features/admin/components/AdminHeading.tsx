@@ -1,12 +1,13 @@
 import { RefreshCw } from 'lucide-react';
 import { classNames } from '../../../lib/ui';
+import { SITE } from '../../../config/site';
 
 export function AdminHeading({ loading, onRefresh }: { loading: boolean; onRefresh: () => Promise<void> }) {
   return (
     <div className="admin-heading">
       <div>
         <p className="eyebrow">Bảng điều khiển quản trị</p>
-        <h1>Quản trị GameTopUp</h1>
+        <h1>Quản trị {SITE.name}</h1>
         <p>Theo dõi vận hành, danh mục game và các gói nạp đang hoạt động.</p>
       </div>
       <button type="button" className="btn-outline" onClick={onRefresh} disabled={loading}>

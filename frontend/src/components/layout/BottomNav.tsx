@@ -2,26 +2,28 @@ import { ReactNode } from 'react';
 import { Gamepad2, Home, PackageCheck, UserRound, WalletCards } from 'lucide-react';
 import { Route } from '../../lib/routes';
 import { classNames } from '../../lib/ui';
+import { BOTTOM_NAV_ITEMS } from '../../config/site';
+
+const bottomNavIcons: Record<Route['name'], ReactNode> = {
+  home: <Home size={20} />,
+  games: <Gamepad2 size={20} />,
+  wallet: <WalletCards size={20} />,
+  orders: <PackageCheck size={20} />,
+  account: <UserRound size={20} />,
+  admin: <UserRound size={20} />,
+};
 
 export function BottomNav({ route, navigate }: { route: Route; navigate: (route: Route) => void }) {
-  const tabs: Array<{ name: Route['name']; label: string; icon: ReactNode }> = [
-    { name: 'home', label: 'Trang chủ', icon: <Home size={20} /> },
-    { name: 'games', label: 'Game', icon: <Gamepad2 size={20} /> },
-    { name: 'wallet', label: 'Ví', icon: <WalletCards size={20} /> },
-    { name: 'orders', label: 'Đơn hàng', icon: <PackageCheck size={20} /> },
-    { name: 'account', label: 'Tài khoản', icon: <UserRound size={20} /> },
-  ];
-
   return (
     <nav className="bottom-nav">
-      {tabs.map((tab) => (
+      {BOTTOM_NAV_ITEMS.map((tab) => (
         <button
-          key={tab.name}
+          key={tab.route.name}
           type="button"
-          className={classNames(route.name === tab.name && 'active')}
-          onClick={() => navigate({ name: tab.name })}
+          className={classNames(route.name === tab.route.name && 'active')}
+          onClick={() => navigate(tab.route)}
         >
-          {tab.icon}
+          {bottomNavIcons[tab.route.name]}
           <span>{tab.label}</span>
         </button>
       ))}

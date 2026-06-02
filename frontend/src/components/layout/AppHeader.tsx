@@ -14,6 +14,7 @@ import { HeaderAccountMenu, type HeaderAccountMenuItem } from './HeaderAccountMe
 import { userDisplayName } from '../../lib/labels';
 import { Route } from '../../lib/routes';
 import { classNames } from '../../lib/ui';
+import { HEADER_NAV_ITEMS, SITE } from '../../config/site';
 import { User, WalletInfo } from '../../types';
 import { formatCurrency } from '../../lib/format';
 import { isAdminUser } from '../../lib/roles';
@@ -42,12 +43,6 @@ export function AppHeader({
       navigate({ name: 'games' });
     }
   };
-
-  const links: Array<{ label: string; route: Route }> = [
-    { label: 'Trang chủ', route: { name: 'home' } },
-    { label: 'Kho game', route: { name: 'games' } },
-    { label: 'Lịch sử đơn', route: { name: 'orders' } },
-  ];
 
   const displayName = userDisplayName(user);
   const adminUser = isAdminUser(user);
@@ -97,10 +92,10 @@ export function AppHeader({
     <header className="site-header">
       <div className="header-shell mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
         <div className="header-brand-group flex items-center gap-8">
-          <BrandLogo onClick={() => navigate({ name: 'home' })} title="GameTopUp" subtitle="Đại lý nạp trung gian" />
+          <BrandLogo onClick={() => navigate({ name: 'home' })} title={SITE.name} subtitle={SITE.tagline} />
 
           <nav className="desktop-nav hidden md:flex" aria-label="Điều hướng chính">
-            {links.map((link) => (
+            {HEADER_NAV_ITEMS.map((link) => (
               <button
                 key={link.label}
                 type="button"

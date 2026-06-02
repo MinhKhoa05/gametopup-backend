@@ -3,6 +3,7 @@ import { BrandLogo } from '../../../components/layout/BrandLogo';
 import { HeaderAccountMenu } from '../../../components/layout/HeaderAccountMenu';
 import { userDisplayName } from '../../../lib/labels';
 import { Route } from '../../../lib/routes';
+import { ADMIN_HEADER_SUBTITLES, SITE } from '../../../config/site';
 import type { User } from '../../../types';
 
 export function AdminHeader({
@@ -20,15 +21,14 @@ export function AdminHeader({
   route: Extract<Route, { name: 'admin' }>;
   user: User | null;
 }) {
-  const subtitleLabel =
-    route.section === 'games' ? 'Quản lý game' : route.section === 'packages' ? 'Quản lý gói nạp' : 'Tổng quan';
+  const subtitleLabel = ADMIN_HEADER_SUBTITLES[route.section ?? 'dashboard'];
   const displayName = userDisplayName(user);
 
   return (
     <header className="admin-header">
       <div className="admin-header-shell mx-auto flex max-w-[1560px] items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
         <div className="admin-header-brand">
-          <BrandLogo onClick={() => navigate({ name: 'home' })} title="GameTopUp Admin" subtitle={subtitleLabel} />
+          <BrandLogo onClick={() => navigate({ name: 'home' })} title={SITE.adminName} subtitle={subtitleLabel} />
         </div>
 
         <div className="admin-header-actions">

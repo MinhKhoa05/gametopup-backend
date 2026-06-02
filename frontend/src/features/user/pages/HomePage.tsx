@@ -4,6 +4,7 @@ import { Route } from '../../../lib/routes';
 import { Game, User, WalletInfo } from '../../../types';
 import { pickImage, classNames } from '../../../lib/ui';
 import { AuthPanel } from '../../../components/auth/AuthPanel';
+import { SITE } from '../../../config/site';
 
 export function HomePage({
   games,
@@ -46,7 +47,7 @@ export function HomePage({
             <span className="text-cyanline">Tiết Kiệm Chi Phí</span>
           </h1>
           <p className="text-lg text-slate-300 mb-8 max-w-xl">
-            GameTopUp là đại lý trung gian cung cấp các gói nạp game với mức chiết khấu cực tốt. An toàn, uy tín và giúp bạn tiết kiệm hơn so với cổng nạp gốc.
+            {SITE.name} là đại lý trung gian cung cấp các gói nạp game với mức chiết khấu cực tốt. An toàn, uy tín và giúp bạn tiết kiệm hơn so với cổng nạp gốc.
           </p>
           <div className="search-box max-w-md bg-ink/80 backdrop-blur">
             <Search size={20} className="text-cyanline" />

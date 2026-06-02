@@ -18,6 +18,7 @@ import {
 import { formatCurrency, formatDate } from '../../../lib/format';
 import { DepositRequest, User, WalletInfo, WalletTransaction } from '../../../types';
 import { Route } from '../../../lib/routes';
+import { SITE } from '../../../config/site';
 
 const quickAmounts = [50000, 100000, 200000, 500000];
 const bankNames: Record<string, string> = {
@@ -139,7 +140,7 @@ export function WalletPage({
     <div className="wallet-page">
       <section className="wallet-dashboard-hero">
         <div>
-          <p className="eyebrow">Ví GameTopUp</p>
+          <p className="eyebrow">Ví {SITE.name}</p>
           <h1>Quản lý số dư</h1>
           <p>Theo dõi biến động ví, nạp tiền và xem lịch sử giao dịch của tài khoản.</p>
         </div>
