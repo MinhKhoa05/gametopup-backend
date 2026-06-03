@@ -1,5 +1,5 @@
 import { Search } from 'lucide-react';
-import { EmptyState } from '../components/common/EmptyState';
+import { EmptyState } from '../components/ui/EmptyState';
 import { GameGrid } from '../components/games/GameGrid';
 import { Route } from '../lib/routes';
 import { Game } from '../types';

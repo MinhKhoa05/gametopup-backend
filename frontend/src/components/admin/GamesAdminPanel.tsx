@@ -2,7 +2,7 @@ import { FormEvent, useMemo, useState } from 'react';
 import { Edit3, Plus, Save, Trash2, X } from 'lucide-react';
 import type { Game } from '../../types';
 import { AdminSkeleton, EmptyLine, PanelTitle, SearchBox, StatusPill, filterByName } from './AdminShared';
-import { Field } from '../common/Field';
+import { Field } from '../ui/Field';
 import { pickImage } from '../../lib/ui';
 
 const emptyGameForm = {

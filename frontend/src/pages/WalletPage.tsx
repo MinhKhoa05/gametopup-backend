@@ -15,11 +15,11 @@ import {
   WalletCards,
   XCircle,
 } from 'lucide-react';
-import { Badge } from '../components/common/Badge';
-import { EmptyState } from '../components/common/EmptyState';
-import { IconBox } from '../components/common/IconBox';
-import { SectionHeading } from '../components/common/SectionHeading';
-import { StatCard } from '../components/common/StatCard';
+import { Badge } from '../components/ui/Badge';
+import { EmptyState } from '../components/ui/EmptyState';
+import { IconBox } from '../components/ui/IconBox';
+import { SectionHeading } from '../components/ui/SectionHeading';
+import { StatCard } from '../components/ui/StatCard';
 import { WalletPanel } from '../components/wallet/WalletPanel';
 import { SITE } from '../config/site';
 import { formatCurrency, formatDate } from '../lib/format';

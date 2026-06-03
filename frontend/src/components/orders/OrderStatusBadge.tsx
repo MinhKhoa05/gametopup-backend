@@ -1,5 +1,5 @@
 import { CheckCircle2, Clock, XCircle } from 'lucide-react';
-import { Badge } from '../common/Badge';
+import { Badge } from '../ui/Badge';
 
 export function OrderStatusBadge({ status }: { status: number }) {
   switch (status) {

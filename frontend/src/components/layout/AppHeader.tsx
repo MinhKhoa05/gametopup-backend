@@ -83,6 +83,7 @@ export function AppHeader({
       navigate({ name: 'games' });
     }
   };
+  const shouldShowAuthSkeleton = isAuthPending && !hasKnownSession;
 
   return (
     <header className="site-header">
@@ -129,8 +130,7 @@ export function AppHeader({
           <HeaderWalletButton hasLogin={hasLogin} wallet={wallet} onClick={handleWalletClick} />
           <HeaderAuthSlot
             hasLogin={hasLogin}
-            hasKnownSession={hasKnownSession}
-            isAuthPending={isAuthPending}
+            shouldShowAuthSkeleton={shouldShowAuthSkeleton}
             userSnapshot={userSnapshot}
             displayName={displayName}
             adminUser={adminUser}
@@ -170,8 +170,7 @@ function HeaderWalletButton({
 
 function HeaderAuthSlot({
   hasLogin,
-  hasKnownSession,
-  isAuthPending,
+  shouldShowAuthSkeleton,
   userSnapshot,
   displayName,
   adminUser,
@@ -180,8 +179,7 @@ function HeaderAuthSlot({
   onNavigate,
 }: {
   hasLogin: boolean;
-  hasKnownSession: boolean;
-  isAuthPending: boolean;
+  shouldShowAuthSkeleton: boolean;
   userSnapshot: AuthUserSnapshot | null;
   displayName: string;
   adminUser: boolean;
@@ -189,11 +187,9 @@ function HeaderAuthSlot({
   onLogout: () => void;
   onNavigate: (route: Route) => void;
 }) {
-  const showSkeleton = isAuthPending && !hasKnownSession;
-
   return (
     <div className="header-user-group hidden min-h-11 min-w-[176px] items-center justify-end gap-3 sm:flex">
-      {showSkeleton ? (
+      {shouldShowAuthSkeleton ? (
         <div className="flex min-h-11 min-w-[176px] items-center gap-3 rounded-xl border border-white/10 bg-ink-lighter px-3 py-2">
           <div className="h-8 w-8 animate-pulse rounded-full bg-white/10" />
           <div className="grid gap-1">

@@ -1,9 +1,9 @@
 import { FormEvent } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { BadgeCheck, LogOut, ShieldCheck, UserPlus, UserRound, WalletCards } from 'lucide-react';
-import { Badge } from '../common/Badge';
-import { IconBox } from '../common/IconBox';
-import { StatCard } from '../common/StatCard';
+import { Badge } from '../ui/Badge';
+import { IconBox } from '../ui/IconBox';
+import { StatCard } from '../ui/StatCard';
 import { formatCurrency } from '../../lib/format';
 import { userDisplayName } from '../../lib/labels';
 import { WalletInfo } from '../../types';

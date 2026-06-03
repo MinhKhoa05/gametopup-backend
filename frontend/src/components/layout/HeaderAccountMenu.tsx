@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { ChevronDown, ShieldCheck, UserRound } from 'lucide-react';
 import { classNames } from '../../lib/ui';
-import { Badge } from '../common/Badge';
+import { Badge } from '../ui/Badge';
 
 export type HeaderAccountMenuItem = {
   className?: string;

@@ -1,5 +1,5 @@
 import { Search } from 'lucide-react';
-import { EmptyState } from '../components/common/EmptyState';
+import { EmptyState } from '../components/ui/EmptyState';
 import { OrderStatusBadge } from '../components/orders/OrderStatusBadge';
 import { Route } from '../lib/routes';
 import { formatCurrency, formatDate } from '../lib/format';

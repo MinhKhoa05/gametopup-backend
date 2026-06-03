@@ -1,8 +1,8 @@
 import { CheckCircle2, Search, X } from 'lucide-react';
-import { Badge } from '../common/Badge';
-import { Field } from '../common/Field';
+import { Badge } from '../ui/Badge';
+import { Field } from '../ui/Field';
 import { classNames } from '../../lib/ui';
-import { SectionHeading } from '../common/SectionHeading';
+import { SectionHeading } from '../ui/SectionHeading';
 
 export function PanelTitle({
   action,

@@ -5,7 +5,7 @@ import { statusLabel } from '../../lib/labels';
 import type { Game, Order, User } from '../../types';
 import type { AdminCatalogMetrics } from '../../types/admin.types';
 import { AdminSkeleton, EmptyLine, PanelTitle } from './AdminShared';
-import { StatCard } from '../common/StatCard';
+import { StatCard } from '../ui/StatCard';
 
 export function DashboardPanel({
   games,

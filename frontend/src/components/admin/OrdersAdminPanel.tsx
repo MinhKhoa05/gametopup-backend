@@ -5,7 +5,7 @@ import { statusLabel } from '../../lib/labels';
 import { classNames } from '../../lib/ui';
 import type { Order } from '../../types';
 import { AdminSkeleton, EmptyLine, PanelTitle, SearchBox, StatusPill } from './AdminShared';
-import { Badge } from '../common/Badge';
+import { Badge } from '../ui/Badge';
 import type { User } from '../../types';
 
 type OrderFilter = 'all' | 'pending' | 'paid' | 'processing' | 'completed' | 'cancelled';

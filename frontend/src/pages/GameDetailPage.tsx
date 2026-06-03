@@ -1,8 +1,8 @@
 import { FormEvent } from 'react';
 import { ArrowLeft, CheckCircle2, ChevronRight, Home, ShoppingCart, ShieldCheck } from 'lucide-react';
-import { EmptyState } from '../components/common/EmptyState';
-import { Field } from '../components/common/Field';
-import { SectionHeading } from '../components/common/SectionHeading';
+import { EmptyState } from '../components/ui/EmptyState';
+import { Field } from '../components/ui/Field';
+import { SectionHeading } from '../components/ui/SectionHeading';
 import { Route } from '../lib/routes';
 import { classNames, pickImage } from '../lib/ui';
 import { formatCurrency } from '../lib/format';

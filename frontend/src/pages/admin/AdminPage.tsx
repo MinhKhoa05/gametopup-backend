@@ -2,7 +2,7 @@ import { Boxes, Gamepad2, LayoutDashboard, ReceiptText, Users } from 'lucide-rea
 import { AsyncActionExecutor } from '../../hooks/common/useAsyncAction';
 import { Route } from '../../lib/routes';
 import { isAdminUser } from '../../lib/roles';
-import { EmptyState } from '../../components/common/EmptyState';
+import { EmptyState } from '../../components/ui/EmptyState';
 import { User } from '../../types';
 import { AdminHeader } from '../../components/admin/AdminHeader';
 import { AdminNavButton } from '../../components/admin/AdminNavButton';

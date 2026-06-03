@@ -3,7 +3,7 @@ import { Edit3, Plus, Save, Trash2, X } from 'lucide-react';
 import { formatCurrency } from '../../lib/format';
 import type { Game, GamePackage } from '../../types';
 import { AdminSkeleton, EmptyLine, NumberField, PanelTitle, SearchBox, StatusPill, filterByName, gameName } from './AdminShared';
-import { Field } from '../common/Field';
+import { Field } from '../ui/Field';
 import { classNames, pickImage } from '../../lib/ui';
 
 const emptyPackageForm = {

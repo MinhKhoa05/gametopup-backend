@@ -1,9 +1,9 @@
 import { FormEvent } from 'react';
 import { CheckCircle2, CreditCard, QrCode, UserRound, WalletCards } from 'lucide-react';
-import { Badge } from '../common/Badge';
-import { Field } from '../common/Field';
-import { IconBox } from '../common/IconBox';
-import { SectionHeading } from '../common/SectionHeading';
+import { Badge } from '../ui/Badge';
+import { Field } from '../ui/Field';
+import { IconBox } from '../ui/IconBox';
+import { SectionHeading } from '../ui/SectionHeading';
 import { formatCurrency } from '../../lib/format';
 import { Route } from '../../lib/routes';
 import { classNames } from '../../lib/ui';

@@ -12,11 +12,11 @@ import {
   UserRound,
   WalletCards,
 } from 'lucide-react';
-import { Field } from '../components/common/Field';
-import { Badge } from '../components/common/Badge';
-import { IconBox } from '../components/common/IconBox';
-import { StatCard } from '../components/common/StatCard';
-import { SectionHeading } from '../components/common/SectionHeading';
+import { Field } from '../components/ui/Field';
+import { Badge } from '../components/ui/Badge';
+import { IconBox } from '../components/ui/IconBox';
+import { StatCard } from '../components/ui/StatCard';
+import { SectionHeading } from '../components/ui/SectionHeading';
 import { AuthSliderForm } from '../components/auth/AuthSliderForm';
 import { formatCurrency } from '../lib/format';
 import { userDisplayName } from '../lib/labels';

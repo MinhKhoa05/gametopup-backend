@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { ArrowLeft, Boxes, Gamepad2, LayoutDashboard, LogOut, ReceiptText, RefreshCw, ShieldCheck, Users } from 'lucide-react';
 import type { Route } from '../../lib/routes';
 import { classNames } from '../../lib/ui';
-import { SectionHeading } from '../common/SectionHeading';
+import { SectionHeading } from '../ui/SectionHeading';
 
 const sectionMeta: Record<
   NonNullable<Extract<Route, { name: 'admin' }>['section']>,

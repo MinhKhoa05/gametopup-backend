@@ -26,24 +26,18 @@ export function useAuthSession({ navigate, execute }: { navigate: (route: Route)
   useEffect(() => {
     let isMounted = true;
     async function bootstrapAuth() {
-      const current = useAuthStore.getState();
-      current.setAuthLoading(true);
-      current.setAuthStatus('checking');
-
+      useAuthStore.getState().setAuthStatus('checking');
       try {
         const serverUser = await getMe();
         if (!isMounted) return;
 
-        const latestCurrent = useAuthStore.getState();
-        latestCurrent.setUser(serverUser);
-        latestCurrent.setUserSnapshot(snapshotFromUser(serverUser));
-        latestCurrent.setAuthStatus('authenticated');
+        const store = useAuthStore.getState();
+        store.setUser(serverUser);
+        store.setUserSnapshot(snapshotFromUser(serverUser));
+        store.setAuthStatus('authenticated');
       } catch {
         if (!isMounted) return;
         useAuthStore.getState().setGuest();
-      } finally {
-        if (!isMounted) return;
-        useAuthStore.getState().setAuthLoading(false);
       }
     }
 
@@ -68,7 +62,6 @@ export function useAuthSession({ navigate, execute }: { navigate: (route: Route)
           store.setUser(loggedInUser);
           store.setUserSnapshot(snapshotFromUser(loggedInUser));
           store.setAuthStatus('authenticated');
-          store.setAuthLoading(false);
           navigate({ name: 'games' });
         },
       }
@@ -91,7 +84,6 @@ export function useAuthSession({ navigate, execute }: { navigate: (route: Route)
     current.setUser({ ...current.user, displayName });
     current.setUserSnapshot(snapshotFromUser({ ...current.user, displayName }));
     current.setAuthStatus('authenticated');
-    current.setAuthLoading(false);
   }
 
   return {

@@ -5,8 +5,8 @@ import { userRoleLabel } from '../../lib/labels';
 import { classNames } from '../../lib/ui';
 import type { User } from '../../types';
 import { AdminSkeleton, EmptyLine, PanelTitle, SearchBox, StatusPill } from './AdminShared';
-import { Field } from '../common/Field';
-import { Badge } from '../common/Badge';
+import { Field } from '../ui/Field';
+import { Badge } from '../ui/Badge';
 
 const emptyForm = {
   displayName: '',
