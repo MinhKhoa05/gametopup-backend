@@ -1,9 +1,9 @@
 import { useMemo } from 'react';
-import { useAdminGamesStore } from '../../store/admin/admin-games.store';
+import { useGamesStore } from '../../store/games.store';
 import { useAdminPackagesStore } from '../../store/admin/admin-packages.store';
 import { useAdminOrdersStore } from '../../store/admin/admin-orders.store';
 import { useAdminUsersStore } from '../../store/admin/admin-users.store';
-import type { AdminCatalogMetrics } from '../../types/admin.types';
+import type { AdminCatalogMetrics } from '../../types/admin.type';
 
 function isToday(value: string) {
   const date = new Date(value);
@@ -17,7 +17,7 @@ function isToday(value: string) {
 }
 
 export function useAdminMetrics() {
-  const games = useAdminGamesStore((state) => state.games);
+  const games = useGamesStore((state) => state.games);
   const packages = useAdminPackagesStore((state) => state.packages);
   const orders = useAdminOrdersStore((state) => state.orders);
   const users = useAdminUsersStore((state) => state.users);

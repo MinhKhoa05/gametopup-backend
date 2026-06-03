@@ -3,7 +3,7 @@ import { Route } from '../../lib/routes';
 import { formatCurrency, formatDate } from '../../lib/format';
 import { statusLabel } from '../../lib/labels';
 import type { Game, Order, User } from '../../types';
-import type { AdminCatalogMetrics } from '../../types/admin.types';
+import type { AdminCatalogMetrics } from '../../types/admin.type';
 import { AdminSkeleton, EmptyLine, PanelTitle } from './AdminShared';
 import { StatCard } from '../ui/StatCard';
 

@@ -7,7 +7,7 @@ import { SITE } from '../config/site';
 import { Route } from '../lib/routes';
 import { classNames, pickImage } from '../lib/ui';
 import { Game, User, WalletInfo } from '../types';
-import type { AuthFormState, AuthMode, AuthStatus, AuthUserSnapshot } from '../types/auth.types';
+import type { AuthFormData, AuthMode, AuthStatus, CachedUser } from '../types';
 import { useStableLoginView } from '../hooks/common/useStableLoginView';
 
 export function HomePage({
@@ -20,7 +20,7 @@ export function HomePage({
   authForm,
   authStatus,
   user,
-  userSnapshot,
+  cachedUser,
   onAuth,
   onLogout,
   onChangeAuthForm,
@@ -36,16 +36,16 @@ export function HomePage({
   onAuth: (event: FormEvent) => void;
   onLogout: () => void;
   authMode: AuthMode;
-  authForm: AuthFormState;
+  authForm: AuthFormData;
   authStatus: AuthStatus;
   user: User | null;
-  userSnapshot: AuthUserSnapshot | null;
-  onChangeAuthForm: (next: AuthFormState) => void;
+  cachedUser: CachedUser | null;
+  onChangeAuthForm: (next: AuthFormData) => void;
   onSwitchAuthMode: (mode: AuthMode) => void;
 }) {
   const [keyword, setKeyword] = useState('');
   const featured = games.slice(0, 8);
-  const { hasLogin } = useStableLoginView({ authStatus, user, userSnapshot });
+  const { hasLogin } = useStableLoginView({ authStatus, user, cachedUser });
 
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -153,7 +153,7 @@ export function HomePage({
               busy={busy}
               user={user}
               authStatus={authStatus}
-              userSnapshot={userSnapshot}
+              cachedUser={cachedUser}
               onSubmit={onAuth}
               onLogout={onLogout}
               onChangeAuthForm={onChangeAuthForm}

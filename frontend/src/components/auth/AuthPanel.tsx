@@ -8,8 +8,7 @@ import { formatCurrency } from '../../lib/format';
 import { userDisplayName } from '../../lib/labels';
 import { WalletInfo } from '../../types';
 import { AuthFields } from './AuthFields';
-import type { AuthFormState, AuthMode, AuthStatus, AuthUserSnapshot } from '../../types/auth.types';
-import type { User } from '../../types';
+import type { AuthFormState, AuthMode, AuthStatus, CachedUser, User } from '../../types';
 
 export type AuthPanelProps = {
   authMode: AuthMode;
@@ -18,16 +17,16 @@ export type AuthPanelProps = {
   busy: boolean;
   user: User | null;
   authStatus: AuthStatus;
-  userSnapshot: AuthUserSnapshot | null;
+  cachedUser: CachedUser | null;
   onSubmit: (event: FormEvent) => void;
   onLogout: () => void;
   onChangeAuthForm: (next: AuthFormState) => void;
   onSwitchMode: (mode: AuthMode) => void;
 };
 
-export function AuthPanel({ wallet, busy, onSubmit, onLogout, authMode, form, user, authStatus, userSnapshot, onChangeAuthForm, onSwitchMode }: AuthPanelProps) {
-  const hasLogin = Boolean(user || (authStatus !== 'guest' && userSnapshot));
-  const displayName = userDisplayName(user) || userSnapshot?.displayName || 'Khách';
+export function AuthPanel({ wallet, busy, onSubmit, onLogout, authMode, form, user, authStatus, cachedUser, onChangeAuthForm, onSwitchMode }: AuthPanelProps) {
+  const hasLogin = Boolean(user || (authStatus !== 'guest' && cachedUser));
+  const displayName = userDisplayName(user) || cachedUser?.displayName || 'Khách';
   const isRegister = authMode === 'register';
 
   return (
@@ -52,7 +51,7 @@ export function AuthPanel({ wallet, busy, onSubmit, onLogout, authMode, form, us
       {hasLogin ? (
         <div className="mt-7 grid gap-3 sm:grid-cols-2">
           <StatCard icon={<WalletCards size={20} />} label="Số dư ví" value={formatCurrency(wallet?.balance ?? 0)} />
-          <StatCard icon={<BadgeCheck size={20} />} label="Tài khoản" value={user?.role ?? userSnapshot?.role ?? 'Khách hàng'} />
+          <StatCard icon={<BadgeCheck size={20} />} label="Tài khoản" value={user?.role ?? cachedUser?.role ?? 'Khách hàng'} />
         </div>
       ) : (
         <>

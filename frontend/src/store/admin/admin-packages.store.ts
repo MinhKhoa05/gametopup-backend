@@ -1,16 +1,41 @@
 import { create } from 'zustand';
-import type { GamePackage } from '../../types';
+import type { AdminGamePackage } from '../../types';
 
+/**
+ * State gói nạp theo game trong trang quản trị.
+ */
 type AdminPackagesStore = {
-  packages: GamePackage[];
+  packages: AdminGamePackage[];
   loading: boolean;
-  setPackages: (packages: GamePackage[]) => void;
+  packagesByGame: Record<number, AdminGamePackage[]>;
+  loadingByGame: Record<number, boolean>;
+
+  setPackages: (packages: AdminGamePackage[]) => void;
   setLoading: (loading: boolean) => void;
+  setPackagesForGame: (gameId: number, packages: AdminGamePackage[]) => void;
+  setLoadingForGame: (gameId: number, loading: boolean) => void;
 };
 
 export const useAdminPackagesStore = create<AdminPackagesStore>((set) => ({
   packages: [],
   loading: false,
-  setPackages: (packages) => set({ packages }),
+  packagesByGame: {},
+  loadingByGame: {},
+
+  setPackages: (packages) =>
+    set({
+      packages,
+      loading: false,
+    }),
   setLoading: (loading) => set({ loading }),
+  setPackagesForGame: (gameId, packages) =>
+    set((state) => ({
+      packagesByGame: { ...state.packagesByGame, [gameId]: packages },
+      loadingByGame: { ...state.loadingByGame, [gameId]: false },
+    })),
+
+  setLoadingForGame: (gameId, loading) =>
+    set((state) => ({
+      loadingByGame: { ...state.loadingByGame, [gameId]: loading },
+    })),
 }));

@@ -2,13 +2,20 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { Game, GamePackage } from '../types';
 
+const GAMES_CACHE_KEY = 'gametopup-games-cache';
+
+/**
+ * State danh sách game dùng chung cho toàn bộ ứng dụng.
+ */
 type GamesStore = {
   games: Game[];
   gamesLoading: boolean;
   packagesByGame: Record<number, GamePackage[]>;
   packagesLoadingByGame: Record<number, boolean>;
+
   setGames: (games: Game[]) => void;
   setGamesLoading: (gamesLoading: boolean) => void;
+  clearGames: () => void;
   setPackagesForGame: (gameId: number, packages: GamePackage[]) => void;
   setPackagesLoadingForGame: (gameId: number, loading: boolean) => void;
   clearPackagesForGame: (gameId: number) => void;
@@ -21,8 +28,10 @@ export const useGamesStore = create<GamesStore>()(
       gamesLoading: false,
       packagesByGame: {},
       packagesLoadingByGame: {},
+
       setGames: (games) => set({ games, gamesLoading: false }),
       setGamesLoading: (gamesLoading) => set({ gamesLoading }),
+      clearGames: () => set({ games: [], gamesLoading: false }),
       setPackagesForGame: (gameId, packages) =>
         set((state) => ({
           packagesByGame: { ...state.packagesByGame, [gameId]: packages },
@@ -42,8 +51,10 @@ export const useGamesStore = create<GamesStore>()(
         }),
     }),
     {
-      name: 'gametopup-games-cache',
-      partialize: (state) => ({ games: state.games, packagesByGame: state.packagesByGame }),
+      name: GAMES_CACHE_KEY,
+      partialize: (state) => ({
+        games: state.games,
+      }),
     }
   )
 );

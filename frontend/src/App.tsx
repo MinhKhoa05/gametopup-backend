@@ -3,25 +3,25 @@ import { AppLayout } from './components/layout/AppLayout';
 import { AppFooter } from './components/layout/AppFooter';
 import { AppHeader } from './components/layout/AppHeader';
 import { BottomNav } from './components/layout/BottomNav';
+import { EmptyState } from './components/ui/EmptyState';
 import { ToastNotification } from './components/ui/ToastNotification';
 import { useAuthSession } from './hooks/auth.hooks';
 import { useAsyncAction } from './hooks/common/useAsyncAction';
 import { useRoute } from './hooks/common/route.hooks';
+import { useGameCatalog } from './hooks/games.hooks';
+import { useCheckoutOrder, useUserOrders } from './hooks/orders.hooks';
+import { useDepositRequests, useWalletDeposit, useWalletTransactions } from './hooks/wallet.hooks';
+import { isAdminUser } from './lib/roles';
 import { Route } from './lib/routes';
 import { AccountPage } from './pages/AccountPage';
+import { AdminPage } from './pages/admin/AdminPage';
 import { GameDetailPage } from './pages/GameDetailPage';
 import { GamesPage } from './pages/GamesPage';
 import { HomePage } from './pages/HomePage';
 import { OrdersPage } from './pages/OrdersPage';
 import { WalletPage } from './pages/WalletPage';
-import { AdminPage } from './pages/admin/AdminPage';
-import { EmptyState } from './components/ui/EmptyState';
-import { useGameCatalog } from './hooks/games.hooks';
-import { useCheckoutOrder, useUserOrders } from './hooks/orders.hooks';
-import { useDepositRequests, useWalletDeposit, useWalletTransactions } from './hooks/wallet.hooks';
-import { isAdminUser } from './lib/roles';
-import type { User } from './types';
-import type { AuthFormState, AuthMode, AuthStatus, AuthUserSnapshot } from './types/auth.types';
+import { useWalletStore } from './store/wallet.store';
+import type { AuthFormState, AuthMode, AuthStatus, CachedUser, User, WalletInfo } from './types';
 
 export function App() {
   const { route, navigate } = useRoute();
@@ -29,8 +29,9 @@ export function App() {
   const auth = useAuthSession({ navigate, execute: action.execute });
   const user = auth.user;
   const authStatus = auth.authStatus;
-  const userSnapshot = auth.userSnapshot;
-  const userOrders = useUserOrders(user, authStatus, userSnapshot, action.execute, action.setErrorMessage);
+  const cachedUser = auth.cachedUser;
+  const userOrders = useUserOrders(user, authStatus, cachedUser, action.execute, action.setErrorMessage);
+  const wallet = useWalletStore((state) => state.wallet);
   const isAdminRoute = route.name === 'admin';
 
   return (
@@ -39,25 +40,25 @@ export function App() {
       header={
         <AppHeader
           route={route}
-          wallet={userOrders.wallet ?? userOrders.walletSnapshot}
+          wallet={wallet}
           navigate={navigate}
           onLogout={auth.handleLogout}
           authStatus={authStatus}
           user={user}
-          userSnapshot={userSnapshot}
-        />
+          cachedUser={cachedUser}
+          />
       }
       footer={<AppFooter navigate={navigate} />}
-      bottomNav={<BottomNav route={route} navigate={navigate} />}
+      bottomNav={<BottomNav route={route} navigate={navigate} hasLogin={Boolean(user || cachedUser)} />}
       toast={<ToastNotification loading={action.isLoading} message={action.successMessage} error={action.errorMessage} />}
     >
       {route.name === 'home' && (
-      <HomeRoute
+        <HomeRoute
           authForm={auth.authForm}
           authMode={auth.authMode}
           authStatus={authStatus}
           user={auth.user}
-          userSnapshot={userSnapshot}
+          cachedUser={cachedUser}
           onAuth={auth.handleAuth}
           onLogout={auth.handleLogout}
           onChangeAuthForm={auth.setAuthForm}
@@ -65,7 +66,7 @@ export function App() {
           busy={action.isLoading}
           ordersCount={userOrders.orders.length}
           setError={action.setErrorMessage}
-          wallet={userOrders.wallet ?? userOrders.walletSnapshot}
+          wallet={wallet}
           navigate={navigate}
         />
       )}
@@ -92,11 +93,11 @@ export function App() {
                 busy={action.isLoading}
                 execute={action.execute}
                 setError={action.setErrorMessage}
-                wallet={userOrders.wallet ?? userOrders.walletSnapshot}
+                wallet={wallet}
                 refreshUserArea={userOrders.refreshUserArea}
                 user={user}
                 authStatus={authStatus}
-                userSnapshot={userSnapshot}
+                cachedUser={cachedUser}
                 navigate={navigate}
               />
             </AuthGuard>
@@ -114,8 +115,8 @@ export function App() {
               authMode={auth.authMode}
               user={user}
               authStatus={authStatus}
-              userSnapshot={userSnapshot}
-              wallet={userOrders.wallet ?? userOrders.walletSnapshot}
+              cachedUser={cachedUser}
+              wallet={wallet}
               ordersCount={userOrders.orders.length}
               busy={action.isLoading}
               onSubmit={auth.handleAuth}
@@ -150,13 +151,16 @@ export function App() {
 type ExecuteAction = ReturnType<typeof useAsyncAction>['execute'];
 type SetError = ReturnType<typeof useAsyncAction>['setErrorMessage'];
 type UserArea = ReturnType<typeof useUserOrders>;
+type WalletState = WalletInfo | null;
+
+const AUTH_GUARD_EMPTY_STATE_CLASS = 'mx-auto max-w-lg py-16';
 
 function HomeRoute({
   authForm,
   authMode,
   authStatus,
   user,
-  userSnapshot,
+  cachedUser,
   onAuth,
   onLogout,
   onChangeAuthForm,
@@ -171,7 +175,7 @@ function HomeRoute({
   authMode: AuthMode;
   authStatus: AuthStatus;
   user: User | null;
-  userSnapshot: AuthUserSnapshot | null;
+  cachedUser: CachedUser | null;
   onAuth: (event: FormEvent) => void;
   onLogout: () => void;
   onChangeAuthForm: (next: AuthFormState) => void;
@@ -179,7 +183,7 @@ function HomeRoute({
   busy: boolean;
   ordersCount: number;
   setError: SetError;
-  wallet: UserArea['wallet'];
+  wallet: WalletState;
   navigate: (route: Route) => void;
 }) {
   const catalog = useGameCatalog({ name: 'home' }, setError);
@@ -197,7 +201,7 @@ function HomeRoute({
       authMode={authMode}
       authStatus={authStatus}
       user={user}
-      userSnapshot={userSnapshot}
+      cachedUser={cachedUser}
       onAuth={onAuth}
       onLogout={onLogout}
       onChangeAuthForm={onChangeAuthForm}
@@ -229,28 +233,52 @@ function AuthGuard({
     const allowed = Boolean(user && isAdminUser(user));
     if (!allowed) {
       return (
-        <EmptyState
-          className="mx-auto max-w-lg py-16"
+        <AccessDeniedNotice
+          navigate={navigate}
+          fallbackRoute={fallbackRoute}
           title="Bạn không có quyền truy cập trang này."
           description="Vui lòng đăng nhập bằng tài khoản quản trị để tiếp tục."
           actionLabel="Về trang chủ"
-          onAction={() => navigate(fallbackRoute)}
         />
       );
     }
   } else if (!user) {
     return (
-      <EmptyState
-        className="mx-auto max-w-lg py-16"
+      <AccessDeniedNotice
+        navigate={navigate}
+        fallbackRoute={fallbackRoute}
         title="Bạn cần đăng nhập để tiếp tục."
         description="Khu vực này chỉ dành cho tài khoản đã xác thực."
         actionLabel="Đăng nhập"
-        onAction={() => navigate(fallbackRoute)}
       />
     );
   }
 
   return children;
+}
+
+function AccessDeniedNotice({
+  actionLabel,
+  description,
+  fallbackRoute,
+  navigate,
+  title,
+}: {
+  actionLabel: string;
+  description: string;
+  fallbackRoute: Route;
+  navigate: (route: Route) => void;
+  title: string;
+}) {
+  return (
+    <EmptyState
+      className={AUTH_GUARD_EMPTY_STATE_CLASS}
+      title={title}
+      description={description}
+      actionLabel={actionLabel}
+      onAction={() => navigate(fallbackRoute)}
+    />
+  );
 }
 
 function AuthGuardSkeleton() {
@@ -345,17 +373,17 @@ function WalletRoute({
   refreshUserArea,
   user,
   authStatus,
-  userSnapshot,
+  cachedUser,
   navigate,
 }: {
   busy: boolean;
   execute: ExecuteAction;
   setError: SetError;
-  wallet: UserArea['wallet'];
+  wallet: WalletState;
   refreshUserArea: UserArea['refreshUserArea'];
   user: User | null;
   authStatus: AuthStatus;
-  userSnapshot: AuthUserSnapshot | null;
+  cachedUser: CachedUser | null;
   navigate: (route: Route) => void;
 }) {
   const walletTransactions = useWalletTransactions(user, setError);

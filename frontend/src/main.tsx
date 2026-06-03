@@ -25,9 +25,24 @@ class AppErrorBoundary extends React.Component<{ children: React.ReactNode }, { 
   render() {
     if (this.state.error) {
       return (
-        <div style={{ minHeight: '100vh', padding: 24, color: '#fff', background: '#020617', fontFamily: 'Inter, sans-serif' }}>
-          <h1 style={{ marginBottom: 12, fontSize: 24, fontWeight: 800 }}>Ứng dụng đã gặp lỗi khi khởi tạo</h1>
-          <pre style={{ whiteSpace: 'pre-wrap', color: '#fca5a5' }}>{this.state.error.message}</pre>
+        <div className="min-h-screen bg-ink px-6 py-8 text-slate-100">
+          <div className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-2xl items-center">
+            <div className="w-full rounded-3xl border border-white/10 bg-ink-light p-6 shadow-glow sm:p-8">
+              <p className="eyebrow">System error</p>
+              <h1 className="mt-2 text-2xl font-black tracking-tight text-white sm:text-3xl">
+                {'Ứng dụng đã gặp lỗi khi khởi tạo'}
+              </h1>
+              <p className="mt-3 max-w-xl text-sm leading-6 text-slate-300">
+                {'Trang không thể tiếp tục vì có lỗi không mong muốn trong quá trình khởi tạo giao diện.'}
+              </p>
+              <pre className="mt-5 overflow-auto rounded-2xl border border-rose-400/20 bg-black/20 p-4 text-sm leading-6 text-rose-200">
+                {this.state.error.message}
+              </pre>
+              <button type="button" className="btn-primary mt-6" onClick={() => window.location.reload()}>
+                {'Tải lại trang'}
+              </button>
+            </div>
+          </div>
         </div>
       );
     }

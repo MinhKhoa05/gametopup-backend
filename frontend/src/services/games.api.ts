@@ -1,5 +1,5 @@
 import { api, ApiResponse } from '../lib/api';
-import { Game, GamePackage } from '../types';
+import { Game, GamePackage, AdminGamePackage } from '../types';
 
 export async function getGames() {
   const response = await api.get<ApiResponse<Game[]>>('/api/games');
@@ -12,6 +12,6 @@ export async function getPackagesByGame(gameId: number) {
 }
 
 export async function getAllPackages() {
-  const response = await api.get<ApiResponse<GamePackage[]>>('/api/game-packages');
+  const response = await api.get<ApiResponse<AdminGamePackage[]>>('/api/game-packages');
   return response.data.data;
 }

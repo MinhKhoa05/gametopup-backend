@@ -21,8 +21,8 @@ export function useWalletTransactions(
   const refreshTransactions = useCallback(async () => {
     if (!user) return;
     const current = useWalletStore.getState();
-    
-    await executeBackgroundFetch({
+
+    await refreshWalletCollection({
       hasData: current.transactions.length > 0,
       setLoading: current.setTransactionsLoading,
       setError,
@@ -101,7 +101,7 @@ export function useDepositRequests(
     if (!user) return;
     const current = useWalletStore.getState();
 
-    await executeBackgroundFetch({
+    await refreshWalletCollection({
       hasData: current.depositRequests.length > 0,
       setLoading: current.setDepositRequestsLoading,
       setError,
@@ -119,4 +119,26 @@ export function useDepositRequests(
     depositRequestsLoading: depositRequestsState.depositRequestsLoading,
     refreshDepositRequests,
   };
+}
+
+async function refreshWalletCollection<T>({
+  hasData,
+  setLoading,
+  setError,
+  fetcher,
+  onSuccess,
+}: {
+  hasData: boolean;
+  setLoading: (loading: boolean) => void;
+  setError: (message: string | null) => void;
+  fetcher: () => Promise<T[]>;
+  onSuccess: (items: T[]) => void;
+}) {
+  await executeBackgroundFetch({
+    hasData,
+    setLoading,
+    setError,
+    fetcher,
+    onSuccess,
+  });
 }

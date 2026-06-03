@@ -14,8 +14,7 @@ import {
 import { formatCurrency } from '../../lib/format';
 import { isAdminUser } from '../../lib/roles';
 import { useStableLoginView } from '../../hooks/common/useStableLoginView';
-import type { AuthStatus, AuthUserSnapshot } from '../../types/auth.types';
-import type { User } from '../../types';
+import type { CachedUser, AuthStatus, User } from '../../types';
 
 export function AppHeader({
   route,
@@ -24,7 +23,7 @@ export function AppHeader({
   onLogout,
   authStatus,
   user,
-  userSnapshot,
+  cachedUser,
 }: {
   route: Route;
   wallet: { balance: number } | null;
@@ -32,12 +31,12 @@ export function AppHeader({
   onLogout: () => void;
   authStatus: AuthStatus;
   user: User | null;
-  userSnapshot: AuthUserSnapshot | null;
+  cachedUser: CachedUser | null;
 }) {
   const [keyword, setKeyword] = useState('');
-  const { hasKnownSession, hasLogin, isAuthPending } = useStableLoginView({ authStatus, user, userSnapshot });
-  const effectiveRole = user?.role ?? userSnapshot?.role;
-  const displayName = userDisplayName(user) || userSnapshot?.displayName || 'Khách';
+  const { hasKnownSession, hasLogin, isAuthPending } = useStableLoginView({ authStatus, user, cachedUser });
+  const effectiveRole = user?.role ?? cachedUser?.role;
+  const displayName = userDisplayName(user) || cachedUser?.displayName || 'Khách';
   const adminUser =
     isAdminUser(user) ||
     (typeof effectiveRole === 'string'
@@ -84,6 +83,10 @@ export function AppHeader({
     }
   };
   const shouldShowAuthSkeleton = isAuthPending && !hasKnownSession;
+  const visibleNavItems = HEADER_NAV_ITEMS.filter((item) => {
+    if (hasLogin) return true;
+    return item.route.name !== 'orders' && item.route.name !== 'wallet';
+  });
 
   return (
     <header className="site-header">
@@ -92,7 +95,7 @@ export function AppHeader({
           <BrandLogo onClick={() => navigate({ name: 'home' })} title={SITE.name} subtitle={SITE.tagline} />
 
           <nav className="desktop-nav hidden md:flex" aria-label="Điều hướng chính">
-            {HEADER_NAV_ITEMS.map((link) => (
+            {visibleNavItems.map((link) => (
               <button
                 key={link.label}
                 type="button"
@@ -131,7 +134,7 @@ export function AppHeader({
           <HeaderAuthSlot
             hasLogin={hasLogin}
             shouldShowAuthSkeleton={shouldShowAuthSkeleton}
-            userSnapshot={userSnapshot}
+            cachedUser={cachedUser}
             displayName={displayName}
             adminUser={adminUser}
             menuItems={menuItems}
@@ -171,7 +174,7 @@ function HeaderWalletButton({
 function HeaderAuthSlot({
   hasLogin,
   shouldShowAuthSkeleton,
-  userSnapshot,
+  cachedUser,
   displayName,
   adminUser,
   menuItems,
@@ -180,7 +183,7 @@ function HeaderAuthSlot({
 }: {
   hasLogin: boolean;
   shouldShowAuthSkeleton: boolean;
-  userSnapshot: AuthUserSnapshot | null;
+  cachedUser: CachedUser | null;
   displayName: string;
   adminUser: boolean;
   menuItems: HeaderAccountMenuItem[];

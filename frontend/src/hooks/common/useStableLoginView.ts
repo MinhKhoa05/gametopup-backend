@@ -1,15 +1,14 @@
 import { useEffect, useRef } from 'react';
-import type { AuthStatus, AuthUserSnapshot } from '../../types/auth.types';
-import type { User } from '../../types';
+import type { AuthStatus, CachedUser, User } from '../../types';
 
 type StableLoginViewArgs = {
   authStatus: AuthStatus;
   user: User | null;
-  userSnapshot: AuthUserSnapshot | null;
-};
+  cachedUser: CachedUser | null;
+};  
 
-export function useStableLoginView({ authStatus, user, userSnapshot }: StableLoginViewArgs) {
-  const liveHasLogin = Boolean(user || userSnapshot);
+export function useStableLoginView({ authStatus, user, cachedUser }: StableLoginViewArgs) {
+  const liveHasLogin = Boolean(user || cachedUser);
   const lastKnownHasLoginRef = useRef<boolean | null>(liveHasLogin ? true : null);
 
   useEffect(() => {

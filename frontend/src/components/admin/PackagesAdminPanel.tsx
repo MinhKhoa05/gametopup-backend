@@ -1,7 +1,7 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { Edit3, Plus, Save, Trash2, X } from 'lucide-react';
 import { formatCurrency } from '../../lib/format';
-import type { Game, GamePackage } from '../../types';
+import type { AdminGamePackage, Game } from '../../types';
 import { AdminSkeleton, EmptyLine, NumberField, PanelTitle, SearchBox, StatusPill, filterByName, gameName } from './AdminShared';
 import { Field } from '../ui/Field';
 import { classNames, pickImage } from '../../lib/ui';
@@ -28,7 +28,7 @@ export function PackagesAdminPanel({
 }: {
   busy: boolean;
   games: Game[];
-  packages: GamePackage[];
+  packages: AdminGamePackage[];
   loading: boolean;
   onCreatePackage: (payload: {
     gameId: number;
@@ -54,7 +54,7 @@ export function PackagesAdminPanel({
   ) => Promise<void>;
   onDeletePackage: (id: number) => Promise<void>;
 }) {
-  const [editing, setEditing] = useState<GamePackage | null>(null);
+  const [editing, setEditing] = useState<AdminGamePackage | null>(null);
   const [selectedGameId, setSelectedGameId] = useState<number | null>(null);
   const [form, setForm] = useState(emptyPackageForm);
   const [query, setQuery] = useState('');
@@ -79,11 +79,11 @@ export function PackagesAdminPanel({
 
   const selectedGamePackages = useMemo(() => packages.filter((item) => item.gameId === selectedGameId), [packages, selectedGameId]);
   const scopedPackages = useMemo(() => filterByName(selectedGamePackages, query), [selectedGamePackages, query]);
-  const profit = (item: GamePackage) => item.salePrice - item.importPrice;
+  const profit = (item: AdminGamePackage) => item.salePrice - item.importPrice;
   const selectedGame = selectedGameId ? games.find((game) => game.id === selectedGameId) ?? null : null;
   const previewSrc = form.imageUrl.trim() || (editing ? pickImage(editing) : selectedGame ? pickImage(selectedGame) : '');
 
-  function startEdit(item: GamePackage) {
+  function startEdit(item: AdminGamePackage) {
     setEditing(item);
     setSelectedGameId(item.gameId);
     setForm({
@@ -129,7 +129,7 @@ export function PackagesAdminPanel({
     resetForm();
   }
 
-  async function remove(item: GamePackage) {
+  async function remove(item: AdminGamePackage) {
     if (!window.confirm(`Xóa gói "${item.name}"?`)) return;
     await onDeletePackage(item.id);
   }

@@ -1,12 +1,11 @@
-import { api, ApiResponse } from '../lib/api';
-import { Game, GamePackage, Order, User } from '../types';
+import { api, type ApiResponse } from '../lib/api';
+import type { AdminGamePackage, Game, GamePackage, Order, User } from '../types';
 
 export type GamePayload = Pick<Game, 'name' | 'imageUrl' | 'isActive'>;
 
-export type GamePackagePayload = Pick<
-  GamePackage,
-  'name' | 'imageUrl' | 'gameId' | 'salePrice' | 'originalPrice' | 'importPrice' | 'stockQuantity' | 'isActive'
->;
+export type GamePackagePayload = Omit<AdminGamePackage, 'id'>;
+
+export type UpdateGamePackagePayload = Omit<GamePackagePayload, 'gameId'>;
 
 export async function createGame(payload: GamePayload) {
   const response = await api.post<ApiResponse<Game>>('/api/games', payload);
@@ -27,8 +26,15 @@ export async function createGamePackage(payload: GamePackagePayload) {
   return response.data.data;
 }
 
-export async function updateGamePackage(id: number, payload: Omit<GamePackagePayload, 'gameId'>) {
-  const response = await api.put<ApiResponse<GamePackage>>(`/api/game-packages/${id}`, payload);
+export async function updateGamePackage(
+  id: number,
+  payload: UpdateGamePackagePayload
+) {
+  const response = await api.put<ApiResponse<GamePackage>>(
+    `/api/game-packages/${id}`,
+    payload
+  );
+
   return response.data.data;
 }
 
@@ -42,18 +48,15 @@ export async function getAdminOrders() {
 }
 
 export async function pickOrder(orderId: number) {
-  const response = await api.post<ApiResponse<unknown>>(`/api/orders/${orderId}/pick`);
-  return response.data.data;
+  await api.post<ApiResponse<void>>(`/api/orders/${orderId}/pick`);
 }
 
 export async function completeOrder(orderId: number) {
-  const response = await api.post<ApiResponse<unknown>>(`/api/orders/${orderId}/complete`);
-  return response.data.data;
+  await api.post<ApiResponse<void>>(`/api/orders/${orderId}/complete`);
 }
 
 export async function cancelOrder(orderId: number) {
-  const response = await api.post<ApiResponse<unknown>>(`/api/orders/${orderId}/cancel`);
-  return response.data.data;
+  await api.post<ApiResponse<void>>(`/api/orders/${orderId}/cancel`);
 }
 
 export async function getAdminUsers(page = 1, pageSize = 200) {
@@ -64,10 +67,14 @@ export async function getAdminUsers(page = 1, pageSize = 200) {
   return response.data.data;
 }
 
-export async function updateUser(id: number, payload: Partial<Pick<User, 'displayName' | 'email' | 'role' | 'isActive'>>) {
-  await api.put<ApiResponse<void>>(`/api/users/${id}`, payload);
-}
-
 export async function deleteUser(id: number) {
   await api.delete<ApiResponse<void>>(`/api/users/${id}`);
+}
+
+export async function updateUser(
+  id: number,
+  payload: { displayName: string; email: string; role: number; isActive: boolean },
+) {
+  const response = await api.put<ApiResponse<User>>(`/api/users/${id}`, payload);
+  return response.data.data;
 }

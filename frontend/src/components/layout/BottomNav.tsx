@@ -13,10 +13,23 @@ const bottomNavIcons: Record<Route['name'], ReactNode> = {
   admin: <UserRound size={20} />,
 };
 
-export function BottomNav({ route, navigate }: { route: Route; navigate: (route: Route) => void }) {
+export function BottomNav({
+  route,
+  navigate,
+  hasLogin,
+}: {
+  route: Route;
+  navigate: (route: Route) => void;
+  hasLogin: boolean;
+}) {
+  const visibleItems = BOTTOM_NAV_ITEMS.filter((tab) => {
+    if (hasLogin) return true;
+    return tab.route.name !== 'orders' && tab.route.name !== 'wallet';
+  });
+
   return (
     <nav className="bottom-nav">
-      {BOTTOM_NAV_ITEMS.map((tab) => (
+      {visibleItems.map((tab) => (
         <button
           key={tab.route.name}
           type="button"

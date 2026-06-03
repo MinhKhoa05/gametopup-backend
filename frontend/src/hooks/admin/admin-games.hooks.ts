@@ -5,18 +5,18 @@ import { executeBackgroundFetch } from '../common/useBackgroundFetch';
 import { useAdminCrud } from '../common/useAdminCrud';
 import { getGames } from '../../services/games.api';
 import { createGame, updateGame, deleteGame } from '../../services/admin.api';
-import { useAdminGamesStore } from '../../store/admin/admin-games.store';
+import { useGamesStore } from '../../store/games.store';
 
 export function useAdminGames(setError: (message: string | null) => void, execute: AsyncActionExecutor) {
-  const { games, loading } = useAdminGamesStore(
-    useShallow((state) => ({ games: state.games, loading: state.loading }))
+  const { games, loading } = useGamesStore(
+    useShallow((state) => ({ games: state.games, loading: state.gamesLoading }))
   );
 
   async function refresh() {
-    const current = useAdminGamesStore.getState();
+    const current = useGamesStore.getState();
     await executeBackgroundFetch({
       hasData: current.games.length > 0,
-      setLoading: current.setLoading,
+      setLoading: current.setGamesLoading,
       setError,
       fetcher: getGames,
       onSuccess: current.setGames,

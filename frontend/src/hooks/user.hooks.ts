@@ -1,10 +1,9 @@
-import { FormEvent, useEffect } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 import { AsyncActionExecutor } from './common/useAsyncAction';
 import { getApiMessage } from '../lib/api';
 import { updateMyProfile } from '../services/user.api';
 import { userDisplayName } from '../lib/labels';
 import { User } from '../types';
-import { useUserProfileStore } from '../store/user.store';
 
 type UseProfileEditorArgs = {
   user: User | null;
@@ -13,11 +12,12 @@ type UseProfileEditorArgs = {
 };
 
 export function useProfileEditor({ user, execute, onProfileUpdated }: UseProfileEditorArgs) {
-  const draftName = useUserProfileStore((state) => state.draftName);
-  const saveError = useUserProfileStore((state) => state.saveError);
+  const [draftName, setDraftName] = useState('');
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   useEffect(() => {
-    useUserProfileStore.getState().reset(user);
+    setDraftName(user?.displayName ?? '');
+    setSaveError(null);
   }, [user?.id, user?.displayName, user?.email]);
 
   async function handleSubmit(event: FormEvent) {
@@ -26,7 +26,7 @@ export function useProfileEditor({ user, execute, onProfileUpdated }: UseProfile
       async () => {
         if (!user) {
           const message = 'Không tìm thấy người dùng để cập nhật.';
-          useUserProfileStore.getState().setSaveError(message);
+          setSaveError(message);
           throw new Error(message);
         }
 
@@ -34,10 +34,10 @@ export function useProfileEditor({ user, execute, onProfileUpdated }: UseProfile
 
         try {
           await updateMyProfile(user.id, nextDisplayName);
-          useUserProfileStore.getState().setSaveError(null);
+          setSaveError(null);
           return nextDisplayName;
         } catch (error) {
-          useUserProfileStore.getState().setSaveError(getApiMessage(error));
+          setSaveError(getApiMessage(error));
           throw error;
         }
       },
@@ -45,7 +45,7 @@ export function useProfileEditor({ user, execute, onProfileUpdated }: UseProfile
         successMessage: 'Đã cập nhật hồ sơ.',
         onSuccess: (displayName) => {
           onProfileUpdated(displayName);
-          useUserProfileStore.getState().setSaveError(null);
+          setSaveError(null);
         },
       },
     );
@@ -56,6 +56,6 @@ export function useProfileEditor({ user, execute, onProfileUpdated }: UseProfile
     draftName,
     handleSubmit,
     saveError,
-    setDraftName: (draftName: string) => useUserProfileStore.getState().setDraftName(draftName),
+    setDraftName,
   };
 }

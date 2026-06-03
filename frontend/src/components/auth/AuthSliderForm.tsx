@@ -1,6 +1,6 @@
 import { FormEvent } from 'react';
 import { AuthFields } from './AuthFields';
-import type { AuthFormState, AuthMode } from '../../types/auth.types';
+import type { AuthFormState, AuthMode } from '../../types';
 
 type AuthSliderFormProps = {
   busy: boolean;

@@ -1,27 +1,18 @@
-import { api, ApiResponse } from '../lib/api';
-import { User } from '../types';
+import { api, type ApiResponse } from '../lib/api';
+import type { User } from '../types';
 
-type AuthPayload = {
-  user: RawUser;
+type AuthResponse = {
+  user: User;
 };
 
-type RawUser = User;
-
 export async function login(email: string, password: string) {
-  const response = await api.post<ApiResponse<AuthPayload>>('/api/auth/login', {
-    email,
-    password,
-  });
+  const response = await api.post<ApiResponse<AuthResponse>>('/api/auth/login', { email, password });
 
-  return normalizeUser(response.data.data.user);
+  return response.data.data.user;
 }
 
 export async function register(displayName: string, email: string, password: string) {
-  await api.post<ApiResponse<void>>('/api/auth/register', {
-    displayName,
-    email,
-    password,
-  });
+  await api.post<ApiResponse<void>>('/api/auth/register', {displayName, email, password });
 }
 
 export async function logout() {
@@ -29,19 +20,6 @@ export async function logout() {
 }
 
 export async function getMe() {
-  const response = await api.get<ApiResponse<RawUser>>('/api/users/me');
-  return normalizeUser(response.data.data);
-}
-
-function normalizeUser(user: RawUser | null): User | null {
-  if (!user) return null;
-
-  return {
-    id: user.id,
-    avatarUrl: user.avatarUrl ?? (user as { avatar?: string }).avatar ?? (user as { photoUrl?: string }).photoUrl,
-    displayName: user.displayName ?? user.email,
-    email: user.email,
-    role: user.role,
-    isActive: user.isActive,
-  };
+  const response = await api.get<ApiResponse<User>>('/api/users/me');
+  return response.data.data;
 }

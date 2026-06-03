@@ -1,6 +1,6 @@
 import { Field } from '../ui/Field';
 import { classNames } from '../../lib/ui';
-import type { AuthFormState, AuthMode } from '../../types/auth.types';
+import type { AuthFormState, AuthMode } from '../../types';
 
 export type AuthFieldsProps = {
   mode: AuthMode;

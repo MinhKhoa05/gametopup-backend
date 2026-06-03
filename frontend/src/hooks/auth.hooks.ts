@@ -4,22 +4,21 @@ import { AsyncActionExecutor } from './common/useAsyncAction';
 import { Route } from '../lib/routes';
 import { getMe, login, logout, register } from '../services/auth.api';
 import { useAuthStore } from '../store/auth.store';
-import type { User } from '../types';
-import type { AuthUserSnapshot } from '../types/auth.types';
+import type { CachedUser, User } from '../types';
 
-function snapshotFromUser(user: User | null): AuthUserSnapshot | null {
+function snapshotFromUser(user: User | null): CachedUser | null {
   if (!user) return null;
   return { id: user.id, displayName: user.displayName ?? user.email, avatarUrl: user.avatarUrl, role: user.role };
 }
 
 export function useAuthSession({ navigate, execute }: { navigate: (route: Route) => void; execute: AsyncActionExecutor; }) {
-  const { authMode, authForm, user, authStatus, userSnapshot } = useAuthStore(
+  const { authMode, authForm, user, authStatus, cachedUser } = useAuthStore(
     useShallow((state) => ({
       authMode: state.authMode,
       authForm: state.authForm,
       user: state.user,
       authStatus: state.authStatus,
-      userSnapshot: state.userSnapshot,
+      cachedUser: state.cachedUser,
     })),
   );
 
@@ -33,7 +32,7 @@ export function useAuthSession({ navigate, execute }: { navigate: (route: Route)
 
         const store = useAuthStore.getState();
         store.setUser(serverUser);
-        store.setUserSnapshot(snapshotFromUser(serverUser));
+        store.setCachedUser(snapshotFromUser(serverUser));
         store.setAuthStatus('authenticated');
       } catch {
         if (!isMounted) return;
@@ -60,7 +59,7 @@ export function useAuthSession({ navigate, execute }: { navigate: (route: Route)
         onSuccess: (loggedInUser) => {
           const store = useAuthStore.getState();
           store.setUser(loggedInUser);
-          store.setUserSnapshot(snapshotFromUser(loggedInUser));
+          store.setCachedUser(snapshotFromUser(loggedInUser));
           store.setAuthStatus('authenticated');
           navigate({ name: 'games' });
         },
@@ -82,7 +81,7 @@ export function useAuthSession({ navigate, execute }: { navigate: (route: Route)
     const current = useAuthStore.getState();
     if (!current.user) return;
     current.setUser({ ...current.user, displayName });
-    current.setUserSnapshot(snapshotFromUser({ ...current.user, displayName }));
+    current.setCachedUser(snapshotFromUser({ ...current.user, displayName }));
     current.setAuthStatus('authenticated');
   }
 
@@ -96,6 +95,6 @@ export function useAuthSession({ navigate, execute }: { navigate: (route: Route)
     setAuthForm: (f: any) => useAuthStore.getState().setAuthForm(f),
     setAuthMode: (m: any) => useAuthStore.getState().setAuthMode(m),
     user,
-    userSnapshot,
+    cachedUser,
   };
 }
