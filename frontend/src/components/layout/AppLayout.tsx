@@ -11,10 +11,10 @@ type AppLayoutProps = {
 
 export function AppLayout({ bottomNav, children, footer, header, isAdminRoute = false, toast }: AppLayoutProps) {
   return (
-    <div className="main-layout bg-ink text-slate-100">
+    <div className="flex min-h-screen flex-col bg-ink text-slate-100">
       {!isAdminRoute && header}
 
-      <main className="main-content">{children}</main>
+      <main className="flex flex-1 flex-col pb-[env(safe-area-inset-bottom,0px)]">{children}</main>
 
       {!isAdminRoute && footer}
       {!isAdminRoute && bottomNav}

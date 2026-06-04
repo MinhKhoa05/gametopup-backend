@@ -38,7 +38,7 @@ export function DashboardPanel({
         </span>
       </div>
 
-      <div className="admin-metrics">
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
         <StatCard icon={<Gamepad2 size={20} />} label="Game đang hoạt động" value={`${metrics.activeGames}/${games.length}`} />
         <StatCard icon={<Clock3 size={20} />} label="Đơn hôm nay" value={metrics.ordersToday.toString()} />
         <StatCard iconClassName="bg-amber-400/10 text-amber-300" icon={<CheckCircle2 size={20} />} label="Đơn đang chờ" value={metrics.pendingOrders.toString()} />
@@ -46,7 +46,7 @@ export function DashboardPanel({
         <StatCard icon={<Users size={20} />} label="Users" value={`${metrics.activeUsers}/${metrics.totalUsers || users.length}`} />
       </div>
 
-      <div className="admin-two-col">
+      <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1.18fr)_minmax(380px,0.82fr)]">
         <div className="gametopup-surface">
           <PanelTitle title="Đơn hàng gần đây" action="Xem đơn hàng" onAction={() => navigate({ name: 'admin', section: 'orders' })} />
           {loading && latestOrders.length === 0 ? (
@@ -54,10 +54,12 @@ export function DashboardPanel({
           ) : latestOrders.length === 0 ? (
             <EmptyLine text="Chưa có đơn hàng nào." />
           ) : (
-            <div className="admin-list">
+            <div className="grid gap-2.5">
               {latestOrders.map((order) => (
-                <div className="gametopup-record-row admin-list-row" key={order.id}>
-                  <span className="admin-row-icon">#{order.id}</span>
+                <div className="gametopup-record-row grid-cols-[auto_minmax(0,1fr)_auto]" key={order.id}>
+                  <span className="inline-flex h-12 w-12 flex-none items-center justify-center rounded-xl bg-cyanline/10 text-[0.8rem] font-black text-cyanline">
+                    #{order.id}
+                  </span>
                   <div>
                     <strong>{statusLabel(order.status)}</strong>
                     <small>
@@ -74,7 +76,7 @@ export function DashboardPanel({
         <div className="gametopup-surface">
           <PanelTitle title="Hướng dẫn nhanh" />
           <div className="rounded-2xl border border-dashed border-white/12 px-6 py-8 text-left leading-6 text-slate-400">
-            Vào mục <b>Gói nạp</b>, chọn game ở danh sách bên trái, hệ thống sẽ chỉ tải và hiển thị các gói thuộc đúng game đó.
+            Vào mục <b>Gói nạp</b>, chọn game ở danh sách bên trái, hệ thống sẽ tải và hiển thị các gói thuộc đúng game đó.
           </div>
         </div>
       </div>

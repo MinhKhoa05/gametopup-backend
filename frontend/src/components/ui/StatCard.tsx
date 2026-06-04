@@ -18,18 +18,18 @@ export function StatCard({
   surface?: boolean;
   variant?: 'stacked' | 'inline';
   value: ReactNode;
-}) {
+  }) {
+  const rootClassName = classNames(
+    surface && 'rounded-2xl border border-white/6 bg-ink-light',
+    'grid min-w-0 gap-4',
+    variant === 'stacked' ? 'p-5' : 'grid-cols-[auto_minmax(0,1fr)] items-center gap-3 p-4',
+    className,
+  );
+
   return (
-    <div
-      className={classNames(
-        surface && 'gametopup-surface',
-        'stat-card',
-        `stat-card--${variant}`,
-        className,
-      )}
-    >
+    <div className={rootClassName}>
       <IconBox className={iconClassName}>{icon}</IconBox>
-      <div className={classNames('stat-card__copy', variant === 'inline' && 'gap-1')}>
+      <div className={classNames('grid min-w-0 gap-2', variant === 'inline' && 'gap-1')}>
         <span className="block font-extrabold leading-[1.25] text-slate-400">{label}</span>
         <strong
           className={classNames(

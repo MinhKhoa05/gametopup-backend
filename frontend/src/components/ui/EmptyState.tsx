@@ -19,8 +19,8 @@ export function EmptyState({
   children?: ReactNode;
 }) {
   return (
-    <div className={classNames('empty-state', className)} role="status">
-      {icon && <div className="empty-state__icon">{icon}</div>}
+    <div className={classNames('grid gap-3 rounded-2xl border border-white/6 bg-ink-light px-6 py-8 text-center', className)} role="status">
+      {icon && <div className="mx-auto grid h-12 w-12 place-items-center rounded-2xl bg-cyanline/12 text-cyanline">{icon}</div>}
       {title && <div className="m-0 text-[1.15rem] font-extrabold leading-[1.25] text-white">{title}</div>}
       {description && <div className="m-0 text-[0.9rem] leading-[1.55] text-slate-400">{description}</div>}
       {children}

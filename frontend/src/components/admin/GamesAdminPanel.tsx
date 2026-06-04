@@ -54,7 +54,7 @@ export function GamesAdminPanel({
   }
 
   return (
-    <div className="admin-editor-layout">
+    <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1.18fr)_minmax(380px,0.82fr)]">
       <div className="gametopup-surface">
         <PanelTitle title="Danh sách game" />
         <SearchBox value={query} onChange={setQuery} placeholder="Tìm game..." />
@@ -63,20 +63,30 @@ export function GamesAdminPanel({
         ) : filteredGames.length === 0 ? (
           <EmptyLine text="Không tìm thấy game phù hợp." />
         ) : (
-          <div className="admin-table">
+          <div className="grid gap-2.5">
             {filteredGames.map((game) => (
-              <div className="gametopup-record-row admin-table-row" key={game.id}>
-                <img src={pickImage(game)} alt="" />
+              <div className="gametopup-record-row grid-cols-[auto_minmax(0,1fr)_auto_auto] max-[700px]:grid-cols-1" key={game.id}>
+                <img className="h-12 w-12 rounded-xl bg-cyanline/10 object-cover max-[700px]:h-[54px] max-[700px]:w-[54px]" src={pickImage(game)} alt="" />
                 <div>
                   <strong>{game.name}</strong>
                   <small>{game.isActive ? 'Đang hiển thị' : 'Đang ẩn'}</small>
                 </div>
                 <StatusPill active={game.isActive} />
                 <div className="flex gap-2">
-                  <button type="button" className="icon-button" title="Sửa game" onClick={() => startEdit(game)}>
+                  <button
+                    type="button"
+                    className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-slate-300 transition-colors hover:border-cyanline/30 hover:text-cyan-100"
+                    title="Sửa game"
+                    onClick={() => startEdit(game)}
+                  >
                     <Edit3 size={16} />
                   </button>
-                  <button type="button" className="icon-button danger" title="Xóa game" onClick={() => remove(game)}>
+                  <button
+                    type="button"
+                    className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-rose-400/20 bg-rose-500/8 text-rose-300 transition-colors hover:border-rose-400/30 hover:bg-rose-500/12 hover:text-rose-200"
+                    title="Xóa game"
+                    onClick={() => remove(game)}
+                  >
                     <Trash2 size={16} />
                   </button>
                 </div>
@@ -86,7 +96,7 @@ export function GamesAdminPanel({
         )}
       </div>
 
-      <form className="gametopup-surface sticky top-[88px]" onSubmit={submit}>
+      <form className="gametopup-surface sticky top-24" onSubmit={submit}>
         <PanelTitle title={editing ? 'Cập nhật game' : 'Tạo game'} />
         <Field label="Tên game" onChange={(value) => setForm({ ...form, name: value })} placeholder="Nhập tên game" required value={form.name} />
         <Field label="Ảnh đại diện" onChange={(value) => setForm({ ...form, imageUrl: value })} placeholder="https://..." value={form.imageUrl} />

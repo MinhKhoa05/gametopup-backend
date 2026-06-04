@@ -66,7 +66,13 @@ export function AuthPanel({
           </div>
         </div>
         {hasLogin ? (
-          <button className="icon-button" type="button" onClick={onLogout} disabled={busy} title="Đăng xuất">
+          <button
+            className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/8 text-slate-200 transition-colors hover:bg-white/12 disabled:opacity-50"
+            type="button"
+            onClick={onLogout}
+            disabled={busy}
+            title="Đăng xuất"
+          >
             <LogOut size={18} />
           </button>
         ) : null}

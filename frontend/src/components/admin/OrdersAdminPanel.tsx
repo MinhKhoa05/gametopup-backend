@@ -65,9 +65,17 @@ export function OrdersAdminPanel({
       <div className="gametopup-surface grid gap-4">
         <PanelTitle title="Bộ lọc đơn hàng" />
         <SearchBox value={query} onChange={setQuery} placeholder="Tìm theo mã đơn, user, package..." />
-        <div className="admin-filter-row">
+        <div className="flex flex-wrap gap-2.5">
           {FILTERS.map((item) => (
-            <button key={item.key} type="button" className={classNames('admin-filter-chip', filter === item.key && 'active')} onClick={() => setFilter(item.key)}>
+            <button
+              key={item.key}
+              type="button"
+              className={classNames(
+                'min-h-10 rounded-full border border-white/10 bg-white/5 px-3.5 font-bold text-slate-200 transition-[background-color,border-color,color,transform] duration-200 hover:-translate-y-px hover:border-cyanline/24 hover:bg-cyanline/10 hover:text-cyan-50',
+                filter === item.key && 'border-cyanline/24 bg-cyanline/10 text-cyan-50',
+              )}
+              onClick={() => setFilter(item.key)}
+            >
               {item.label}
             </button>
           ))}
@@ -90,8 +98,10 @@ export function OrdersAdminPanel({
               const canCancel = isProcessing && order.assignedTo === currentUser?.id;
 
               return (
-                <article className="gametopup-record-row admin-table-row order" key={order.id}>
-                  <div className="admin-row-icon">#{order.id}</div>
+                <article className="gametopup-record-row grid-cols-[auto_minmax(0,1.2fr)_minmax(140px,auto)_auto_auto] max-[700px]:grid-cols-1" key={order.id}>
+                  <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-cyanline/10 text-[0.8rem] font-black text-cyanline">
+                    #{order.id}
+                  </div>
                   <div>
                     <strong>
                       Đơn #{order.id} · User #{order.userId} · Gói #{order.gamePackageId}
@@ -105,16 +115,16 @@ export function OrdersAdminPanel({
                     </small>
                   </div>
 
-                  <div className="admin-order-values">
+                  <div className="grid justify-items-end gap-1.5 max-[700px]:justify-items-start">
                     <b>{formatCurrency(order.total ?? order.unitPrice * order.quantity)}</b>
                     <StatusPill active={order.status === 4} />
                   </div>
 
-                  <div className="admin-order-status">
+                  <div className="flex justify-end max-[700px]:justify-start">
                     <Badge tone={toneForStatus(order.status)}>{statusLabel(order.status)}</Badge>
                   </div>
 
-                  <div className="admin-order-actions">
+                  <div className="flex flex-wrap justify-end gap-2 max-[700px]:justify-start">
                     {canPick && (
                       <button type="button" className="btn-secondary min-h-10 px-4 py-2 text-sm" disabled={busy} onClick={() => void onPickOrder(order.id)}>
                         <Send size={16} />
@@ -137,7 +147,7 @@ export function OrdersAdminPanel({
                     )}
 
                     {!canPick && !canComplete && !canCancel && (
-                      <span className="admin-action-note">
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-400/10 px-2.5 py-2 text-[0.8rem] font-semibold text-slate-300">
                         <TriangleAlert size={14} />
                         {isProcessing && order.assignedTo !== currentUser?.id ? 'Đơn đang được admin khác xử lý.' : 'Không có thao tác phù hợp.'}
                       </span>

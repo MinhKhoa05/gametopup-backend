@@ -77,7 +77,7 @@ export function GameOrderWizard({ gameId, navigate }: Props) {
     <div className="mx-auto max-w-[1120px]">
       <GameOrderHeader gameName={game.name} />
 
-      <div className="gametopup-surface p-[22px] max-[760px]:p-4">
+      <div className="gametopup-surface p-5 sm:p-6">
         <GameOrderProgress step={step} direction={stepDirection} />
         <GameOrderBackButton step={step} navigate={navigate} onBack={() => setStep((step - 1) as 1 | 2 | 3)} />
 
@@ -178,7 +178,7 @@ export function GameOrderSkeleton() {
         <div className="h-4 w-36 animate-pulse rounded-full bg-white/10" />
       </div>
 
-      <div className="gametopup-surface p-[22px] max-[760px]:p-4">
+      <div className="gametopup-surface p-5 sm:p-6">
         <div className="topup-steps" aria-hidden="true">
           {Array.from({ length: 3 }).map((_, index) => (
             <div key={`step-skeleton-${index}`} className={classNames('topup-step', index === 1 && 'active')}>
@@ -208,7 +208,7 @@ export function GameOrderSkeleton() {
           </div>
 
           <aside className="sticky top-24">
-            <div className="gametopup-surface rounded-[8px] border-cyanline/16">
+            <div className="gametopup-surface rounded-[8px] border border-white/[0.06] bg-[rgba(255,255,255,0.03)]">
               <div className="mb-4 h-5 w-40 animate-pulse rounded-full bg-white/10" />
               <div className="grid gap-3">
                 {Array.from({ length: 4 }).map((_, index) => (

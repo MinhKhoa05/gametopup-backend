@@ -174,8 +174,11 @@ export function AdminPage({
             onAction={() => navigate({ name: 'account' })}
           />
         ) : (
-          <div className="grid grid-cols-[200px_minmax(0,1fr)] items-start gap-[22px]">
-            <aside className="admin-sidebar" aria-label="Điều hướng quản trị">
+          <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-[200px_minmax(0,1fr)] lg:gap-5">
+            <aside
+              className="sticky top-24 grid gap-2.5 rounded-2xl border border-white/6 bg-[linear-gradient(180deg,rgba(15,23,42,0.9),rgba(11,18,32,0.98)),var(--color-ink-light)] p-3.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.04),0_20px_45px_rgba(2,6,23,0.16)] lg:flex lg:flex-col"
+              aria-label="Điều hướng quản trị"
+            >
               <AdminNavButton
                 active={section === 'dashboard'}
                 icon={<LayoutDashboard size={18} />}

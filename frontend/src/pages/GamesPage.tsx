@@ -1,6 +1,6 @@
-import { Search } from 'lucide-react';
 import { EmptyState } from '../components/ui/EmptyState';
 import { GameGrid } from '../components/games/GameGrid';
+import { SearchBar } from '../components/ui/SearchBar';
 import { Route } from '../lib/routes';
 import { Game } from '../types';
 
@@ -21,15 +21,7 @@ export function GamesPage({
     <div>
       <div className="mb-8">
         <h1 className="mb-4 text-3xl font-black text-white">Kho Game</h1>
-        <div className="search-box max-w-xl">
-          <Search size={20} className="text-cyanline" />
-          <input
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Tìm game (VD: Free Fire, Liên Quân)..."
-            aria-label="Tìm game"
-          />
-        </div>
+        <SearchBar className="max-w-xl" value={query} onChange={setQuery} placeholder="Tìm game (VD: Free Fire, Liên Quân)..." ariaLabel="Tìm game" />
       </div>
 
       <GameGrid

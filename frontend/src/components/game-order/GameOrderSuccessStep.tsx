@@ -31,165 +31,165 @@ export function GameOrderSuccessStep() {
     : '--/--/---- - --:--';
 
   return (
-    <div className="topup-success-stack">
-      <section className="topup-success-banner-panel">
-        <div className="topup-success-banner__mark">
-          <div className="topup-success-banner__icon">
+    <div className="grid gap-4">
+      <section className="grid min-h-[138px] grid-cols-1 items-center gap-4 rounded-[14px] border border-white/[0.06] bg-[rgba(255,255,255,0.03)] p-4 md:grid-cols-[auto_minmax(0,1fr)_auto] md:gap-5">
+        <div className="grid place-items-center md:w-[132px]">
+          <div className="grid h-[78px] w-[78px] place-items-center rounded-[22px] border border-emerald-400/20 bg-gradient-to-b from-emerald-400/15 to-emerald-400/5 text-emerald-400 shadow-[0_0_0_10px_rgba(74,222,128,0.06)]">
             <CheckCircle2 size={36} />
           </div>
         </div>
 
-        <div className="topup-success-banner__content">
-          <h1>Đặt hàng thành công!</h1>
-          <p className="topup-success-banner__lead">Đơn hàng của bạn đã được ghi nhận và đang chờ admin xử lý.</p>
-          <p>Cảm ơn bạn đã tin tưởng lựa chọn GameTopUp. Chúng tôi sẽ xử lý đơn hàng trong thời gian sớm nhất.</p>
+        <div className="min-w-0">
+          <h1 className="m-0 mb-1.5 text-[clamp(1.8rem,2.6vw,2.5rem)] font-black leading-[1.04] tracking-[0.01em] text-emerald-400">Đặt hàng thành công!</h1>
+          <p className="m-0 mb-1 text-[0.94rem] font-medium text-slate-200">Đơn hàng của bạn đã được ghi nhận và đang chờ admin xử lý.</p>
+          <p className="m-0 text-[0.88rem] leading-[1.45] text-slate-400">Cảm ơn bạn đã tin tưởng lựa chọn GameTopUp. Chúng tôi sẽ xử lý đơn hàng trong thời gian sớm nhất.</p>
         </div>
 
-        <div className="topup-success-banner__art" aria-hidden="true">
-          <div className="topup-success-banner__gift">
+        <div className="flex items-center gap-3 md:pr-1" aria-hidden="true">
+          <div className="grid place-items-center text-blue-500 drop-shadow-[0_12px_18px_rgba(0,0,0,0.22)]">
             <Gift size={52} />
           </div>
-          <div className="topup-success-banner__pad">
+          <div className="grid place-items-center text-sky-400 drop-shadow-[0_12px_18px_rgba(0,0,0,0.22)]">
             <Gamepad2 size={44} />
           </div>
         </div>
       </section>
 
-      <div className="topup-success-body">
-        <section className="topup-success-card">
-          <div className="topup-success-section">
-            <div className="topup-success-section__head">
-              <div className="topup-success-section__icon">
+      <div className="grid grid-cols-1 items-stretch gap-5 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
+        <section className="grid gap-4 rounded-[14px] border border-white/[0.06] bg-[rgba(255,255,255,0.03)] p-5">
+          <div className="grid gap-3 rounded-[12px] border border-white/[0.06] bg-white/[0.02] p-3.5">
+            <div className="flex items-center gap-2.5 min-h-7">
+              <div className="grid h-7 w-7 place-items-center rounded-lg border border-cyanline/10 bg-cyanline/8 text-cyanline">
                 <Copy size={16} />
               </div>
-              <h3>THÔNG TIN ĐƠN HÀNG</h3>
+              <h3 className="m-0 text-[0.82rem] font-bold tracking-[0.13em] text-slate-200">THÔNG TIN ĐƠN HÀNG</h3>
             </div>
 
-            <div className="topup-success-summary">
-              <div className="topup-success-summary__row">
-                <span className="topup-success-summary__label">
+            <div className="grid gap-0 overflow-hidden rounded-[12px] border border-white/[0.06] bg-white/[0.02]">
+              <div className="grid grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] items-center gap-3 border-b border-white/[0.06] px-4 py-2.5">
+                <span className="inline-flex items-center gap-2 text-[0.8rem] font-medium text-slate-400">
                   <Copy size={14} />
                   Mã đơn hàng
                 </span>
-                <strong className="topup-success-summary__value topup-success-summary__value--code">{orderCode}</strong>
+                <strong className="justify-self-end text-right text-[0.96rem] font-semibold text-slate-100">{orderCode}</strong>
               </div>
-              <div className="topup-success-summary__row">
-                <span className="topup-success-summary__label">
+              <div className="grid grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] items-center gap-3 border-b border-white/[0.06] px-4 py-2.5">
+                <span className="inline-flex items-center gap-2 text-[0.8rem] font-medium text-slate-400">
                   <BadgeCheck size={14} />
                   Game
                 </span>
-                <strong className="topup-success-summary__value">{checkoutGameName}</strong>
+                <strong className="justify-self-end text-right text-[0.96rem] font-semibold text-white">{checkoutGameName}</strong>
               </div>
-              <div className="topup-success-summary__row">
-                <span className="topup-success-summary__label">
+              <div className="grid grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] items-center gap-3 border-b border-white/[0.06] px-4 py-2.5">
+                <span className="inline-flex items-center gap-2 text-[0.8rem] font-medium text-slate-400">
                   <PackageCheck size={14} />
                   Gói nạp
                 </span>
-                <strong className="topup-success-summary__value">{checkoutPackage.name}</strong>
+                <strong className="justify-self-end text-right text-[0.96rem] font-semibold text-white">{checkoutPackage.name}</strong>
               </div>
-              <div className="topup-success-summary__row">
-                <span className="topup-success-summary__label">
+              <div className="grid grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] items-center gap-3 border-b border-white/[0.06] px-4 py-2.5">
+                <span className="inline-flex items-center gap-2 text-[0.8rem] font-medium text-slate-400">
                   <UserRound size={14} />
                   UID / Server / Tên nhân vật
                 </span>
-                <strong className="topup-success-summary__value">{checkoutGameAccountInfo}</strong>
+                <strong className="justify-self-end text-right text-[0.96rem] font-semibold text-white">{checkoutGameAccountInfo}</strong>
               </div>
-              <div className="topup-success-summary__row">
-                <span className="topup-success-summary__label">
+              <div className="grid grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] items-center gap-3 px-4 py-2.5">
+                <span className="inline-flex items-center gap-2 text-[0.8rem] font-medium text-slate-400">
                   <Layers3 size={14} />
                   Số lượng
                 </span>
-                <strong className="topup-success-summary__value">{checkoutQuantity}</strong>
+                <strong className="justify-self-end text-right text-[0.96rem] font-semibold text-white">{checkoutQuantity}</strong>
               </div>
             </div>
           </div>
 
-          <div className="topup-success-section">
-            <div className="topup-success-section__head">
-              <div className="topup-success-section__icon topup-success-section__icon--payment">
+          <div className="grid gap-3 rounded-[12px] border border-white/[0.06] bg-white/[0.02] p-3.5">
+            <div className="flex items-center gap-2.5 min-h-7">
+              <div className="grid h-7 w-7 place-items-center rounded-lg border border-sky-400/10 bg-sky-400/8 text-sky-400">
                 <WalletCards size={16} />
               </div>
-              <h3>THÔNG TIN THANH TOÁN</h3>
+              <h3 className="m-0 text-[0.82rem] font-bold tracking-[0.13em] text-slate-200">THÔNG TIN THANH TOÁN</h3>
             </div>
 
-            <div className="topup-success-summary">
-              <div className="topup-success-summary__row">
-                <span className="topup-success-summary__label">
+            <div className="grid gap-0 overflow-hidden rounded-[12px] border border-white/[0.06] bg-white/[0.02]">
+              <div className="grid grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] items-center gap-3 border-b border-white/[0.06] px-4 py-2.5">
+                <span className="inline-flex items-center gap-2 text-[0.8rem] font-medium text-slate-400">
                   <WalletCards size={14} />
                   Hình thức
                 </span>
-                <strong className="topup-success-summary__value">Ví GameTopUp</strong>
+                <strong className="justify-self-end text-right text-[0.96rem] font-semibold text-white">Ví GameTopUp</strong>
               </div>
-              <div className="topup-success-summary__row">
-                <span className="topup-success-summary__label">
+              <div className="grid grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] items-center gap-3 border-b border-white/[0.06] px-4 py-2.5">
+                <span className="inline-flex items-center gap-2 text-[0.8rem] font-medium text-slate-400">
                   <Layers3 size={14} />
                   Tạm tính
                 </span>
-                <strong className="topup-success-summary__value">{formatCurrency(checkoutSubtotal)}</strong>
+                <strong className="justify-self-end text-right text-[0.96rem] font-semibold text-white">{formatCurrency(checkoutSubtotal)}</strong>
               </div>
-              <div className="topup-success-summary__row">
-                <span className="topup-success-summary__label">
+              <div className="grid grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] items-center gap-3 border-b border-white/[0.06] px-4 py-2.5">
+                <span className="inline-flex items-center gap-2 text-[0.8rem] font-medium text-slate-400">
                   <BadgeCheck size={14} />
                   Giảm giá
                 </span>
-                <strong className="topup-success-summary__value topup-success-summary__value--discount">-0 đ</strong>
+                <strong className="justify-self-end text-right text-[0.96rem] font-semibold text-slate-400">-0 đ</strong>
               </div>
-              <div className="topup-success-summary__row topup-success-summary__row--total">
-                <span>Tổng thanh toán</span>
-                <strong>{formatCurrency(checkoutTotal)}</strong>
+              <div className="grid grid-cols-[minmax(0,1fr)_max-content] items-center gap-3 px-4 py-3">
+                <span className="text-[0.88rem] font-bold text-slate-200">Tổng thanh toán</span>
+                <strong className="justify-self-end text-right text-[1.08rem] font-extrabold text-cyanline">{formatCurrency(checkoutTotal)}</strong>
               </div>
             </div>
           </div>
         </section>
 
-        <aside className="topup-success-aside">
-          <div className="topup-success-aside__head">
-            <h2>TRẠNG THÁI ĐƠN HÀNG</h2>
+        <aside className="grid gap-3.5 rounded-[14px] border border-white/[0.06] bg-[rgba(255,255,255,0.03)] p-5">
+          <div>
+            <h2 className="m-0 text-[0.82rem] font-bold tracking-[0.13em] text-slate-200">TRẠNG THÁI ĐƠN HÀNG</h2>
           </div>
 
-          <div className="topup-success-timeline">
-            <div className="topup-success-timeline__item topup-success-timeline__item--done">
-              <div className="topup-success-timeline__icon">
+          <div className="grid gap-4">
+            <div className="relative grid grid-cols-[auto_minmax(0,1fr)] gap-3.5">
+              <div className="grid h-10 w-10 place-items-center rounded-full border border-emerald-400/20 bg-emerald-400/12 text-emerald-400">
                 <CheckCircle2 size={18} />
               </div>
-              <div className="topup-success-timeline__content">
-                <div className="topup-success-timeline__head">
-                  <strong>Đã thanh toán</strong>
-                  <span className="topup-success-timeline__badge topup-success-timeline__badge--done">Hoàn tất</span>
+              <div className="pt-px">
+                <div className="mb-1.5 flex items-center gap-2">
+                  <strong className="text-[0.96rem] font-bold text-white">Đã thanh toán</strong>
+                  <span className="rounded-full bg-emerald-400/10 px-2.5 py-1 text-[0.72rem] font-bold text-emerald-200">Hoàn tất</span>
                 </div>
-                <p>{successTime}</p>
+                <p className="m-0 text-[0.84rem] leading-[1.45] text-slate-300">{successTime}</p>
               </div>
             </div>
 
-            <div className="topup-success-timeline__item topup-success-timeline__item--active">
-              <div className="topup-success-timeline__icon topup-success-timeline__icon--active">
+            <div className="relative grid grid-cols-[auto_minmax(0,1fr)] gap-3.5">
+              <div className="grid h-10 w-10 place-items-center rounded-full border border-cyanline/16 bg-cyanline/10 text-cyan-200">
                 <Clock3 size={18} />
               </div>
-              <div className="topup-success-timeline__content">
-                <div className="topup-success-timeline__head">
-                  <strong>Chờ admin xử lý</strong>
-                  <span className="topup-success-timeline__badge topup-success-timeline__badge--active">Đang xử lý</span>
+              <div className="pt-px">
+                <div className="mb-1.5 flex items-center gap-2">
+                  <strong className="text-[0.96rem] font-bold text-white">Chờ admin xử lý</strong>
+                  <span className="rounded-full bg-cyanline/10 px-2.5 py-1 text-[0.72rem] font-bold text-cyan-100">Đang xử lý</span>
                 </div>
-                <p>Admin sẽ kiểm tra và nạp trong ít phút.</p>
-                <small>Ước tính: 1 - 5 phút</small>
+                <p className="m-0 mb-1 text-[0.84rem] leading-[1.45] text-slate-300">Admin sẽ kiểm tra và nạp trong ít phút.</p>
+                <small className="text-[0.75rem] text-slate-400">Ước tính: 1 - 5 phút</small>
               </div>
             </div>
 
-            <div className="topup-success-timeline__item topup-success-timeline__item--pending">
-              <div className="topup-success-timeline__icon topup-success-timeline__icon--pending">
+            <div className="relative grid grid-cols-[auto_minmax(0,1fr)] gap-3.5">
+              <div className="grid h-10 w-10 place-items-center rounded-full border border-white/[0.06] bg-slate-400/8 text-slate-400">
                 <PackageCheck size={18} />
               </div>
-              <div className="topup-success-timeline__content">
-                <div className="topup-success-timeline__head">
-                  <strong>Hoàn tất</strong>
-                  <span className="topup-success-timeline__badge topup-success-timeline__badge--pending">Chưa hoàn tất</span>
+              <div className="pt-px">
+                <div className="mb-1.5 flex items-center gap-2">
+                  <strong className="text-[0.96rem] font-bold text-white">Hoàn tất</strong>
+                  <span className="rounded-full bg-slate-400/8 px-2.5 py-1 text-[0.72rem] font-bold text-slate-400">Chưa hoàn tất</span>
                 </div>
-                <p>Sẽ thông báo khi nạp thành công.</p>
+                <p className="m-0 text-[0.84rem] leading-[1.45] text-slate-300">Sẽ thông báo khi nạp thành công.</p>
               </div>
             </div>
           </div>
 
-          <div className="topup-success-timeline-note">
+          <div className="flex items-start gap-2 rounded-[12px] border border-cyanline/8 bg-cyanline/5 px-3.5 py-3 text-[0.84rem] leading-[1.45] text-sky-100">
             <BadgeCheck size={15} />
             <span>Admin sẽ xử lý đơn hàng của bạn trong thời gian sớm nhất. Vui lòng không tạo lại đơn giống nhau.</span>
           </div>

@@ -1,8 +1,9 @@
-import { CheckCircle2, Search, X } from 'lucide-react';
+import { CheckCircle2, X } from 'lucide-react';
 import { Badge } from '../ui/Badge';
 import { Field } from '../ui/Field';
 import { classNames } from '../../lib/ui';
 import { SectionHeading } from '../ui/SectionHeading';
+import { SearchBar } from '../ui/SearchBar';
 
 export function PanelTitle({
   action,
@@ -17,7 +18,7 @@ export function PanelTitle({
     <SectionHeading
       action={
         action ? (
-          <button type="button" className="section-heading__action" onClick={onAction}>
+          <button type="button" className="inline-flex items-center gap-2 text-cyanline hover:text-cyan-100" onClick={onAction}>
             {action}
           </button>
         ) : null
@@ -36,17 +37,7 @@ export function SearchBox({
   placeholder: string;
   value: string;
 }) {
-  return (
-    <div className="mb-4 flex min-h-11 items-center gap-2 rounded-xl border border-white/10 bg-ink-lighter px-3 text-slate-400">
-      <Search size={17} />
-      <input
-        className="w-full border-none bg-transparent text-sm text-white outline-none placeholder:text-slate-500"
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        placeholder={placeholder}
-      />
-    </div>
-  );
+  return <SearchBar className="mb-4" inputClassName="text-sm" value={value} onChange={onChange} placeholder={placeholder} />;
 }
 
 export function StatusPill({ active }: { active: boolean }) {
@@ -78,9 +69,12 @@ export function NumberField({
 
 export function AdminSkeleton({ rows }: { rows: number }) {
   return (
-    <div className="admin-skeleton" aria-busy="true" aria-label="Đang tải dữ liệu">
+    <div className="grid gap-2.5" aria-busy="true" aria-label="Đang tải dữ liệu">
       {Array.from({ length: rows }).map((_, index) => (
-        <span key={index} />
+        <span
+          key={index}
+          className="h-[70px] animate-pulse rounded-xl bg-[linear-gradient(90deg,rgba(255,255,255,0.04),rgba(255,255,255,0.08),rgba(255,255,255,0.04))] bg-[length:220%_100%]"
+        />
       ))}
     </div>
   );

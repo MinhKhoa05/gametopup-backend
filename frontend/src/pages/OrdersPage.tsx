@@ -1,11 +1,12 @@
-import { Search } from 'lucide-react';
+import { useMemo, useState } from 'react';
 import { EmptyState } from '../components/ui/EmptyState';
 import { OrderStatusBadge } from '../components/orders/OrderStatusBadge';
+import { SearchBar } from '../components/ui/SearchBar';
 import { Route } from '../lib/routes';
 import { formatCurrency, formatDate } from '../lib/format';
 import { classNames } from '../lib/ui';
 import { useUserOrders } from '../hooks/orders.hooks';
-import type { Order, User } from '../types';
+import type { User } from '../types';
 
 export function OrdersPage({
   user,
@@ -14,17 +15,34 @@ export function OrdersPage({
   user: User | null;
   navigate: (route: Route) => void;
 }) {
+  const [query, setQuery] = useState('');
   const isLoggedIn = Boolean(user);
   const userOrders = useUserOrders(isLoggedIn);
+
+  const filteredOrders = useMemo(() => {
+    const normalized = query.trim().toLowerCase();
+    if (!normalized) return userOrders.orders;
+
+    return userOrders.orders.filter((order) => {
+      return [order.id, order.gamePackageId, order.gameAccountInfo, order.status]
+        .join(' ')
+        .toLowerCase()
+        .includes(normalized);
+    });
+  }, [query, userOrders.orders]);
 
   return (
     <div className="mx-auto max-w-4xl">
       <div className="mb-8 flex items-center justify-between gap-4">
         <h1 className="text-3xl font-black text-white">Đơn Hàng Của Tôi</h1>
-        <div className="search-box max-w-md">
-          <Search size={18} className="text-slate-400" />
-          <input placeholder="Tìm mã đơn hàng..." aria-label="Tìm mã đơn hàng" />
-        </div>
+        <SearchBar
+          className="max-w-md flex-1"
+          inputClassName="text-sm"
+          placeholder="Tìm mã đơn hàng..."
+          ariaLabel="Tìm mã đơn hàng"
+          value={query}
+          onChange={setQuery}
+        />
       </div>
 
       <div className="mb-6 flex gap-2 overflow-x-auto border-b border-white/10 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -43,10 +61,12 @@ export function OrdersPage({
       </div>
 
       <div className="grid gap-4">
-        {userOrders.orders.length === 0 ? (
-          <EmptyState className="py-12">Bạn chưa có đơn hàng nào.</EmptyState>
+        {filteredOrders.length === 0 ? (
+          <EmptyState className="py-12">
+            {query.trim() ? `Không tìm thấy đơn hàng phù hợp với "${query}".` : 'Bạn chưa có đơn hàng nào.'}
+          </EmptyState>
         ) : (
-          userOrders.orders.map((order) => (
+          filteredOrders.map((order) => (
             <div
               key={order.id}
               className="grid gap-4 rounded-2xl border border-white/5 bg-ink-lighter p-4 md:grid-cols-[auto_minmax(0,1fr)_auto_auto] md:items-center"
@@ -57,7 +77,7 @@ export function OrdersPage({
                   Đơn hàng #{order.id} - Gói nạp ID: {order.gamePackageId}
                 </strong>
                 <span className="mt-1 block text-sm text-slate-400">
-                  Tài khoản: {order.gameAccountInfo} &bull; Số lượng: {order.quantity}
+                  Tài khoản: {order.gameAccountInfo} • Số lượng: {order.quantity}
                 </span>
                 <span className="mt-1 block text-xs text-slate-500">{formatDate(order.createdAt)}</span>
               </div>

@@ -4,11 +4,7 @@ import { AccountProfileSection } from '../components/account/AccountProfileSecti
 import { useAuthSession } from '../hooks/auth.hooks';
 import type { Route } from '../lib/routes';
 
-export function AccountPage({
-  navigate,
-}: {
-  navigate: (route: Route) => void;
-}) {
+export function AccountPage({ navigate }: { navigate: (route: Route) => void }) {
   const {
     authBusy,
     authForm,
@@ -26,7 +22,7 @@ export function AccountPage({
   }
 
   return (
-    <div className="mx-auto grid max-w-7xl gap-[14px]">
+    <div className="mx-auto grid max-w-7xl gap-3.5">
       <header className="grid items-end gap-2">
         <div className="grid gap-1.5">
           <h1 className="m-0 text-[clamp(1.9rem,2.7vw,2.75rem)] font-black leading-none text-white">Tài khoản của tôi</h1>
@@ -46,11 +42,7 @@ export function AccountPage({
           onSwitchMode={setAuthMode}
         />
       ) : (
-        <AccountProfileSection
-          user={user}
-          navigate={navigate}
-          onLogout={handleLogout}
-        />
+        <AccountProfileSection user={user} navigate={navigate} onLogout={handleLogout} />
       )}
     </div>
   );
@@ -58,43 +50,43 @@ export function AccountPage({
 
 function AccountPageLoading() {
   return (
-    <div className="mx-auto grid max-w-7xl gap-[14px]" aria-busy="true" aria-label="Đang xác thực tài khoản">
+    <div className="mx-auto grid max-w-7xl gap-3.5" aria-busy="true" aria-label="Đang xác thực tài khoản">
       <header className="grid items-end gap-2">
         <div className="grid gap-1.5">
-          <div className="h-12 w-[min(100%,18rem)] animate-pulse rounded-2xl bg-white/8" />
+          <div className="h-12 w-full max-w-72 animate-pulse rounded-2xl bg-white/10" />
           <div className="h-5 w-[min(100%,28rem)] animate-pulse rounded-full bg-white/5" />
         </div>
       </header>
 
-      <section className="grid gap-4 overflow-hidden rounded-[16px] border border-white/5 bg-ink-light p-0">
-        <div className="account-summary-card">
-          <div className="account-summary-top">
-            <div className="account-profile-strip">
-              <div className="account-avatar grid place-items-center">
+      <section className="grid gap-4 overflow-hidden rounded-2xl border border-white/5 bg-ink-light p-0">
+        <div className="grid gap-0 px-4 pt-5 pb-6 md:p-5 lg:px-6 lg:pt-5 lg:pb-6">
+          <div className="grid items-stretch gap-4 lg:grid-cols-[minmax(0,1.15fr)_1px_minmax(0,1fr)] lg:gap-0">
+            <div className="grid grid-cols-1 items-center gap-4 pr-0 md:grid-cols-[auto_minmax(0,1fr)] md:justify-items-start lg:pr-6">
+              <div className="grid h-24 w-24 place-items-center rounded-full border border-cyanline/20 bg-[radial-gradient(circle_at_30%_30%,rgba(34,211,238,0.24),transparent_55%),rgba(34,211,238,0.1)] shadow-[inset_0_0_28px_rgba(34,211,238,0.08)]">
                 <div className="h-14 w-14 animate-pulse rounded-full bg-white/10" />
               </div>
               <div className="grid min-w-0 gap-2">
-                <div className="h-7 w-[min(100%,14rem)] animate-pulse rounded-full bg-white/8" />
-                <div className="h-4 w-[min(100%,18rem)] animate-pulse rounded-full bg-white/6" />
+                <div className="h-7 w-full max-w-56 animate-pulse rounded-full bg-white/10" />
+                <div className="h-4 w-full max-w-72 animate-pulse rounded-full bg-white/5" />
                 <div className="flex flex-wrap gap-2.5">
-                  <div className="h-6 w-32 animate-pulse rounded-full bg-white/8" />
-                  <div className="h-6 w-28 animate-pulse rounded-full bg-white/8" />
+                  <div className="h-6 w-32 animate-pulse rounded-full bg-white/10" />
+                  <div className="h-6 w-28 animate-pulse rounded-full bg-white/10" />
                 </div>
                 <div className="text-sm text-slate-400">Đang tải tài khoản...</div>
               </div>
             </div>
 
-            <div className="account-summary-divider" />
+            <div className="h-px w-full self-stretch bg-slate-400/15 lg:h-auto lg:w-px" />
 
-            <div className="account-summary-metrics">
-              <div className="h-24 w-full animate-pulse rounded-2xl bg-white/6 md:min-w-[240px]" />
-              <div className="account-summary-separator" />
-              <div className="h-24 w-full animate-pulse rounded-2xl bg-white/6 md:min-w-[240px]" />
+            <div className="grid grid-cols-1 items-center gap-0 pl-0 lg:grid-cols-[minmax(0,1fr)_1px_minmax(0,1fr)] lg:pl-6">
+              <div className="h-24 w-full animate-pulse rounded-2xl bg-white/5 md:min-w-[240px]" />
+              <div className="my-2 h-px w-full justify-self-center bg-slate-400/20 lg:my-0 lg:h-16 lg:w-px" />
+              <div className="h-24 w-full animate-pulse rounded-2xl bg-white/5 md:min-w-[240px]" />
             </div>
           </div>
         </div>
 
-        <div className="account-bottom-grid">
+        <div className="grid grid-cols-1 items-stretch gap-4 px-4 pb-4 md:px-5 md:pb-5 lg:grid-cols-[minmax(0,340px)_minmax(0,1fr)] lg:px-6 lg:pb-6">
           <section className="gametopup-surface min-h-0">
             <SectionHeading className="mb-4" title="Lối đi nhanh" />
             <div className="grid gap-3.5">
