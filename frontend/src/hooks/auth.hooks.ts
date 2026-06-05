@@ -1,38 +1,28 @@
-import { FormEvent } from 'react';
-import { Route } from '../lib/routes';
+import { useRoute } from './common/route.hooks';
 import { useAuthStore } from '../store/auth.store';
-import type { AuthStatus } from '../types';
+import type { AuthFormData, AuthMode, AuthStatus } from '../types';
 import { useAuthMutations, useAuthUserQuery } from '../services/auth';
 
-export function useAuthSession({
-  navigate,
-}: {
-  navigate: (route: Route) => void;
-}) {
+export function useAuthSession() {
+  const { navigate } = useRoute();
   const authUserQuery = useAuthUserQuery();
   const authMutations = useAuthMutations();
   const user = authUserQuery.data ?? null;
   const authStatus: AuthStatus = authUserQuery.isLoading ? 'checking' : user ? 'authenticated' : 'guest';
-  const authMode = useAuthStore((state) => state.authMode);
-  const authForm = useAuthStore((state) => state.authForm);
-
-  function handleAuth(event: FormEvent) {
-    event.preventDefault();
-    const current = useAuthStore.getState();
-
+  const isLoggedIn = authStatus === 'authenticated';
+  function submitAuth({ form, mode }: { form: AuthFormData; mode: AuthMode }) {
+    const navigateToGames = () => navigate({ name: 'games' });
     const loginPayload = {
-      email: current.authForm.email,
-      password: current.authForm.password,
+      email: form.email,
+      password: form.password,
     };
 
-    const navigateToGames = () => navigate({ name: 'games' });
-
-    if (current.authMode === 'register') {
+    if (mode === 'register') {
       authMutations.register.mutate(
         {
-          displayName: current.authForm.displayName,
-          email: current.authForm.email,
-          password: current.authForm.password,
+          displayName: form.displayName,
+          email: form.email,
+          password: form.password,
         },
         {
           onSuccess: () => {
@@ -60,14 +50,11 @@ export function useAuthSession({
   }
 
   return {
-    authBusy: authMutations.login.isPending || authMutations.logout.isPending || authMutations.register.isPending,
-    authForm,
-    authMode,
+    isAuthSubmitting: authMutations.login.isPending || authMutations.logout.isPending || authMutations.register.isPending,
     authStatus,
-    handleAuth,
+    isLoggedIn,
     handleLogout,
-    setAuthForm: (f: any) => useAuthStore.getState().setAuthForm(f),
-    setAuthMode: (m: any) => useAuthStore.getState().setAuthMode(m),
+    submitAuth,
     user,
   };
 }

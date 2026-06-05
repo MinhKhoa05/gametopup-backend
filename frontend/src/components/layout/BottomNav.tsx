@@ -1,27 +1,23 @@
 import { ReactNode } from 'react';
-import { Gamepad2, Home, PackageCheck, UserRound, WalletCards } from 'lucide-react';
+import { Gamepad2, Home, LogIn, PackageCheck, UserRound, WalletCards } from 'lucide-react';
 import { Route } from '../../lib/routes';
 import { classNames } from '../../lib/ui';
 import { BOTTOM_NAV_ITEMS } from '../../config/site';
+import { useRoute } from '../../hooks/common/route.hooks';
 
 const bottomNavIcons: Record<Route['name'], ReactNode> = {
   home: <Home size={20} />,
   games: <Gamepad2 size={20} />,
   wallet: <WalletCards size={20} />,
   orders: <PackageCheck size={20} />,
+  auth: <LogIn size={20} />,
   account: <UserRound size={20} />,
   admin: <UserRound size={20} />,
 };
 
-export function BottomNav({
-  route,
-  navigate,
-  hasLogin,
-}: {
-  route: Route;
-  navigate: (route: Route) => void;
-  hasLogin: boolean;
-}) {
+export function BottomNav({ hasLogin }: { hasLogin: boolean }) {
+  const { route, navigate } = useRoute();
+
   const visibleItems = BOTTOM_NAV_ITEMS.filter((tab) => {
     if (hasLogin) return true;
     return tab.route.name !== 'orders' && tab.route.name !== 'wallet';
@@ -38,7 +34,13 @@ export function BottomNav({
             'flex min-w-0 flex-col items-center gap-1 rounded-none border-0 bg-transparent px-2.5 pb-1.5 pt-1.5 text-[0.72rem] font-semibold text-slate-500 transition-[color,transform] duration-200',
             route.name === tab.route.name ? 'text-slate-100' : 'hover:text-slate-300',
           )}
-          onClick={() => navigate(tab.route)}
+          onClick={() => {
+            if (tab.route.name === 'account' && !hasLogin) {
+              navigate({ name: 'auth' });
+              return;
+            }
+            navigate(tab.route);
+          }}
         >
           <span
             className={classNames(

@@ -1,10 +1,10 @@
 import { useEffect, useRef } from 'react';
 import { ArrowLeft, CheckCircle2, ChevronRight, Home } from 'lucide-react';
-import { useAuthUserQuery } from '../../services/auth';
+import { useRoute } from '../../hooks/common/route.hooks';
+import { useAuthSession } from '../../hooks/auth.hooks';
 import { useWalletQuery } from '../../services/wallet';
 import { EmptyState } from '../ui';
 import { classNames } from '../../lib/ui';
-import type { Route } from '../../lib/routes';
 import { GameOrderPackageStep, PackageGridSkeleton } from './GameOrderPackageStep';
 import { GameOrderReviewStep } from './GameOrderReviewStep';
 import { GameOrderSuccessStep } from './GameOrderSuccessStep';
@@ -13,15 +13,14 @@ import { useGameOrderStore } from '../../store/game-order.store';
 
 type Props = {
   gameId: number;
-  navigate: (route: Route) => void;
 };
 
-export function GameOrderWizard({ gameId, navigate }: Props) {
+export function GameOrderWizard({ gameId }: Props) {
   const gameQuery = useGameOrderGame(gameId);
   const packagesQuery = useGameOrderPackages(gameId);
-  const authQuery = useAuthUserQuery();
-  const user = authQuery.data ?? null;
-  const walletQuery = useWalletQuery(Boolean(user));
+  const auth = useAuthSession();
+  const user = auth.user;
+  const walletQuery = useWalletQuery(auth.isLoggedIn);
   const wallet = walletQuery.data ?? null;
   const step = useGameOrderStore((state) => state.step);
   const activeGameId = useGameOrderStore((state) => state.activeGameId);
@@ -79,7 +78,7 @@ export function GameOrderWizard({ gameId, navigate }: Props) {
 
       <div className="gt-surface p-5 sm:p-6">
         <GameOrderProgress step={step} direction={stepDirection} />
-        <GameOrderBackButton step={step} navigate={navigate} onBack={() => setStep((step - 1) as 1 | 2 | 3)} />
+        <GameOrderBackButton step={step} onBack={() => setStep((step - 1) as 1 | 2 | 3)} />
 
         <div key={step} className={classNames('game-order-stage', stepDirection === 'back' && 'game-order-stage--back')}>
           {step === 1 && <GameOrderPackageStep game={game} packages={packages} isLoading={packagesQuery.isPending && !packagesQuery.data} user={user} />}
@@ -89,7 +88,6 @@ export function GameOrderWizard({ gameId, navigate }: Props) {
               user={user}
               wallet={wallet}
               walletLoading={walletQuery.isPending && !walletQuery.data}
-              navigate={navigate}
             />
           )}
           {step === 3 && <GameOrderSuccessStep />}
@@ -112,13 +110,12 @@ function GameOrderHeader({ gameName }: { gameName: string }) {
 
 function GameOrderBackButton({
   step,
-  navigate,
   onBack,
 }: {
   step: 1 | 2 | 3;
-  navigate: (route: Route) => void;
   onBack: () => void;
 }) {
+  const { navigate } = useRoute();
   const isFirstStep = step === 1;
 
   return (
@@ -140,7 +137,7 @@ function GameOrderBackButton({
   );
 }
 
-export function GameOrderProgress({ step, direction }: { step: 1 | 2 | 3; direction?: 'forward' | 'back' }) {
+function GameOrderProgress({ step, direction }: { step: 1 | 2 | 3; direction?: 'forward' | 'back' }) {
   return (
     <div
       key={step}
@@ -167,7 +164,7 @@ export function GameOrderProgress({ step, direction }: { step: 1 | 2 | 3; direct
   );
 }
 
-export function GameOrderSkeleton() {
+function GameOrderSkeleton() {
   return (
     <div className="mx-auto max-w-6xl" aria-busy="true" aria-label="Đang tải trang đặt hàng">
       <div className="mb-5 flex items-center gap-2 text-sm text-slate-400">

@@ -1,15 +1,9 @@
-import { FormEvent, useMemo, useState } from 'react';
 import { CheckCircle2, Edit3, Plus, Save, Trash2, X } from 'lucide-react';
 import type { Game } from '../../types';
-import { AdminSkeleton, EmptyLine, PanelTitle, SearchBox, filterByName } from './AdminShared';
+import { useAdminGamesPanel } from '../../hooks/admin/admin-games.hooks';
 import { Badge, Button, Field } from '../ui';
 import { pickImage } from '../../lib/ui';
-
-const emptyGameForm = {
-  imageUrl: '',
-  isActive: true,
-  name: '',
-};
+import { AdminSkeleton, EmptyLine, PanelTitle, SearchBox } from './AdminShared';
 
 export function GamesAdminPanel({
   busy,
@@ -26,32 +20,12 @@ export function GamesAdminPanel({
   onUpdateGame: (payload: { id: number; name: string; imageUrl: string; isActive: boolean }) => Promise<void>;
   onDeleteGame: (id: number) => Promise<void>;
 }) {
-  const [editing, setEditing] = useState<Game | null>(null);
-  const [form, setForm] = useState(emptyGameForm);
-  const [query, setQuery] = useState('');
-  const filteredGames = useMemo(() => filterByName(games, query), [games, query]);
-
-  function startEdit(game: Game) {
-    setEditing(game);
-    setForm({ imageUrl: game.imageUrl ?? '', isActive: game.isActive, name: game.name });
-  }
-
-  function resetForm() {
-    setEditing(null);
-    setForm(emptyGameForm);
-  }
-
-  async function submit(event: FormEvent) {
-    event.preventDefault();
-    const payload = { ...form, name: form.name.trim(), imageUrl: form.imageUrl.trim() };
-    await (editing ? onUpdateGame({ id: editing.id, ...payload }) : onCreateGame(payload));
-    resetForm();
-  }
-
-  async function remove(game: Game) {
-    if (!window.confirm(`Xóa game "${game.name}"?`)) return;
-    await onDeleteGame(game.id);
-  }
+  const { editing, filteredGames, form, query, remove, resetForm, setForm, setQuery, startEdit, submit } = useAdminGamesPanel({
+    games,
+    onCreateGame,
+    onDeleteGame,
+    onUpdateGame,
+  });
 
   return (
     <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1.18fr)_minmax(380px,0.82fr)]">
@@ -78,7 +52,12 @@ export function GamesAdminPanel({
                   <Button size="icon" title="Sửa game" onClick={() => startEdit(game)}>
                     <Edit3 size={16} />
                   </Button>
-                  <Button size="icon" title="Xóa game" onClick={() => remove(game)} className="!border-rose-400/15 !bg-rose-500/10 !text-rose-200 hover:!border-rose-300/25 hover:!bg-rose-500/15 hover:!text-rose-100 hover:!shadow-[0_8px_24px_rgba(244,63,94,0.10)]">
+                  <Button
+                    size="icon"
+                    title="Xóa game"
+                    onClick={() => remove(game)}
+                    className="!border-rose-400/15 !bg-rose-500/10 !text-rose-200 hover:!border-rose-300/25 hover:!bg-rose-500/15 hover:!text-rose-100 hover:!shadow-[0_8px_24px_rgba(244,63,94,0.10)]"
+                  >
                     <Trash2 size={16} />
                   </Button>
                 </div>

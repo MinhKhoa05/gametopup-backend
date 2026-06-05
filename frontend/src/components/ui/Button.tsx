@@ -1,7 +1,7 @@
 import type { ButtonHTMLAttributes } from 'react';
 import { classNames } from '../../lib/ui';
 
-export type ButtonVariant = 'default' | 'accent';
+export type ButtonVariant = 'default' | 'accent' | 'outline';
 export type ButtonSize = 'sm' | 'md' | 'icon';
 
 type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
@@ -21,6 +21,9 @@ const sizeClasses: Record<ButtonSize, string> = {
 const DEFAULT_CLASS =
   'border-cyan/25 bg-transparent text-cyan-50 hover:-translate-y-0.5 hover:bg-cyan/10 hover:text-cyan-50 hover:shadow-[0_8px_24px_rgba(34,211,238,0.10)]';
 
+const OUTLINE_CLASS =
+  'border-white/10 bg-transparent text-slate-100 hover:-translate-y-0.5 hover:bg-white/5 hover:text-white hover:shadow-[0_8px_24px_rgba(2,6,23,0.12)]';
+
 const ACCENT_CLASS =
   'border-cyan/25 bg-gradient-to-r from-cyan-100 via-cyan to-cyan-200 text-slate-950 shadow-[0_4px_14px_rgba(34,211,238,0.18)] hover:-translate-y-0.5';
 
@@ -38,7 +41,7 @@ export function Button({
       className={classNames(
         BASE_CLASS,
         sizeClasses[size],
-        variant === 'accent' ? ACCENT_CLASS : DEFAULT_CLASS,
+        variant === 'accent' ? ACCENT_CLASS : variant === 'outline' ? OUTLINE_CLASS : DEFAULT_CLASS,
         className,
       )}
       {...props}

@@ -1,23 +1,11 @@
-import { useMemo, useState } from 'react';
 import { CheckCircle2, CircleSlash, Send, TriangleAlert } from 'lucide-react';
 import { formatCurrency, formatDate } from '../../lib/format';
 import { statusLabel } from '../../lib/labels';
-import { classNames } from '../../lib/ui';
-import type { Order } from '../../types';
+import type { Order, User } from '../../types';
+import { useAdminOrdersPanel } from '../../hooks/admin/admin-orders.hooks';
 import { AdminSkeleton, EmptyLine, PanelTitle, SearchBox } from './AdminShared';
 import { Badge, Button, IconBox } from '../ui';
-import type { User } from '../../types';
-
-type OrderFilter = 'all' | 'pending' | 'paid' | 'processing' | 'completed' | 'cancelled';
-
-const FILTERS: Array<{ key: OrderFilter; label: string }> = [
-  { key: 'all', label: 'Tất cả' },
-  { key: 'pending', label: 'Chờ thanh toán' },
-  { key: 'paid', label: 'Đã thanh toán' },
-  { key: 'processing', label: 'Đang xử lý' },
-  { key: 'completed', label: 'Hoàn thành' },
-  { key: 'cancelled', label: 'Đã huỷ' },
-];
+import { classNames } from '../../lib/ui';
 
 export function OrdersAdminPanel({
   busy,
@@ -36,29 +24,7 @@ export function OrdersAdminPanel({
   onCompleteOrder: (orderId: number) => Promise<void>;
   onCancelOrder: (orderId: number) => Promise<void>;
 }) {
-  const [query, setQuery] = useState('');
-  const [filter, setFilter] = useState<OrderFilter>('all');
-
-  const filteredOrders = useMemo(() => {
-    const normalizedQuery = query.trim().toLowerCase();
-
-    return orders.filter((order) => {
-      const matchesFilter =
-        filter === 'all' ||
-        (filter === 'pending' && order.status === 1) ||
-        (filter === 'paid' && order.status === 2) ||
-        (filter === 'processing' && order.status === 3) ||
-        (filter === 'completed' && order.status === 4) ||
-        (filter === 'cancelled' && order.status === 5);
-
-      if (!matchesFilter) return false;
-      if (!normalizedQuery) return true;
-
-      return [String(order.id), String(order.userId), String(order.gamePackageId), order.gameAccountInfo, statusLabel(order.status)].some((value) =>
-        value.toLowerCase().includes(normalizedQuery),
-      );
-    });
-  }, [filter, orders, query]);
+  const { FILTERS, filter, filteredOrders, query, setFilter, setQuery } = useAdminOrdersPanel(orders);
 
   return (
     <div className="grid gap-5">
@@ -95,7 +61,7 @@ export function OrdersAdminPanel({
               const canCancel = isProcessing && order.assignedTo === currentUser?.id;
 
               return (
-                <article className="gt-record-row grid-cols-[auto_minmax(0,1.2fr)_minmax(140px,auto)_auto_auto] max-[700px]:grid-cols-1" key={order.id}>
+                <article className={classNames('gt-record-row grid-cols-[auto_minmax(0,1.2fr)_minmax(140px,auto)_auto_auto] max-[700px]:grid-cols-1')} key={order.id}>
                   <IconBox size="md" className="font-black text-[0.8rem]">
                     #{order.id}
                   </IconBox>

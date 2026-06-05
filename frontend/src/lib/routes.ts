@@ -1,6 +1,7 @@
 export type Route =
   | { name: 'home' }
   | { name: 'games'; gameId?: number }
+  | { name: 'auth' }
   | { name: 'wallet' }
   | { name: 'orders' }
   | { name: 'account' }
@@ -13,6 +14,7 @@ export function parseRoute(pathname = window.location.pathname): Route {
     return { name: 'games', gameId: segments[1] ? Number(segments[1]) : undefined };
   }
 
+  if (segments[0] === 'auth') return { name: 'auth' };
   if (segments[0] === 'wallet') return { name: 'wallet' };
   if (segments[0] === 'orders') return { name: 'orders' };
   if (segments[0] === 'account') return { name: 'account' };
@@ -29,6 +31,7 @@ export function parseRoute(pathname = window.location.pathname): Route {
 
 export function routePath(route: Route) {
   if (route.name === 'games') return route.gameId ? `/games/${route.gameId}` : '/games';
+  if (route.name === 'auth') return '/auth';
   if (route.name === 'wallet') return '/wallet';
   if (route.name === 'orders') return '/orders';
   if (route.name === 'account') return '/account';

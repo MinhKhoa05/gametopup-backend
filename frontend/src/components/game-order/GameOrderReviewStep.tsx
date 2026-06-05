@@ -1,8 +1,8 @@
 import { CreditCard, Layers3, ShoppingCart, Tag, UserRound, WalletCards } from 'lucide-react';
 import { ActionCard, Button, EmptyState, IconBox } from '../ui';
+import { useRoute } from '../../hooks/common/route.hooks';
 import { formatCurrency } from '../../lib/format';
 import { pickImage } from '../../lib/ui';
-import type { Route } from '../../lib/routes';
 import { useOrderMutations } from '../../services/orders';
 import type { Game, User, WalletInfo } from '../../types';
 import { useGameOrderStore } from '../../store/game-order.store';
@@ -12,10 +12,10 @@ type Props = {
   user: User | null;
   wallet: WalletInfo | null;
   walletLoading: boolean;
-  navigate: (route: Route) => void;
 };
 
-export function GameOrderReviewStep({ game, user, wallet, walletLoading, navigate }: Props) {
+export function GameOrderReviewStep({ game, user, wallet, walletLoading }: Props) {
+  const { navigate } = useRoute();
   const checkoutPackage = useGameOrderStore((state) => state.checkoutPackage);
   const checkoutQuantity = useGameOrderStore((state) => state.checkoutQuantity);
   const checkoutGameAccountInfo = useGameOrderStore((state) => state.checkoutGameAccountInfo);

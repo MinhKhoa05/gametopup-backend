@@ -1,21 +1,11 @@
-import { FormEvent, useEffect, useMemo, useState } from 'react';
 import { CheckCircle2, Edit3, Plus, Save, Trash2, X } from 'lucide-react';
 import { formatCurrency } from '../../lib/format';
 import type { AdminGamePackage, Game } from '../../types';
-import { AdminSkeleton, EmptyLine, NumberField, PanelTitle, SearchBox, filterByName, gameName } from './AdminShared';
+import { useAdminPackagesPanel } from '../../hooks/admin/admin-packages.hooks';
 import { Badge, Button, Field } from '../ui';
 import { classNames, pickImage } from '../../lib/ui';
-
-const emptyPackageForm = {
-  gameId: 0,
-  imageUrl: '',
-  importPrice: 0,
-  isActive: true,
-  name: '',
-  originalPrice: 0,
-  salePrice: 0,
-  stockQuantity: 0,
-};
+import { AdminSkeleton, EmptyLine, NumberField, PanelTitle, SearchBox } from './AdminShared';
+import { gameName } from './admin.utils';
 
 export function PackagesAdminPanel({
   busy,
@@ -54,85 +44,28 @@ export function PackagesAdminPanel({
   ) => Promise<void>;
   onDeletePackage: (id: number) => Promise<void>;
 }) {
-  const [editing, setEditing] = useState<AdminGamePackage | null>(null);
-  const [selectedGameId, setSelectedGameId] = useState<number | null>(null);
-  const [form, setForm] = useState(emptyPackageForm);
-  const [query, setQuery] = useState('');
-
-  useEffect(() => {
-    if (games.length === 0) {
-      setSelectedGameId(null);
-      return;
-    }
-
-    setSelectedGameId((current) => (current && games.some((game) => game.id === current) ? current : games[0].id));
-  }, [games]);
-
-  useEffect(() => {
-    if (editing) return;
-
-    setForm((current) => ({
-      ...current,
-      gameId: selectedGameId ?? games[0]?.id ?? 0,
-    }));
-  }, [editing, games, selectedGameId]);
-
-  const selectedGamePackages = useMemo(() => packages.filter((item) => item.gameId === selectedGameId), [packages, selectedGameId]);
-  const scopedPackages = useMemo(() => filterByName(selectedGamePackages, query), [selectedGamePackages, query]);
+  const {
+    editing,
+    previewSrc,
+    query,
+    remove,
+    resetForm,
+    scopedPackages,
+    selectedGameId,
+    setForm,
+    setQuery,
+    setSelectedGameId,
+    startEdit,
+    submit,
+    form,
+  } = useAdminPackagesPanel({
+    games,
+    packages,
+    onCreatePackage,
+    onDeletePackage,
+    onUpdatePackage,
+  });
   const profit = (item: AdminGamePackage) => item.salePrice - item.importPrice;
-  const selectedGame = selectedGameId ? games.find((game) => game.id === selectedGameId) ?? null : null;
-  const previewSrc = form.imageUrl.trim() || (editing ? pickImage(editing) : selectedGame ? pickImage(selectedGame) : '');
-
-  function startEdit(item: AdminGamePackage) {
-    setEditing(item);
-    setSelectedGameId(item.gameId);
-    setForm({
-      gameId: item.gameId,
-      imageUrl: item.imageUrl ?? '',
-      importPrice: item.importPrice,
-      isActive: item.isActive,
-      name: item.name,
-      originalPrice: item.originalPrice,
-      salePrice: item.salePrice,
-      stockQuantity: item.stockQuantity,
-    });
-  }
-
-  function resetForm() {
-    setEditing(null);
-    setForm({
-      ...emptyPackageForm,
-      gameId: selectedGameId ?? games[0]?.id ?? 0,
-    });
-  }
-
-  async function submit(event: FormEvent) {
-    event.preventDefault();
-    const payload = {
-      ...form,
-      gameId: form.gameId || selectedGameId || games[0]?.id || 0,
-      imageUrl: form.imageUrl.trim(),
-      name: form.name.trim(),
-    };
-    await (editing
-      ? onUpdatePackage({
-          id: editing.id,
-          imageUrl: payload.imageUrl,
-          importPrice: payload.importPrice,
-          isActive: payload.isActive,
-          name: payload.name,
-          originalPrice: payload.originalPrice,
-          salePrice: payload.salePrice,
-          stockQuantity: payload.stockQuantity,
-        })
-      : onCreatePackage(payload));
-    resetForm();
-  }
-
-  async function remove(item: AdminGamePackage) {
-    if (!window.confirm(`Xóa gói "${item.name}"?`)) return;
-    await onDeletePackage(item.id);
-  }
 
   return (
     <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1.18fr)_minmax(380px,0.82fr)]">
@@ -140,18 +73,18 @@ export function PackagesAdminPanel({
         <PanelTitle title="Chọn game" />
         <div className="grid grid-cols-[repeat(auto-fit,minmax(186px,1fr))] gap-2.5 max-[700px]:grid-cols-[repeat(auto-fit,minmax(152px,1fr))]" role="tablist" aria-label="Chọn game để quản lý gói nạp">
           {games.map((game) => (
-              <button
-                key={game.id}
-                type="button"
-                className={classNames(
-                  'grid min-w-0 grid-cols-[40px_minmax(0,1fr)] items-center gap-2.5 rounded-xl border border-white/12 bg-[rgba(255,255,255,0.05)] p-2.5 text-left text-slate-300 transition-colors hover:-translate-y-px hover:border-cyan/25 hover:bg-cyan/10 hover:text-cyan-50',
-                  selectedGameId === game.id && 'border-cyan/25 bg-cyan/10 text-cyan-50',
-                )}
-                disabled={Boolean(editing)}
-                onClick={() => {
-                  setSelectedGameId(game.id);
-                  if (!editing) setForm((current) => ({ ...current, gameId: game.id }));
-                }}
+            <button
+              key={game.id}
+              type="button"
+              className={classNames(
+                'grid min-w-0 grid-cols-[40px_minmax(0,1fr)] items-center gap-2.5 rounded-xl border border-white/12 bg-[rgba(255,255,255,0.05)] p-2.5 text-left text-slate-300 transition-colors hover:-translate-y-px hover:border-cyan/25 hover:bg-cyan/10 hover:text-cyan-50',
+                selectedGameId === game.id && 'border-cyan/25 bg-cyan/10 text-cyan-50',
+              )}
+              disabled={Boolean(editing)}
+              onClick={() => {
+                setSelectedGameId(game.id);
+                if (!editing) setForm((current) => ({ ...current, gameId: game.id }));
+              }}
             >
               <img className="h-10 w-10 rounded-xl bg-cyan/10 object-cover" src={pickImage(game)} alt="" />
               <span className="max-h-10 overflow-hidden whitespace-normal text-[0.98rem] font-bold leading-[1.2]">{game.name}</span>
@@ -207,7 +140,12 @@ export function PackagesAdminPanel({
                     <Button size="icon" title="Sửa gói" onClick={() => startEdit(item)}>
                       <Edit3 size={16} />
                     </Button>
-                    <Button size="icon" title="Xóa gói" onClick={() => remove(item)} className="!border-rose-400/15 !bg-rose-500/10 !text-rose-200 hover:!border-rose-300/25 hover:!bg-rose-500/15 hover:!text-rose-100 hover:!shadow-[0_8px_24px_rgba(244,63,94,0.10)]">
+                    <Button
+                      size="icon"
+                      title="Xóa gói"
+                      onClick={() => remove(item)}
+                      className="!border-rose-400/15 !bg-rose-500/10 !text-rose-200 hover:!border-rose-300/25 hover:!bg-rose-500/15 hover:!text-rose-100 hover:!shadow-[0_8px_24px_rgba(244,63,94,0.10)]"
+                    >
                       <Trash2 size={16} />
                     </Button>
                   </div>

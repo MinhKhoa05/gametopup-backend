@@ -4,7 +4,6 @@ import { BrandLogo } from './BrandLogo';
 import { HeaderAccountMenu, type HeaderAccountMenuItem } from './HeaderAccountMenu';
 import { Button, IconBox, SearchBar } from '../ui';
 import { userDisplayName } from '../../lib/labels';
-import { Route } from '../../lib/routes';
 import { classNames } from '../../lib/ui';
 import {
   HEADER_ACCOUNT_MENU_ADMIN_ITEMS,
@@ -14,25 +13,23 @@ import {
 } from '../../config/site';
 import { formatCurrency } from '../../lib/format';
 import { isAdminUser } from '../../lib/roles';
+import { useRoute } from '../../hooks/common/route.hooks';
 import type { AuthStatus, User } from '../../types';
 
 export function AppHeader({
-  route,
   wallet,
-  navigate,
   onLogout,
   authStatus,
   user,
 }: {
-  route: Route;
   wallet: { balance: number } | null;
-  navigate: (route: Route) => void;
   onLogout: () => void;
   authStatus: AuthStatus;
   user: User | null;
 }) {
+  const { route, navigate } = useRoute();
   const [keyword, setKeyword] = useState('');
-  const hasLogin = Boolean(user);
+  const hasLogin = authStatus === 'authenticated';
   const isAuthPending = authStatus === 'unknown' || authStatus === 'checking';
   const hasKnownSession = hasLogin || !isAuthPending;
   const displayName = userDisplayName(user) || 'Khách';
@@ -69,7 +66,11 @@ export function AppHeader({
   });
 
   const handleWalletClick = () => {
-    navigate(hasLogin ? { name: 'wallet' } : { name: 'account' });
+    navigate(hasLogin ? { name: 'wallet' } : { name: 'auth' });
+  };
+
+  const handleLoginClick = () => {
+    navigate({ name: 'auth' });
   };
 
   const handleSearch = (value: string) => {
@@ -116,7 +117,7 @@ export function AppHeader({
                   )}
                   onClick={() => {
                     if ((link.route.name === 'orders' || link.route.name === 'wallet') && !hasLogin) {
-                      navigate({ name: 'account' });
+                      navigate({ name: 'auth' });
                       return;
                     }
                     navigate(link.route);
@@ -147,8 +148,7 @@ export function AppHeader({
             displayName={displayName}
             adminUser={adminUser}
             menuItems={menuItems}
-            onLogout={onLogout}
-            onNavigate={navigate}
+            onLogin={handleLoginClick}
           />
         </div>
       </div>
@@ -189,16 +189,14 @@ function HeaderAuthSlot({
   displayName,
   adminUser,
   menuItems,
-  onLogout,
-  onNavigate,
+  onLogin,
 }: {
   hasLogin: boolean;
   shouldShowAuthSkeleton: boolean;
   displayName: string;
   adminUser: boolean;
   menuItems: HeaderAccountMenuItem[];
-  onLogout: () => void;
-  onNavigate: (route: Route) => void;
+  onLogin: () => void;
 }) {
   return (
     <div className="header-user-group hidden min-h-11 min-w-44 items-center justify-end gap-3 sm:flex">
@@ -233,7 +231,7 @@ function HeaderAuthSlot({
           type="button"
           variant="accent"
           className="min-h-11 min-w-44 rounded-xl px-4 text-sm font-bold text-slate-950 shadow-[0_4px_14px_rgba(34,211,238,0.18)]"
-          onClick={() => onNavigate({ name: 'account' })}
+          onClick={onLogin}
         >
           <UserRound size={17} />
           <span className="hidden sm:inline">Đăng nhập</span>

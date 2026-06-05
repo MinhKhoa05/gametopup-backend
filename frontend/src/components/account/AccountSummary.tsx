@@ -2,15 +2,8 @@ import { Mail, ShieldCheck, UserRound } from 'lucide-react';
 import { Badge, IconBox, StatCard } from '../ui';
 import { formatCurrency } from '../../lib/format';
 import { userDisplayName } from '../../lib/labels';
+import { isAdminUser } from '../../lib/roles';
 import type { User, WalletInfo } from '../../types';
-
-function isAdminUser(user: User) {
-  if (typeof user.role === 'string') {
-    return user.role.toLowerCase().includes('admin');
-  }
-
-  return user.role === 1;
-}
 
 type AccountSummaryProps = {
   user: User;

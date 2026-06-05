@@ -1,50 +1,38 @@
+import { ChevronRight, Gamepad2, ShieldCheck, Tag, WalletCards, Zap } from 'lucide-react';
 import { useState } from 'react';
-import { ChevronRight, ShieldCheck, WalletCards, Zap } from 'lucide-react';
-import { AuthPanel } from '../components/auth/AuthPanel';
+import { ActionCard, Badge, Button, IconBox, SearchBar } from '../components/ui';
 import { GameGrid } from '../components/games/GameGrid';
-import { HowToTopupSection } from '../components/home/HowToTopupSection';
-import { SITE } from '../config/site';
+import { AuthForm } from '../components/auth/AuthForm';
 import { useAuthSession } from '../hooks/auth.hooks';
+import { useRoute } from '../hooks/common/route.hooks';
 import { useGameCatalog } from '../hooks/games.hooks';
-import { ActionCard, Badge, Button, SearchBar } from '../components/ui';
-import { Route } from '../lib/routes';
-import { classNames, pickImage } from '../lib/ui';
-export function HomePage({
-  navigate,
-}: {
-  navigate: (route: Route) => void;
-}) {
+import { SITE } from '../config/site';
+import { pickImage } from '../lib/ui';
+
+export function HomePage() {
+  const { navigate } = useRoute();
   const [keyword, setKeyword] = useState('');
   const { games, gamesLoading } = useGameCatalog({ name: 'home' });
-  const { authBusy, authForm, authMode, authStatus, handleAuth, handleLogout, setAuthForm, setAuthMode, user } = useAuthSession({
-    navigate,
-  });
-  const featured = games.slice(0, 8);
-  const hasLogin = Boolean(user);
+  const featuredGames = games.slice(0, 8);
+  const { isAuthSubmitting, submitAuth } = useAuthSession();
 
   return (
     <div className="mx-auto max-w-7xl px-4 pb-24 sm:px-6 sm:pb-28 lg:px-8">
-      <section
-        className="relative mt-5 mb-10 overflow-hidden rounded-3xl border border-white/5 px-4 py-6 sm:rounded-[24px] sm:px-6 sm:py-10 lg:px-10 lg:py-16"
-        style={{
-          backgroundImage:
-            "linear-gradient(100deg, rgba(7, 17, 31, 1) 0%, rgba(7, 17, 31, 0.9) 50%, rgba(7, 17, 31, 0.6) 100%), url('https://images.unsplash.com/photo-1552820728-8b83bb6b773f?auto=format&fit=crop&w=1600&q=80')",
-          backgroundPosition: 'center',
-          backgroundSize: 'cover',
-        }}
-      >
+      <section className={homeHeroClassName}>
         <div className="relative z-10 max-w-2xl">
           <Badge variant="accent" className="uppercase tracking-[0.18em]">
-            Dịch vụ nạp hộ - Trung gian uy tín
+            Đại lý nạp hộ - Trung gian uy tín
           </Badge>
-          <h1 className="mb-6 text-[clamp(2.2rem,9vw,4.2rem)] font-black leading-[0.95] tracking-tight text-white sm:text-6xl">
-            Nạp Game Qua Đại Lý
+          <h1 className="mb-6 text-[clamp(2.2rem,9vw,4.2rem)] font-black leading-[0.9] tracking-tight text-white sm:text-6xl">
+            Nạp game
             <br />
-            <span className="text-cyan">Tiết Kiệm Chi Phí</span>
+            <span className="text-cyan">tiết kiệm hơn</span>
           </h1>
           <p className="mb-8 max-w-xl text-[0.95rem] leading-[1.55] text-slate-300 sm:text-lg">
-            {SITE.name} là đại lý trung gian cung cấp các gói nạp game với mức chiết khấu cực tốt. An toàn, uy tín và giúp bạn tiết kiệm hơn so với cổng nạp gốc.
+            {SITE.name} là đại lý trung gian cung cấp các gói nạp game với mức chiết khấu cực tốt. An toàn, uy tín và giúp
+            bạn tiết kiệm hơn so với cổng nạp gốc.
           </p>
+
           <SearchBar
             className="max-w-md"
             inputClassName="py-3 text-lg"
@@ -58,21 +46,9 @@ export function HomePage({
       </section>
 
       <section className="my-8 grid grid-cols-1 gap-3 border-y border-white/5 py-4 md:grid-cols-3 md:gap-4 md:py-6">
-        <ActionCard
-          icon={<Zap size={32} className="text-cyan" />}
-          title="Xử Lý Nhanh Chóng"
-          description="Hoàn thành trong 5-15 phút"
-        />
-        <ActionCard
-          icon={<ShieldCheck size={32} className="text-cyan" />}
-          title="Giao Dịch Đảm Bảo"
-          description="Uy tín 100%"
-        />
-        <ActionCard
-          icon={<WalletCards size={32} className="text-cyan" />}
-          title="Giá Rẻ Hơn"
-          description="Rẻ hơn tới 15% so với web gốc"
-        />
+        <ActionCard icon={<Zap size={32} className="text-cyan" />} title="Xử Lý Nhanh Chóng" description="Hoàn thành trong 5-15 phút" />
+        <ActionCard icon={<ShieldCheck size={32} className="text-cyan" />} title="Giao Dịch Đảm Bảo" description="Uy tín 100%" />
+        <ActionCard icon={<WalletCards size={32} className="text-cyan" />} title="Giá Rẻ Hơn" description="Rẻ hơn tới 15% so với web gốc" />
       </section>
 
       <section className="mb-12">
@@ -80,14 +56,21 @@ export function HomePage({
           <div>
             <h2 className="mb-0 text-2xl font-extrabold text-white">Danh Mục Game</h2>
           </div>
-          <Button className="border-none bg-transparent px-0 py-0 text-cyan hover:bg-transparent hover:text-cyan-50" onClick={() => navigate({ name: 'games' })}>
+          <Button
+            className="border-none bg-transparent px-0 py-0 text-cyan hover:bg-transparent hover:text-cyan-50"
+            onClick={() => navigate({ name: 'games' })}
+          >
             Xem tất cả <ChevronRight size={16} />
           </Button>
         </div>
         <div className="grid grid-cols-3 gap-x-2 gap-y-3 overflow-visible pb-0 sm:grid-cols-4 md:flex md:items-start md:gap-4 md:overflow-x-auto md:pb-3 md:[-ms-overflow-style:none] md:[scrollbar-width:none] md:[&::-webkit-scrollbar]:hidden">
           {gamesLoading && games.length === 0
             ? Array.from({ length: 6 }).map((_, index) => (
-                <div key={`category-skeleton-${index}`} className="flex w-full flex-col items-center justify-start gap-2 text-center text-[0.72rem] font-semibold text-slate-300 md:w-[96px] md:flex-none md:text-sm" aria-hidden="true">
+                <div
+                  key={`category-skeleton-${index}`}
+                  className="flex w-full flex-col items-center justify-start gap-2 text-center text-[0.72rem] font-semibold text-slate-300 md:w-[96px] md:flex-none md:text-sm"
+                  aria-hidden="true"
+                >
                   <div className="aspect-square w-full animate-pulse rounded-2xl bg-white/10 md:h-[72px] md:w-[72px] md:rounded-3xl" />
                   <div className="h-3.5 w-16 animate-pulse rounded-full bg-white/10" />
                 </div>
@@ -114,7 +97,7 @@ export function HomePage({
       <section className="mb-16">
         <h2 className="mb-6 text-2xl font-extrabold text-white">Các Game Phổ Biến</h2>
         <GameGrid
-          games={featured}
+          games={featuredGames}
           loading={gamesLoading && games.length === 0}
           skeletonCount={8}
           onPick={(game) => navigate({ name: 'games', gameId: game.id })}
@@ -125,26 +108,60 @@ export function HomePage({
         />
       </section>
 
-      <section className={classNames('mb-16 grid items-start gap-8', hasLogin ? 'lg:grid-cols-1' : 'lg:grid-cols-[1fr_400px]')}>
-        <HowToTopupSection hasLogin={hasLogin} />
-
-        {!hasLogin ? (
-          <div className="self-start">
-            <AuthPanel
-              authMode={authMode}
-              form={authForm}
-              wallet={null}
-              busy={authBusy}
-              user={user}
-              authStatus={authStatus}
-              onSubmit={handleAuth}
-              onLogout={handleLogout}
-              onChangeAuthForm={setAuthForm}
-              onSwitchMode={setAuthMode}
-            />
+      <section className="mb-16 grid items-start gap-8 lg:grid-cols-[1fr_400px]">
+        <div>
+          <h2 className="mb-6 text-2xl font-extrabold text-white">Cách Thức Nạp Game</h2>
+          <div className="grid gap-4">
+            {HOME_STEPS.map((step) => (
+              <ActionCard
+                key={step.title}
+                icon={
+                  <IconBox size="md">
+                    {step.icon}
+                  </IconBox>
+                }
+                title={step.title}
+                description={step.desc}
+              />
+            ))}
           </div>
-        ) : null}
+        </div>
+
+        <div className="gt-surface-ink self-start rounded-2xl p-6">
+          <div className="mb-5 flex items-start gap-3">
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-cyan/15 bg-cyan/10 text-cyan">
+              <ShieldCheck size={22} />
+            </div>
+            <div>
+              <p className="gt-eyebrow">Đăng nhập</p>
+              <h3 className="text-xl font-black text-white">Tiếp tục với tài khoản</h3>
+              <p className="mt-2 text-sm leading-6 text-slate-400">Sử dụng tài khoản GameTopUp của bạn để theo dõi ví và đơn hàng.</p>
+            </div>
+          </div>
+          <AuthForm mode="login" busy={isAuthSubmitting} onSubmitAuth={submitAuth} />
+        </div>
       </section>
     </div>
   );
 }
+
+const HOME_STEPS = [
+  {
+    title: '1. Chọn game',
+    desc: 'Tìm tựa game và chọn gói nạp phù hợp.',
+    icon: <Gamepad2 size={24} />,
+  },
+  {
+    title: '2. Nhập ID',
+    desc: 'Cung cấp UID hoặc thông tin tài khoản.',
+    icon: <Tag size={24} />,
+  },
+  {
+    title: '3. Thanh toán',
+    desc: 'Sử dụng số dư ví và nhận gói nạp tức thì.',
+    icon: <WalletCards size={24} />,
+  },
+] as const;
+
+const homeHeroClassName =
+  'relative mb-10 overflow-hidden rounded-3xl border border-white/5 bg-[linear-gradient(100deg,rgba(7,17,31,0.94)_0%,rgba(7,17,31,0.82)_44%,rgba(7,17,31,0.46)_100%),url("https://images.unsplash.com/photo-1552820728-8b83bb6b773f?auto=format&fit=crop&w=1600&q=80")] bg-cover px-4 py-6 sm:rounded-[24px] sm:px-6 sm:py-10 lg:px-10 lg:py-16';

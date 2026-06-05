@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Route } from '../lib/routes';
+import { filterByQuery } from '../lib/search';
 import { Game, GamePackage } from '../types';
 import { useGamePackagesQuery, useGamesQuery } from '../services/games';
 
@@ -17,8 +18,6 @@ function isSelectablePackage(pkg: GamePackage) {
 export function useGameCatalog(route: Route) {
   const [selectedPackageId, setSelectedPackageId] = useState<number | null>(null);
   const [query, setQuery] = useState('');
-  const normalizedQuery = query.trim().toLowerCase();
-
   const gamesQuery = useGamesQuery();
   const routeGameId = route.name === 'games' ? route.gameId : undefined;
   const shouldLoadPackages = route.name === 'games' && routeGameId !== undefined;
@@ -27,9 +26,7 @@ export function useGameCatalog(route: Route) {
   const packagesQuery = useGamePackagesQuery(shouldLoadPackages ? selectedGame?.id : undefined);
   const selectedGamePackages = packagesQuery.data ?? EMPTY_PACKAGES;
   const selectedPackage = selectedGamePackages.find((item) => item.id === selectedPackageId && isSelectablePackage(item)) ?? null;
-  const filteredGames = normalizedQuery
-    ? games.filter((game) => game.name.toLowerCase().includes(normalizedQuery))
-    : games;
+  const filteredGames = filterByQuery(games, query, (game) => game.name);
 
   useEffect(() => {
     if (!selectedGame) {

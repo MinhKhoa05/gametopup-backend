@@ -1,6 +1,9 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo, useState } from 'react';
+import { useAuthSession } from './auth.hooks';
+import { matchesQuery } from '../lib/search';
 import { useOrderMutations, useOrdersQuery } from '../services/orders';
 import { useWalletQuery } from '../services/wallet';
+import type { Order } from '../types';
 
 export function useUserOrders(isLoggedIn: boolean) {
   const ordersQuery = useOrdersQuery(isLoggedIn);
@@ -21,5 +24,25 @@ export function useUserOrders(isLoggedIn: boolean) {
     ordersLoading: ordersQuery.isPending && !ordersQuery.data,
     wallet: walletQuery.data ?? null,
     walletLoading: walletQuery.isPending && !walletQuery.data,
+  };
+}
+
+export function useOrdersPage() {
+  const [query, setQuery] = useState('');
+  const auth = useAuthSession();
+  const userOrders = useUserOrders(auth.isLoggedIn);
+
+  const filteredOrders = useMemo(() => {
+    return userOrders.orders.filter((order) =>
+      matchesQuery([order.id, order.gamePackageId, order.gameAccountInfo, order.status], query),
+    );
+  }, [query, userOrders.orders]);
+
+  return {
+    busy: userOrders.busy,
+    filteredOrders,
+    onPay: userOrders.handlePay,
+    query,
+    setQuery,
   };
 }

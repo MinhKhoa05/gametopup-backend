@@ -1,5 +1,5 @@
 import { BarChart3, CheckCircle2, Clock3, Gamepad2, Users } from 'lucide-react';
-import { Route } from '../../lib/routes';
+import { useRoute } from '../../hooks/common/route.hooks';
 import { formatCurrency, formatDate } from '../../lib/format';
 import { statusLabel } from '../../lib/labels';
 import type { Game, Order, User } from '../../types';
@@ -11,17 +11,16 @@ export function DashboardPanel({
   games,
   loading,
   metrics,
-  navigate,
   orders,
   users,
 }: {
-  games: Game[];
+  games: Game[]; 
   loading: boolean;
   metrics: AdminCatalogMetrics;
-  navigate: (route: Route) => void;
   orders: Order[];
   users: User[];
 }) {
+  const { navigate } = useRoute();
   const latestOrders = orders.slice(0, 5);
 
   return (

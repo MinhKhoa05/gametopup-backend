@@ -1,6 +1,6 @@
 import { Facebook, Headset, Mail, MessageCircleMore, ShieldCheck, Zap } from 'lucide-react';
 import { BrandLogo } from './BrandLogo';
-import { Route } from '../../lib/routes';
+import { useRoute } from '../../hooks/common/route.hooks';
 import {
   FOOTER_CONTACT_LINKS,
   FOOTER_DEVELOPER_LINKS,
@@ -16,7 +16,9 @@ const contactIcons = {
   message: <MessageCircleMore size={20} />,
 } as const;
 
-export function AppFooter({ navigate }: { navigate: (route: Route) => void }) {
+export function AppFooter() {
+  const { navigate } = useRoute();
+
   return (
     <footer className="mt-auto border-t border-slate-400/14 bg-[linear-gradient(180deg,rgba(9,19,35,0.6),rgba(7,17,31,0.92))] pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] pt-1.5 md:pb-0">
       <div className="mx-auto grid max-w-7xl gap-12 px-4 py-8 sm:px-6 lg:grid-cols-[1.35fr_0.8fr_0.8fr_0.9fr] lg:px-8 lg:py-8">

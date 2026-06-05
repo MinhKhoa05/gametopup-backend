@@ -1,8 +1,8 @@
 import { FormEvent } from 'react';
-import { CheckCircle2, CreditCard, QrCode, UserRound, WalletCards } from 'lucide-react';
+import { CheckCircle2, CreditCard, QrCode, UserRound } from 'lucide-react';
 import { Badge, Button, Field, IconBox, SectionHeading } from '../ui';
+import { useRoute } from '../../hooks/common/route.hooks';
 import { formatCurrency } from '../../lib/format';
-import { Route } from '../../lib/routes';
 import { classNames } from '../../lib/ui';
 import { DepositRequest, User, WalletInfo } from '../../types';
 
@@ -19,7 +19,6 @@ export function WalletPanel({
   confirmDepositPending,
   onSubmit,
   onConfirm,
-  navigate,
 }: {
   user: User | null;
   wallet: WalletInfo | null;
@@ -31,8 +30,9 @@ export function WalletPanel({
   confirmDepositPending: boolean;
   onSubmit: (event: FormEvent) => void;
   onConfirm: () => void;
-  navigate: (route: Route) => void;
 }) {
+  const { navigate } = useRoute();
+
   return (
     <div className="gt-surface-ink rounded-2xl p-6">
       <SectionHeading
@@ -43,10 +43,10 @@ export function WalletPanel({
       />
 
       {!user ? (
-        <button
+      <button
           type="button"
           className="gt-interactive mt-5 flex w-full items-center gap-3 rounded-2xl border border-white/10 bg-white/4 px-4 py-3 text-left text-slate-200"
-          onClick={() => navigate({ name: 'account' })}
+          onClick={() => navigate({ name: 'auth' })}
         >
           <IconBox size="sm">
             <UserRound size={18} />

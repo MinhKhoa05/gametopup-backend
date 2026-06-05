@@ -1,18 +1,11 @@
-import { FormEvent, useMemo, useState } from 'react';
 import { CheckCircle2, Edit3, Save, Trash2, UserCheck2, UserRound, X } from 'lucide-react';
 import { formatDate } from '../../lib/format';
 import { userRoleLabel } from '../../lib/labels';
 import { classNames } from '../../lib/ui';
 import type { User } from '../../types';
+import { useAdminUsersPanel } from '../../hooks/admin/admin-users.hooks';
 import { AdminSkeleton, EmptyLine, PanelTitle, SearchBox } from './AdminShared';
 import { Badge, Button, Field, IconBox } from '../ui';
-
-const emptyForm = {
-  displayName: '',
-  email: '',
-  isActive: true,
-  role: '0',
-};
 
 export function UsersAdminPanel({
   busy,
@@ -29,60 +22,11 @@ export function UsersAdminPanel({
   onUpdateUser: (payload: { id: number; displayName: string; email: string; role: number; isActive: boolean }) => Promise<void>;
   onDeleteUser: (id: number) => Promise<void>;
 }) {
-  const [editing, setEditing] = useState<User | null>(null);
-  const [query, setQuery] = useState('');
-  const [form, setForm] = useState(emptyForm);
-
-  const filteredUsers = useMemo(() => {
-    const normalizedQuery = query.trim().toLowerCase();
-    if (!normalizedQuery) return users;
-
-    return users.filter((user) =>
-      [String(user.id), user.displayName ?? '', user.email, userRoleLabel(user.role)]
-        .join(' ')
-        .toLowerCase()
-        .includes(normalizedQuery),
-    );
-  }, [query, users]);
-
-  function startEdit(user: User) {
-    setEditing(user);
-    setForm({
-      displayName: user.displayName ?? '',
-      email: user.email,
-      isActive: user.isActive !== false,
-      role: normalizeRoleValue(user.role),
-    });
-  }
-
-  function resetForm() {
-    setEditing(null);
-    setForm(emptyForm);
-  }
-
-  async function submit(event: FormEvent) {
-    event.preventDefault();
-    if (!editing) return;
-
-    const payload = {
-      displayName: form.displayName.trim(),
-      email: form.email.trim(),
-      isActive: form.isActive,
-      role: Number(form.role),
-    };
-    await onUpdateUser({ id: editing.id, ...payload });
-    resetForm();
-  }
-
-  async function remove(user: User) {
-    if (user.id === currentUser?.id) {
-      window.alert('Không thể vô hiệu hóa tài khoản hiện tại.');
-      return;
-    }
-
-    if (!window.confirm(`Vô hiệu hóa user "${user.displayName ?? user.email}"?`)) return;
-    await onDeleteUser(user.id);
-  }
+  const { editing, filteredUsers, form, query, remove, resetForm, setForm, setQuery, startEdit, submit } = useAdminUsersPanel({
+    onDeleteUser,
+    onUpdateUser,
+    users,
+  });
 
   return (
     <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1.18fr)_minmax(380px,0.82fr)]">
@@ -134,7 +78,13 @@ export function UsersAdminPanel({
                     <Button size="icon" title="Sửa user" onClick={() => startEdit(user)}>
                       <Edit3 size={16} />
                     </Button>
-                    <Button size="icon" title="Vô hiệu hóa user" disabled={isSelf} onClick={() => remove(user)} className="!border-rose-400/15 !bg-rose-500/10 !text-rose-200 hover:!border-rose-300/25 hover:!bg-rose-500/15 hover:!text-rose-100 hover:!shadow-[0_8px_24px_rgba(244,63,94,0.10)]">
+                    <Button
+                      size="icon"
+                      title="Vô hiệu hóa user"
+                      disabled={isSelf}
+                      onClick={() => remove(user, currentUser?.id)}
+                      className="!border-rose-400/15 !bg-rose-500/10 !text-rose-200 hover:!border-rose-300/25 hover:!bg-rose-500/15 hover:!text-rose-100 hover:!shadow-[0_8px_24px_rgba(244,63,94,0.10)]"
+                    >
                       <Trash2 size={16} />
                     </Button>
                   </div>
@@ -184,9 +134,7 @@ export function UsersAdminPanel({
             </div>
 
             <div className="mt-4 flex flex-wrap justify-end gap-2">
-              <Button onClick={resetForm}>
-                Hủy
-              </Button>
+              <Button onClick={resetForm}>Hủy</Button>
               <Button type="submit" variant="accent" disabled={busy}>
                 <Save size={17} />
                 Lưu user
@@ -199,13 +147,4 @@ export function UsersAdminPanel({
       </form>
     </div>
   );
-}
-
-function normalizeRoleValue(role?: number | string) {
-  if (role == null) return '0';
-  const value = String(role).trim().toLowerCase();
-  if (value === 'admin') return '1';
-  if (value === 'staff') return '2';
-  if (value === 'member') return '0';
-  return value;
 }

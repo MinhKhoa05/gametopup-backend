@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { ArrowLeft, Boxes, Gamepad2, LayoutDashboard, LogOut, ReceiptText, RefreshCw, ShieldCheck, Users } from 'lucide-react';
 import type { Route } from '../../lib/routes';
+import { useRoute } from '../../hooks/common/route.hooks';
 import { Badge, Button, IconBox, SectionHeading } from '../ui';
 
 const sectionMeta: Record<
@@ -36,17 +37,16 @@ const sectionMeta: Record<
 
 export function AdminHeader({
   loading,
-  navigate,
   onLogout,
   onRefresh,
   route,
 }: {
   loading: boolean;
-  navigate: (route: Route) => void;
   onLogout: () => void;
   onRefresh: () => void;
   route: Extract<Route, { name: 'admin' }>;
 }) {
+  const { navigate } = useRoute();
   const section = route.section ?? 'dashboard';
   const meta = sectionMeta[section];
 

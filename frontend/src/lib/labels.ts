@@ -1,4 +1,5 @@
 import { User } from '../types';
+import { normalizeRoleValue } from './roles';
 
 export function userDisplayName(user: User | null) {
   return user?.displayName || user?.email || 'Khách';
@@ -17,7 +18,7 @@ export function statusLabel(status: number) {
 }
 
 export function userRoleLabel(role?: number | string) {
-  const value = normalizeRole(role);
+  const value = normalizeRoleValue(role);
   const labels: Record<string, string> = {
     '0': 'Member',
     '1': 'Admin',
@@ -28,9 +29,4 @@ export function userRoleLabel(role?: number | string) {
   };
 
   return labels[value] ?? (value || 'Unknown');
-}
-
-function normalizeRole(role?: number | string) {
-  if (role == null) return '';
-  return String(role).trim().toLowerCase();
 }

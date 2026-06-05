@@ -1,13 +1,14 @@
 import { Gamepad2, LogOut, WalletCards } from 'lucide-react';
-import { Route } from '../../lib/routes';
+import { useRoute } from '../../hooks/common/route.hooks';
 import { ActionCard, IconBox } from '../ui';
 
 type AccountQuickActionsProps = {
   onLogout: () => void;
-  navigate: (route: Route) => void;
 };
 
-export function AccountQuickActions({ onLogout, navigate }: AccountQuickActionsProps) {
+export function AccountQuickActions({ onLogout }: AccountQuickActionsProps) {
+  const { navigate } = useRoute();
+
   return (
     <section className="gt-surface min-h-0">
       <div className="grid gap-3.5">

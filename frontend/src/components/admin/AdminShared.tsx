@@ -77,13 +77,3 @@ export function EmptyLine({ text }: { text: string }) {
     </div>
   );
 }
-
-export function filterByName<T extends { name: string }>(items: T[], query: string) {
-  const normalized = query.trim().toLowerCase();
-  if (!normalized) return items;
-  return items.filter((item) => item.name.toLowerCase().includes(normalized));
-}
-
-export function gameName(games: Array<{ id: number; name: string }>, gameId: number) {
-  return games.find((game) => game.id === gameId)?.name ?? `Game #${gameId}`;
-}

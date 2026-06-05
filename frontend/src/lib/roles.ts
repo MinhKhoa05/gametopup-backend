@@ -1,11 +1,11 @@
 import { User } from '../types';
 
 export function isAdminUser(user: User | null) {
-  const role = normalizeRole(user?.role);
+  const role = normalizeRoleValue(user?.role);
   return role === 'admin' || role === '1';
 }
 
-function normalizeRole(role: User['role']) {
+export function normalizeRoleValue(role: User['role']) {
   if (role == null) return '';
   return String(role).trim().toLowerCase();
 }
