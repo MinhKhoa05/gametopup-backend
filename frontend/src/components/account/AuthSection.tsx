@@ -1,7 +1,7 @@
 import type { FormEvent } from 'react';
 import { Check, ShieldCheck, UserPlus } from 'lucide-react';
 import { AuthSliderForm } from '../auth/AuthSliderForm';
-import { IconBox } from '../ui/IconBox';
+import { Button, IconBox } from '../ui';
 import { classNames } from '../../lib/ui';
 import type { AuthFormData, AuthMode } from '../../types';
 
@@ -20,7 +20,7 @@ export function AuthSection({ busy, form, authMode, onChange, onSubmit, onSwitch
   return (
     <div
       className={classNames(
-        'relative z-[1] transform-gpu mx-auto mt-14 mb-8 min-h-[560px] w-full max-w-[860px] overflow-hidden rounded-2xl border border-cyanline/13 bg-ink-light shadow-[0_10px_30px_rgba(0,0,0,0.3)]',
+        'relative z-[1] transform-gpu mx-auto mt-14 mb-8 min-h-[560px] w-full max-w-[860px] overflow-hidden rounded-2xl border border-cyan/10 bg-ink-light shadow-[0_10px_30px_rgba(0,0,0,0.3)]',
         'max-md:min-h-[auto] max-md:max-w-[440px]',
       )}
     >
@@ -72,7 +72,7 @@ export function AuthSection({ busy, form, authMode, onChange, onSubmit, onSwitch
 
       <div
         className={classNames(
-          'hidden overflow-hidden border-l border-cyanline/13 transition-transform duration-500 ease-in-out md:absolute md:left-1/2 md:top-0 md:z-50 md:block md:h-full md:w-1/2',
+          'hidden overflow-hidden border-l border-cyan/10 transition-transform duration-500 ease-in-out md:absolute md:left-1/2 md:top-0 md:z-50 md:block md:h-full md:w-1/2',
           isRegister ? 'md:-translate-x-full md:border-l-0 md:border-r' : 'md:translate-x-0',
         )}
       >
@@ -91,11 +91,11 @@ export function AuthSection({ busy, form, authMode, onChange, onSubmit, onSwitch
             <IconBox size="lg" className="mb-4 bg-white/10 text-white">
               <UserPlus size={28} />
             </IconBox>
-            <h2 className="mb-3.5 text-[2rem] font-black text-white">Chào bạn mới!</h2>
-            <p className="mb-6 text-[#94a3b8] leading-6">
+            <h2 className="mb-3.5 text-3xl font-black text-white">Chào bạn mới!</h2>
+            <p className="mb-6 leading-6 text-slate-400">
               Đăng ký ngay để trải nghiệm dịch vụ nạp game chiết khấu cao và tiện lợi nhất.
             </p>
-            <ul className="my-4 flex flex-col gap-2 text-left text-sm text-[#b0bfd3]">
+            <ul className="my-4 flex flex-col gap-2 text-left text-sm text-slate-300">
               <li className="flex items-center gap-2">
                 <Check size={16} className="text-emerald-400" /> Chiết khấu nạp game hấp dẫn
               </li>
@@ -106,9 +106,9 @@ export function AuthSection({ busy, form, authMode, onChange, onSubmit, onSwitch
                 <Check size={16} className="text-emerald-400" /> Hỗ trợ khách hàng 24/7
               </li>
             </ul>
-            <button className="btn-outline mt-2" onClick={() => onSwitchMode('login')} type="button">
+            <Button className="mt-2" onClick={() => onSwitchMode('login')}>
               Đã có tài khoản?
-            </button>
+            </Button>
           </div>
 
           <div
@@ -121,9 +121,9 @@ export function AuthSection({ busy, form, authMode, onChange, onSubmit, onSwitch
             <IconBox size="lg" className="mb-4 bg-white/10 text-white">
               <ShieldCheck size={28} />
             </IconBox>
-            <h2 className="mb-3.5 text-[2rem] font-black text-white">Mừng trở lại!</h2>
-            <p className="mb-6 text-[#94a3b8] leading-6">Quản lý ví và theo dõi lịch sử đơn hàng của bạn.</p>
-            <ul className="my-4 flex flex-col gap-2 text-left text-sm text-[#b0bfd3]">
+            <h2 className="mb-3.5 text-3xl font-black text-white">Mừng trở lại!</h2>
+            <p className="mb-6 leading-6 text-slate-400">Quản lý ví và theo dõi lịch sử đơn hàng của bạn.</p>
+            <ul className="my-4 flex flex-col gap-2 text-left text-sm text-slate-300">
               <li className="flex items-center gap-2">
                 <Check size={16} className="text-emerald-400" /> Quản lý số dư ví
               </li>
@@ -134,9 +134,9 @@ export function AuthSection({ busy, form, authMode, onChange, onSubmit, onSwitch
                 <Check size={16} className="text-emerald-400" /> Thanh toán nhanh hơn
               </li>
             </ul>
-            <button className="btn-outline mt-2" onClick={() => onSwitchMode('register')} type="button">
+            <Button className="mt-2" onClick={() => onSwitchMode('register')}>
               Tạo tài khoản mới
-            </button>
+            </Button>
           </div>
         </div>
       </div>

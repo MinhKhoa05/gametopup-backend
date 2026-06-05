@@ -4,7 +4,7 @@ import { AppLayout } from './components/layout/AppLayout';
 import { AppFooter } from './components/layout/AppFooter';
 import { AppHeader } from './components/layout/AppHeader';
 import { BottomNav } from './components/layout/BottomNav';
-import { EmptyState } from './components/ui/EmptyState';
+import { EmptyState } from './components/ui';
 import { useAuthSession } from './hooks/auth.hooks';
 import { useRoute } from './hooks/common/route.hooks';
 import { queryClient } from './lib/queryClient';

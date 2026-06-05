@@ -1,33 +1,50 @@
 import type { ReactNode } from 'react';
 import { classNames } from '../../lib/ui';
 
-export type BadgeTone = 'default' | 'info' | 'success' | 'warning' | 'danger';
+export type BadgeVariant = 'default' | 'accent' | 'success' | 'warning' | 'danger';
+export type BadgeSize = 'sm' | 'md';
+
+type BadgeProps = {
+  children: ReactNode;
+  className?: string;
+  icon?: ReactNode;
+  size?: BadgeSize;
+  title?: string;
+  variant?: BadgeVariant;
+};
+
+const variantClasses: Record<BadgeVariant, string> = {
+  default: 'border-white/12 bg-[rgba(255,255,255,0.05)] text-slate-300',
+  accent: 'border-cyan/25 bg-cyan/10 text-cyan-50',
+  success: 'border-emerald-400/25 bg-emerald-400/10 text-emerald-200',
+  warning: 'border-amber-400/25 bg-amber-400/10 text-amber-200',
+  danger: 'border-rose-400/25 bg-rose-400/10 text-rose-200',
+};
+
+const sizeClasses: Record<BadgeSize, string> = {
+  sm: 'min-h-8 px-2.5 py-1 text-[0.8rem]',
+  md: 'min-h-10 px-3.5 py-2 text-sm',
+};
 
 export function Badge({
   children,
   className,
   icon,
-  tone = 'default',
-  }: {
-  children: ReactNode;
-  className?: string;
-  icon?: ReactNode;
-  tone?: BadgeTone;
-  }) {
-  const toneClassName =
-    tone === 'info'
-      ? 'border-sky-400/25 bg-sky-400/10 text-sky-200'
-      : tone === 'success'
-        ? 'border-emerald-400/25 bg-emerald-400/10 text-emerald-200'
-        : tone === 'warning'
-          ? 'border-amber-400/25 bg-amber-400/10 text-amber-200'
-          : tone === 'danger'
-            ? 'border-rose-400/25 bg-rose-400/10 text-rose-200'
-            : 'border-cyanline/22 bg-cyanline/10 text-cyan-50';
-
+  size = 'sm',
+  title,
+  variant = 'default',
+}: BadgeProps) {
   return (
-    <span className={classNames('inline-flex items-center gap-1 whitespace-nowrap rounded-full border px-2.5 py-1 text-[0.8rem] font-bold', toneClassName, className)}>
-      {icon}
+    <span
+      title={title}
+      className={classNames(
+        'inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border font-bold transition-colors',
+        sizeClasses[size],
+        variantClasses[variant],
+        className,
+      )}
+    >
+      {icon && <span className="inline-flex shrink-0 items-center">{icon}</span>}
       {children}
     </span>
   );

@@ -1,5 +1,6 @@
 import { FormEvent } from 'react';
 import { AuthFields } from './AuthFields';
+import { Button } from '../ui';
 import type { AuthFormState, AuthMode } from '../../types';
 
 type AuthSliderFormProps = {
@@ -30,9 +31,9 @@ export function AuthSliderForm({ busy, form, mode, onChange, onSubmit, onSwitchM
 
         <div className="block text-center text-sm text-slate-400 md:hidden">
           {isRegister ? 'Đã có tài khoản?' : 'Chưa có tài khoản?'}{' '}
-          <button type="button" onClick={() => onSwitchMode(isRegister ? 'login' : 'register')} className="font-bold text-cyanline">
+          <Button className="border-none bg-transparent px-0 py-0 text-cyan hover:bg-transparent hover:text-cyan-50" onClick={() => onSwitchMode(isRegister ? 'login' : 'register')}>
             {isRegister ? 'Đăng nhập' : 'Đăng ký ngay'}
-          </button>
+          </Button>
         </div>
       </form>
     </div>

@@ -1,6 +1,5 @@
-import { EmptyState } from '../components/ui/EmptyState';
+import { EmptyState, SearchBar } from '../components/ui';
 import { GameGrid } from '../components/games/GameGrid';
-import { SearchBar } from '../components/ui/SearchBar';
 import { Route } from '../lib/routes';
 import { Game } from '../types';
 

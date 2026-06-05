@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Bell, LayoutDashboard, LogOut, Receipt, UserRound, WalletCards } from 'lucide-react';
 import { BrandLogo } from './BrandLogo';
 import { HeaderAccountMenu, type HeaderAccountMenuItem } from './HeaderAccountMenu';
-import { SearchBar } from '../ui/SearchBar';
+import { Button, IconBox, SearchBar } from '../ui';
 import { userDisplayName } from '../../lib/labels';
 import { Route } from '../../lib/routes';
 import { classNames } from '../../lib/ui';
@@ -95,23 +95,24 @@ export function AppHeader({
               const isActive = route.name === link.route.name; // Đặt một biến check cho gọn code
 
               return (
-                <button
+                <Button
                   key={link.label}
                   type="button"
+                  variant={isActive ? 'accent' : 'default'}
                   className={classNames(
                     // 1. CÁC CLASS NỀN TẢNG (Luôn luôn có)
                     'rounded-lg font-semibold transition-all duration-200 outline-none focus-visible:outline-none',
                     'px-4 py-2 text-sm text-slate-300',
 
                     // 2. HIỆU ỨNG HOVER (Khi di chuột vào các nút KHÔNG active)
-                    'hover:-translate-y-0.5 hover:border-sky-300/20 hover:bg-sky-400/10 hover:text-sky-50 hover:shadow-[0_8px_24px_rgba(56,189,248,0.10)]',
-                    'focus-visible:-translate-y-0.5 focus-visible:border-sky-300/20 focus-visible:bg-sky-400/10 focus-visible:text-sky-50 focus-visible:shadow-[0_8px_24px_rgba(56,189,248,0.10)]',
+                    'hover:-translate-y-0.5 hover:border-cyan/25 hover:bg-cyan/10 hover:text-cyan-50 hover:shadow-[0_8px_24px_rgba(34,211,238,0.10)]',
+                    'focus-visible:-translate-y-0.5 focus-visible:border-cyan/25 focus-visible:bg-cyan/10 focus-visible:text-cyan-50 focus-visible:shadow-[0_8px_24px_rgba(34,211,238,0.10)]',
 
                     // 3. TRẠNG THÁI CHƯA CLICK (Default State)
                     !isActive && 'border border-transparent bg-transparent',
 
                     // 4. TRẠNG THÁI ĐÃ CLICK (Active State) - GIỮ LẠI TRỌN VẸN HIỆU ỨNG SÁNG BỪNG
-                    isActive && '-translate-y-0.5 border border-sky-300/25 bg-sky-400/15 text-sky-50 shadow-[0_8px_24px_rgba(56,189,248,0.15)] brightness-110'
+                    isActive && '-translate-y-0.5 border border-cyan/25 bg-cyan/10 text-cyan-50 shadow-[0_8px_24px_rgba(34,211,238,0.15)] brightness-110'
                   )}
                   onClick={() => {
                     if ((link.route.name === 'orders' || link.route.name === 'wallet') && !hasLogin) {
@@ -122,7 +123,7 @@ export function AppHeader({
                   }}
                 >
                   {link.label}
-                </button>
+                </Button>
               );
             })}
           </nav>
@@ -131,7 +132,7 @@ export function AppHeader({
         <div className="header-actions flex flex-1 items-center justify-end gap-3">
           <SearchBar
             dense
-            className="hidden md:flex w-full max-w-[160px] lg:max-w-[200px] shrink-0"
+            className="hidden w-full shrink-0 max-w-40 md:flex lg:max-w-52"
             value={keyword}
             onChange={setKeyword}
             onEnter={handleSearch}
@@ -167,14 +168,14 @@ function HeaderWalletButton({
   if (!hasLogin) return null;
 
   return (
-    <button
-      type="button"
-      className="hidden h-11 items-center gap-2 rounded-xl border border-white/10 bg-[rgba(255,255,255,0.025)] pl-2 pr-3.5 text-sm font-black text-slate-100 shadow-none transition-all duration-200 hover:-translate-y-0.5 hover:border-cyanline/35 hover:shadow-[0_0_0_1px_rgba(34,211,238,0.08),0_0_18px_rgba(34,211,238,0.12)] sm:inline-flex"
-      onClick={onClick}
-    >
-      <div className="flex h-7 w-7 items-center justify-center rounded-lg border border-cyanline/15 bg-cyanline/10 text-cyanline">
+          <button
+            type="button"
+            className="gt-interactive hidden h-11 items-center gap-2 rounded-xl border border-white/10 bg-white/5 pl-2 pr-3.5 text-sm font-black text-slate-100 shadow-none sm:inline-flex"
+            onClick={onClick}
+          >
+      <IconBox size="sm" className="h-7 w-7 rounded-lg">
         <WalletCards size={15} />
-      </div>
+      </IconBox>
       <span className="tracking-wide text-white">
         {wallet ? formatCurrency(wallet.balance) : '---'}
       </span>
@@ -200,9 +201,9 @@ function HeaderAuthSlot({
   onNavigate: (route: Route) => void;
 }) {
   return (
-    <div className="header-user-group hidden min-h-11 min-w-[176px] items-center justify-end gap-3 sm:flex">
+    <div className="header-user-group hidden min-h-11 min-w-44 items-center justify-end gap-3 sm:flex">
       {shouldShowAuthSkeleton ? (
-        <div className="flex min-h-11 min-w-[176px] items-center gap-3 rounded-xl border border-white/10 bg-ink-lighter px-3 py-2">
+        <div className="flex min-h-11 min-w-44 items-center gap-3 rounded-xl border border-white/10 bg-ink-lighter px-3 py-2">
           <div className="h-8 w-8 animate-pulse rounded-full bg-white/10" />
           <div className="grid gap-1">
             <div className="h-3 w-24 animate-pulse rounded-full bg-white/10" />
@@ -213,7 +214,7 @@ function HeaderAuthSlot({
         <>
           <button
             type="button"
-            className="relative hidden h-11 w-11 items-center justify-center rounded-xl border border-white/10 bg-ink-lighter text-slate-200 transition-all duration-200 hover:-translate-y-0.5 hover:border-sky-300/30 hover:bg-sky-500/10 hover:text-sky-50 hover:shadow-[0_8px_24px_rgba(56,189,248,0.10)] sm:inline-flex"
+            className="gt-interactive relative hidden h-11 w-11 items-center justify-center rounded-xl border border-white/10 bg-ink-lighter text-slate-200 sm:inline-flex"
             title="Thông báo"
           >
             <Bell size={18} />
@@ -228,14 +229,15 @@ function HeaderAuthSlot({
           />
         </>
       ) : (
-        <button
+        <Button
           type="button"
-          className="inline-flex min-h-11 min-w-[176px] items-center justify-center rounded-xl bg-gradient-to-r from-sky-300 via-cyanline to-sky-200 px-4 text-sm font-bold text-slate-950 shadow-[0_4px_14px_rgba(56,189,248,0.18)] transition-all duration-200 hover:-translate-y-0.5 hover:brightness-110 hover:shadow-[0_6px_20px_rgba(56,189,248,0.28)]"
+          variant="accent"
+          className="min-h-11 min-w-44 rounded-xl px-4 text-sm font-bold text-slate-950 shadow-[0_4px_14px_rgba(34,211,238,0.18)]"
           onClick={() => onNavigate({ name: 'account' })}
         >
           <UserRound size={17} />
-          <span className="ml-1 hidden sm:inline">Đăng nhập</span>
-        </button>
+          <span className="hidden sm:inline">Đăng nhập</span>
+        </Button>
       )}
     </div>
   );

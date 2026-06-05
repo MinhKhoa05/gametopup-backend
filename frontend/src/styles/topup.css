@@ -62,12 +62,12 @@
 }
 
 .topup-step.active {
-  color: var(--color-cyanline);
+  color: var(--color-accent);
 }
 
 .topup-step.active span {
   color: #04111c;
-  background: var(--color-cyanline);
+  background: var(--color-accent);
   box-shadow: 0 0 0 3px rgb(34 211 238 / 0.08);
   transform: translateY(-1px) scale(1.06);
 }

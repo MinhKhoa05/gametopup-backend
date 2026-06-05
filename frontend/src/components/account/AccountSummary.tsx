@@ -1,7 +1,5 @@
 import { Mail, ShieldCheck, UserRound } from 'lucide-react';
-import { Badge } from '../ui/Badge';
-import { IconBox } from '../ui/IconBox';
-import { StatCard } from '../ui/StatCard';
+import { Badge, IconBox, StatCard } from '../ui';
 import { formatCurrency } from '../../lib/format';
 import { userDisplayName } from '../../lib/labels';
 import type { User, WalletInfo } from '../../types';
@@ -24,6 +22,7 @@ export function AccountSummary({ user, wallet, ordersCount }: AccountSummaryProp
   const displayName = userDisplayName(user);
   const roleLabel = isAdminUser(user) ? 'Quản trị viên' : 'Tài khoản cá nhân';
   const statusLabel = user.isActive === false ? 'Tạm khóa' : 'Đang hoạt động';
+  const statIconClassName = 'flex items-center justify-center rounded-xl bg-cyan/10 text-cyan shadow-[inset_0_0_22px_rgba(34,211,238,0.06)]';
 
   return (
     <div className="grid gap-0 px-4 pt-5 pb-6 md:p-5 lg:px-6 lg:pt-5 lg:pb-6">
@@ -31,11 +30,7 @@ export function AccountSummary({ user, wallet, ordersCount }: AccountSummaryProp
         <div className="grid grid-cols-1 items-center gap-4 pr-0 md:grid-cols-[auto_minmax(0,1fr)] md:justify-items-start lg:pr-6">
           <IconBox
             size="lg"
-            style={{
-              background:
-                'radial-gradient(circle at 30% 30%, rgba(34, 211, 238, 0.24), transparent 55%), rgba(34, 211, 238, 0.1)',
-            }}
-            className="!h-24 !w-24 !rounded-full !border !border-cyanline/20 !text-cyanline !shadow-[inset_0_0_28px_rgba(34,211,238,0.08)]"
+            className="!h-24 !w-24 !rounded-full !bg-[radial-gradient(circle_at_30%_30%,rgba(34,211,238,0.24),transparent_55%),rgba(34,211,238,0.1)] !shadow-[inset_0_0_28px_rgba(34,211,238,0.08)]"
           >
             <UserRound size={56} strokeWidth={1.8} />
           </IconBox>
@@ -45,15 +40,15 @@ export function AccountSummary({ user, wallet, ordersCount }: AccountSummaryProp
               {displayName}
             </div>
 
-            <div className="text-[0.9rem] text-[#b0bfd3]">{user.email}</div>
+            <div className="text-sm text-slate-400">{user.email}</div>
 
             <div className="flex flex-wrap gap-2.5">
-              <Badge tone="info" icon={<ShieldCheck size={14} />}>
+              <Badge variant="accent" icon={<ShieldCheck size={14} />}>
                 {roleLabel}
               </Badge>
 
               <Badge
-                tone={user.isActive === false ? 'warning' : 'success'}
+                variant={user.isActive === false ? 'warning' : 'success'}
                 icon={<span className="inline-block h-2 w-2 flex-none rounded-full bg-emerald-500 shadow-[0_0_0_4px_rgba(34,197,94,0.12)]" />}
               >
                 {statusLabel}
@@ -68,7 +63,7 @@ export function AccountSummary({ user, wallet, ordersCount }: AccountSummaryProp
           <StatCard
             surface={false}
             variant="inline"
-            iconClassName="border border-cyanline/15 bg-cyanline/10 text-cyanline shadow-[inset_0_0_22px_rgba(34,211,238,0.06)]"
+            iconClassName={statIconClassName}
             icon={<Mail size={24} />}
             label="Số dư ví"
             value={formatCurrency(wallet?.balance || 0)}
@@ -79,7 +74,7 @@ export function AccountSummary({ user, wallet, ordersCount }: AccountSummaryProp
           <StatCard
             surface={false}
             variant="inline"
-            iconClassName="border border-cyanline/15 bg-cyanline/10 text-cyanline shadow-[inset_0_0_22px_rgba(34,211,238,0.06)]"
+            iconClassName={statIconClassName}
             icon={<Mail size={24} />}
             label="Đơn hàng"
             value={`${ordersCount} đơn`}

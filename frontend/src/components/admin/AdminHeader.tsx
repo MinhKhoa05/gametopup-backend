@@ -1,8 +1,7 @@
 import type { ReactNode } from 'react';
 import { ArrowLeft, Boxes, Gamepad2, LayoutDashboard, LogOut, ReceiptText, RefreshCw, ShieldCheck, Users } from 'lucide-react';
 import type { Route } from '../../lib/routes';
-import { classNames } from '../../lib/ui';
-import { SectionHeading } from '../ui/SectionHeading';
+import { Badge, Button, IconBox, SectionHeading } from '../ui';
 
 const sectionMeta: Record<
   NonNullable<Extract<Route, { name: 'admin' }>['section']>,
@@ -53,15 +52,15 @@ export function AdminHeader({
 
   return (
     <div className="mx-auto w-full max-w-[1560px] px-4 pt-5 sm:px-6 lg:px-8">
-      <div className="gametopup-surface grid gap-5 border-cyanline/10">
+      <div className="gt-surface grid gap-5 border-cyan/10">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <SectionHeading
             eyebrow="Admin"
             title={
               <span className="inline-flex items-center gap-2">
-                <span className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-cyanline/10 text-cyanline">
+                <IconBox size="sm" className="h-8 w-8 rounded-xl">
                   {meta.icon}
-                </span>
+                </IconBox>
                 {meta.label}
               </span>
             }
@@ -69,49 +68,27 @@ export function AdminHeader({
           />
 
           <div className="flex flex-wrap items-center gap-2.5">
-            <span
-              className={classNames(
-                'inline-flex items-center gap-2 rounded-full border px-3 py-2 text-xs font-bold uppercase tracking-[0.12em]',
-                loading
-                  ? 'border-cyanline/20 bg-cyanline/10 text-cyanline'
-                  : 'border-white/10 bg-white/5 text-slate-300',
-              )}
-            >
-              <ShieldCheck size={14} />
+            <Badge className="gap-2 uppercase tracking-[0.12em]" variant={loading ? 'accent' : 'default'} icon={<ShieldCheck size={14} />}>
               {loading ? 'Đang đồng bộ' : 'Sẵn sàng'}
-            </span>
+            </Badge>
 
-            <button
-              type="button"
-              className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-bold text-slate-200 transition hover:border-cyanline/30 hover:bg-cyanline/10 hover:text-white"
-              onClick={() => navigate({ name: 'home' })}
-            >
+            <Button onClick={() => navigate({ name: 'home' })}>
               <ArrowLeft size={16} />
               Về site
-            </button>
+            </Button>
 
-            <button
-              type="button"
-              className={classNames(
-                'inline-flex items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-bold transition',
-                loading
-                  ? 'border-cyanline/30 bg-cyanline/10 text-cyanline'
-                  : 'border-white/10 bg-white/5 text-slate-200 hover:border-cyanline/30 hover:bg-cyanline/10 hover:text-white',
-              )}
-              onClick={onRefresh}
-            >
+            <Button variant={loading ? 'accent' : 'default'} onClick={onRefresh}>
               <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
               Làm mới
-            </button>
+            </Button>
 
-            <button
-              type="button"
-              className="inline-flex items-center justify-center gap-2 rounded-xl border border-rose-400/20 bg-rose-400/10 px-4 py-2.5 text-sm font-bold text-rose-200 transition hover:border-rose-400/40 hover:bg-rose-400/15 hover:text-white"
+            <Button
+              className="border-rose-400/25 bg-rose-500/10 text-rose-200 hover:border-rose-400/40 hover:bg-rose-500/15 hover:text-white"
               onClick={onLogout}
             >
               <LogOut size={16} />
               Đăng xuất
-            </button>
+            </Button>
           </div>
         </div>
       </div>

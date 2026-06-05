@@ -5,7 +5,7 @@ import { statusLabel } from '../../lib/labels';
 import type { Game, Order, User } from '../../types';
 import type { AdminCatalogMetrics } from '../../types/admin.type';
 import { AdminSkeleton, EmptyLine, PanelTitle } from './AdminShared';
-import { StatCard } from '../ui/StatCard';
+import { IconBox, StatCard } from '../ui';
 
 export function DashboardPanel({
   games,
@@ -27,14 +27,14 @@ export function DashboardPanel({
   return (
     <div className="grid min-w-0 gap-5">
       <div className="flex flex-wrap gap-2.5">
-        <span className="inline-flex items-center gap-2 rounded-full border border-cyanline/16 bg-slate-900/70 px-3.5 py-2 text-[0.86rem] font-semibold text-slate-200">
-          <strong className="text-cyanline text-base font-bold">{games.length}</strong> Game
+        <span className="inline-flex items-center gap-2 rounded-full border border-cyan/10 bg-slate-900/70 px-3.5 py-2 text-[0.86rem] font-semibold text-slate-200">
+          <strong className="text-cyan text-base font-bold">{games.length}</strong> Game
         </span>
-        <span className="inline-flex items-center gap-2 rounded-full border border-cyanline/16 bg-slate-900/70 px-3.5 py-2 text-[0.86rem] font-semibold text-slate-200">
-          <strong className="text-cyanline text-base font-bold">{metrics.totalPackages}</strong> Gói nạp
+        <span className="inline-flex items-center gap-2 rounded-full border border-cyan/10 bg-slate-900/70 px-3.5 py-2 text-[0.86rem] font-semibold text-slate-200">
+          <strong className="text-cyan text-base font-bold">{metrics.totalPackages}</strong> Gói nạp
         </span>
-        <span className="inline-flex items-center gap-2 rounded-full border border-cyanline/16 bg-slate-900/70 px-3.5 py-2 text-[0.86rem] font-semibold text-slate-200">
-          <strong className="text-cyanline text-base font-bold">{metrics.disabledPackages}</strong> Đã tắt
+        <span className="inline-flex items-center gap-2 rounded-full border border-cyan/10 bg-slate-900/70 px-3.5 py-2 text-[0.86rem] font-semibold text-slate-200">
+          <strong className="text-cyan text-base font-bold">{metrics.disabledPackages}</strong> Đã tắt
         </span>
       </div>
 
@@ -47,7 +47,7 @@ export function DashboardPanel({
       </div>
 
       <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1.18fr)_minmax(380px,0.82fr)]">
-        <div className="gametopup-surface">
+        <div className="gt-surface">
           <PanelTitle title="Đơn hàng gần đây" action="Xem đơn hàng" onAction={() => navigate({ name: 'admin', section: 'orders' })} />
           {loading && latestOrders.length === 0 ? (
             <AdminSkeleton rows={5} />
@@ -56,10 +56,10 @@ export function DashboardPanel({
           ) : (
             <div className="grid gap-2.5">
               {latestOrders.map((order) => (
-                <div className="gametopup-record-row grid-cols-[auto_minmax(0,1fr)_auto]" key={order.id}>
-                  <span className="inline-flex h-12 w-12 flex-none items-center justify-center rounded-xl bg-cyanline/10 text-[0.8rem] font-black text-cyanline">
+                <div className="gt-record-row grid-cols-[auto_minmax(0,1fr)_auto]" key={order.id}>
+                  <IconBox size="md" className="font-black text-[0.8rem]">
                     #{order.id}
-                  </span>
+                  </IconBox>
                   <div>
                     <strong>{statusLabel(order.status)}</strong>
                     <small>
@@ -73,7 +73,7 @@ export function DashboardPanel({
           )}
         </div>
 
-        <div className="gametopup-surface">
+        <div className="gt-surface">
           <PanelTitle title="Hướng dẫn nhanh" />
           <div className="rounded-2xl border border-dashed border-white/12 px-6 py-8 text-left leading-6 text-slate-400">
             Vào mục <b>Gói nạp</b>, chọn game ở danh sách bên trái, hệ thống sẽ tải và hiển thị các gói thuộc đúng game đó.

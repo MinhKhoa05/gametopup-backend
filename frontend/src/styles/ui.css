@@ -1,0 +1,65 @@
+/* Base */
+.gt-eyebrow {
+  margin: 0 0 4px;
+  color: var(--gt-cyan-text);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+:is(.gt-surface, .gt-surface-ink) {
+  min-width: 0;
+  border-radius: var(--gt-radius-md);
+  border: 1px solid var(--gt-border);
+  background: var(--color-ink-light);
+}
+
+.gt-surface {
+  padding: 20px;
+}
+
+:is(.gt-panel, .gt-panel-soft) {
+  border: 1px solid var(--gt-border);
+}
+
+.gt-panel {
+  background: var(--gt-surface);
+}
+
+.gt-panel-soft {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.gt-divider {
+  border-color: var(--gt-border);
+}
+
+/* Empty / rows */
+.gt-record-row {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 12px;
+  align-items: center;
+  border: 1px solid var(--gt-border);
+  border-radius: var(--gt-radius-sm);
+  background: var(--gt-record-bg);
+  padding: 11px 12px;
+}
+
+/* Effects */
+.gt-interactive {
+  transition: var(--gt-transition);
+}
+
+.gt-interactive:hover:not(:disabled) {
+  transform: translateY(-2px);
+  background-color: var(--gt-cyan-surface);
+  box-shadow: 0 0 18px var(--gt-cyan-shadow);
+}
+
+.gt-interactive:active {
+  transform: translateY(-1px);
+  filter: brightness(1.04);
+}

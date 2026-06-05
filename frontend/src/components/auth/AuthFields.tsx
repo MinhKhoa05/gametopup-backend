@@ -1,4 +1,4 @@
-import { Field } from '../ui/Field';
+import { Button, Field } from '../ui';
 import { classNames } from '../../lib/ui';
 import type { AuthFormState, AuthMode } from '../../types';
 
@@ -19,7 +19,7 @@ export function AuthFields({ mode, busy, form, onChange, submitClassName = '' }:
         <Field
           label="Tên hiển thị"
           value={form.displayName}
-          onChange={(value) => onChange({ ...form, displayName: value })}
+          onChange={(event) => onChange({ ...form, displayName: event.target.value })}
           placeholder="Nguyễn Văn A"
         />
       )}
@@ -27,7 +27,7 @@ export function AuthFields({ mode, busy, form, onChange, submitClassName = '' }:
       <Field
         label="Email"
         value={form.email}
-        onChange={(value) => onChange({ ...form, email: value })}
+        onChange={(event) => onChange({ ...form, email: event.target.value })}
         placeholder="customer01@gametopup.com"
         type="email"
       />
@@ -35,14 +35,14 @@ export function AuthFields({ mode, busy, form, onChange, submitClassName = '' }:
       <Field
         label="Mật khẩu"
         value={form.password}
-        onChange={(value) => onChange({ ...form, password: value })}
+        onChange={(event) => onChange({ ...form, password: event.target.value })}
         placeholder="Nhập mật khẩu"
         type="password"
       />
 
-      <button className={classNames('btn-primary w-full text-lg', submitClassName)} type="submit" disabled={busy}>
+      <Button className={classNames('w-full text-lg', submitClassName)} type="submit" variant="accent" disabled={busy}>
         {busy ? 'Đang xử lý...' : isRegister ? 'Đăng ký' : 'Đăng nhập'}
-      </button>
+      </Button>
     </>
   );
 }

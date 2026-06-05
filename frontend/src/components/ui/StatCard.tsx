@@ -20,7 +20,7 @@ export function StatCard({
   value: ReactNode;
   }) {
   const rootClassName = classNames(
-    surface && 'rounded-2xl border border-white/6 bg-ink-light',
+    surface && 'gt-surface-ink rounded-2xl',
     'grid min-w-0 gap-4',
     variant === 'stacked' ? 'p-5' : 'grid-cols-[auto_minmax(0,1fr)] items-center gap-3 p-4',
     className,

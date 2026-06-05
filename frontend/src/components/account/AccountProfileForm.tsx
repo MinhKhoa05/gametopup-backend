@@ -1,8 +1,7 @@
 import { FormEvent } from 'react';
 import { Save, ShieldCheck } from 'lucide-react';
 
-import { Field } from '../ui/Field';
-import { SectionHeading } from '../ui/SectionHeading';
+import { Button, Field, SectionHeading } from '../ui';
 
 type AccountProfileFormProps = {
   email: string;
@@ -24,7 +23,7 @@ export function AccountProfileForm({
   onSubmit,
 }: AccountProfileFormProps) {
   return (
-    <section className="gametopup-surface min-h-0">
+    <section className="gt-surface min-h-0">
       <SectionHeading
         className="mb-4"
         title="Thông tin cá nhân"
@@ -35,7 +34,7 @@ export function AccountProfileForm({
         <Field
           label="Tên hiển thị"
           value={draftName}
-          onChange={onDraftNameChange}
+          onChange={(event) => onDraftNameChange(event.target.value)}
           placeholder="Nhập tên hiển thị"
         />
 
@@ -60,14 +59,10 @@ export function AccountProfileForm({
         )}
 
         <div className="flex w-full justify-start gap-2 pt-0.5">
-          <button
-            className="btn-primary min-w-[156px]"
-            type="submit"
-            disabled={!canSave || busy}
-          >
+          <Button className="min-w-40" type="submit" variant="accent" disabled={!canSave || busy}>
             <Save size={16} />
             {busy ? 'Đang lưu...' : 'Lưu thay đổi'}
-          </button>
+          </Button>
         </div>
       </form>
     </section>

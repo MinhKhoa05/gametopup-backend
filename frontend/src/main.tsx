@@ -5,10 +5,12 @@ import { persistQueryClientRestore, persistQueryClientSubscribe } from '@tanstac
 import { createAsyncStoragePersister } from '@tanstack/query-async-storage-persister';
 import { BrowserRouter } from 'react-router-dom';
 import { App } from './App';
+import { Button } from './components/ui';
 import { queryClient } from './lib/queryClient';
 import './styles/globals.css';
-import './styles/components.css';
 import './styles/topup.css';
+import './styles/theme.css';
+import './styles/ui.css';
 
 const persister = createAsyncStoragePersister({
   storage: window.localStorage,
@@ -38,7 +40,7 @@ class AppErrorBoundary extends React.Component<{ children: React.ReactNode }, { 
         <div className="min-h-screen bg-ink px-6 py-8 text-slate-100">
           <div className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-2xl items-center">
             <div className="w-full rounded-3xl border border-white/10 bg-ink-light p-6 shadow-glow sm:p-8">
-              <p className="eyebrow">System error</p>
+              <p className="gt-eyebrow">System error</p>
               <h1 className="mt-2 text-2xl font-black tracking-tight text-white sm:text-3xl">
                 {'Ứng dụng đã gặp lỗi khi khởi tạo'}
               </h1>
@@ -48,9 +50,9 @@ class AppErrorBoundary extends React.Component<{ children: React.ReactNode }, { 
               <pre className="mt-5 overflow-auto rounded-2xl border border-rose-400/20 bg-black/20 p-4 text-sm leading-6 text-rose-200">
                 {this.state.error.message}
               </pre>
-              <button type="button" className="btn-primary mt-6" onClick={() => window.location.reload()}>
+              <Button type="button" variant="accent" className="mt-6" onClick={() => window.location.reload()}>
                 {'Tải lại trang'}
-              </button>
+              </Button>
             </div>
           </div>
         </div>

@@ -1,9 +1,7 @@
 import { FormEvent } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { BadgeCheck, LogOut, ShieldCheck, UserPlus, UserRound, WalletCards } from 'lucide-react';
-import { Badge } from '../ui/Badge';
-import { IconBox } from '../ui/IconBox';
-import { StatCard } from '../ui/StatCard';
+import { Badge, IconBox, StatCard } from '../ui';
 import { formatCurrency } from '../../lib/format';
 import { userDisplayName } from '../../lib/labels';
 import { WalletInfo } from '../../types';
@@ -42,7 +40,7 @@ export function AuthPanel({
 
   if (isAuthPending && !user) {
     return (
-      <aside className="gametopup-surface h-fit self-start bg-gradient-to-br from-ink-lighter to-ink-light">
+      <aside className="gt-surface h-fit self-start bg-gradient-to-br from-ink-lighter to-ink-light">
         <div className="flex items-center justify-between gap-4">
           <div className="h-9 w-48 animate-pulse rounded-full bg-white/10" />
           <div className="h-9 w-9 animate-pulse rounded-xl bg-white/10" />
@@ -56,12 +54,12 @@ export function AuthPanel({
   }
 
   return (
-    <aside className="gametopup-surface h-fit self-start bg-gradient-to-br from-ink-lighter to-ink-light">
+    <aside className="gt-surface h-fit self-start bg-gradient-to-br from-ink-lighter to-ink-light">
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <IconBox size="md">{hasLogin ? <UserRound size={23} /> : isRegister ? <UserPlus size={23} /> : <ShieldCheck size={23} />}</IconBox>
           <div>
-            <p className="eyebrow">{hasLogin ? 'Xin chào' : isRegister ? 'Chào bạn mới' : 'Đăng nhập'}</p>
+            <p className="gt-eyebrow">{hasLogin ? 'Xin chào' : isRegister ? 'Chào bạn mới' : 'Đăng nhập'}</p>
             <h3 className="text-xl font-bold text-white">{hasLogin ? displayName : isRegister ? 'Đăng ký' : 'Đăng nhập'}</h3>
           </div>
         </div>
@@ -104,7 +102,7 @@ export function AuthPanel({
             <button
               type="button"
               onClick={() => onSwitchMode(isRegister ? 'login' : 'register')}
-              className="font-bold text-cyanline"
+              className="font-bold text-cyan"
             >
               {isRegister ? 'Đăng nhập' : 'Đăng ký ngay'}
             </button>

@@ -35,7 +35,7 @@ export function BottomNav({
           type="button"
           aria-current={route.name === tab.route.name ? 'page' : undefined}
           className={classNames(
-            'flex min-w-0 flex-col items-center gap-1 rounded-none border-0 bg-transparent px-[10px] pb-1.5 pt-1.5 text-[0.72rem] font-semibold text-slate-500 transition-[color,transform] duration-200',
+            'flex min-w-0 flex-col items-center gap-1 rounded-none border-0 bg-transparent px-2.5 pb-1.5 pt-1.5 text-[0.72rem] font-semibold text-slate-500 transition-[color,transform] duration-200',
             route.name === tab.route.name ? 'text-slate-100' : 'hover:text-slate-300',
           )}
           onClick={() => navigate(tab.route)}

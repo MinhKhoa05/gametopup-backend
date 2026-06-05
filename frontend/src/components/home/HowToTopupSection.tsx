@@ -1,4 +1,5 @@
 import { Gamepad2, WalletCards, Zap } from 'lucide-react';
+import { ActionCard, IconBox } from '../ui';
 
 type HowToTopupSectionProps = {
   hasLogin: boolean;
@@ -29,41 +30,21 @@ export function HowToTopupSection({ hasLogin }: HowToTopupSectionProps) {
   return (
     <div>
       <h2 className="mb-6 text-2xl font-extrabold text-white">Cách Thức Nạp Game</h2>
-      {hasLogin ? (
-        <div className="grid gap-4 md:grid-cols-3">
-          {steps.map((step) => (
-            <article
-              key={step.id}
-              className="flex items-center gap-4 rounded-2xl border border-white/5 bg-ink-lighter p-6 text-left transition-all duration-300"
-            >
-              <div className="grid h-12 w-12 flex-none place-items-center rounded-xl bg-cyanline/10 text-cyanline">
+      <div className={hasLogin ? 'grid gap-4 md:grid-cols-3' : 'grid gap-4'}>
+        {steps.map((step) => (
+          <ActionCard
+            key={step.id}
+            centered={!hasLogin}
+            icon={
+              <IconBox size="md">
                 {step.icon}
-              </div>
-              <div className="space-y-1">
-                <strong className="block text-lg text-white">{step.title}</strong>
-                <span className="block text-slate-400">{step.desc}</span>
-              </div>
-            </article>
-          ))}
-        </div>
-      ) : (
-        <div className="grid gap-4">
-          {steps.map((step) => (
-            <article
-              key={step.id}
-              className="flex flex-col gap-3 rounded-2xl border border-white/5 bg-ink-lighter p-6 text-center transition-all duration-300 md:items-center"
-            >
-              <div className="grid h-12 w-12 flex-none place-items-center rounded-xl bg-cyanline/10 text-cyanline">
-                {step.icon}
-              </div>
-              <div className="space-y-1">
-                <strong className="block text-lg text-white">{step.title}</strong>
-                <span className="block text-slate-400">{step.desc}</span>
-              </div>
-            </article>
-          ))}
-        </div>
-      )}
+              </IconBox>
+            }
+            title={step.title}
+            description={step.desc}
+          />
+        ))}
+      </div>
     </div>
   );
 }

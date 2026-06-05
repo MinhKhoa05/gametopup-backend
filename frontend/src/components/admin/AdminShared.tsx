@@ -1,9 +1,4 @@
-import { CheckCircle2, X } from 'lucide-react';
-import { Badge } from '../ui/Badge';
-import { Field } from '../ui/Field';
-import { classNames } from '../../lib/ui';
-import { SectionHeading } from '../ui/SectionHeading';
-import { SearchBar } from '../ui/SearchBar';
+import { Button, Field, SearchBar, SectionHeading } from '../ui';
 
 export function PanelTitle({
   action,
@@ -18,9 +13,9 @@ export function PanelTitle({
     <SectionHeading
       action={
         action ? (
-          <button type="button" className="inline-flex items-center gap-2 text-cyanline hover:text-cyan-100" onClick={onAction}>
+          <Button className="border-none bg-transparent px-0 py-0 text-cyan hover:bg-transparent hover:text-cyan-50" onClick={onAction}>
             {action}
-          </button>
+          </Button>
         ) : null
       }
       title={title}
@@ -40,31 +35,26 @@ export function SearchBox({
   return <SearchBar className="mb-4" inputClassName="text-sm" value={value} onChange={onChange} placeholder={placeholder} />;
 }
 
-export function StatusPill({ active }: { active: boolean }) {
-  return (
-    <Badge
-      className={classNames(
-        'inline-flex min-h-0 items-center justify-center gap-1 rounded-full px-2.5 py-1 text-[0.78rem] font-bold whitespace-nowrap',
-        active ? 'border-emerald-400/20 bg-emerald-400/10 text-emerald-200' : 'border-slate-500/20 bg-slate-500/15 text-slate-200',
-      )}
-      icon={active ? <CheckCircle2 size={14} /> : <X size={14} />}
-      tone="default"
-    >
-      {active ? 'Bật' : 'Tắt'}
-    </Badge>
-  );
-}
-
 export function NumberField({
   label,
   onChange,
   value,
-}: {
+  }: {
   label: string;
   onChange: (value: number) => void;
   value: number;
 }) {
-  return <Field label={label} min={0} onChange={(next) => onChange(Number(next))} placeholder="0" required type="number" value={String(value)} />;
+  return (
+    <Field
+      label={label}
+      min={0}
+      onChange={(event) => onChange(Number(event.target.value))}
+      placeholder="0"
+      required
+      type="number"
+      value={String(value)}
+    />
+  );
 }
 
 export function AdminSkeleton({ rows }: { rows: number }) {

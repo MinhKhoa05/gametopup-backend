@@ -15,19 +15,14 @@ import {
   WalletCards,
   XCircle,
 } from 'lucide-react';
-import { Badge } from '../components/ui/Badge';
-import { EmptyState } from '../components/ui/EmptyState';
-import { IconBox } from '../components/ui/IconBox';
-import { SectionHeading } from '../components/ui/SectionHeading';
-import { StatCard } from '../components/ui/StatCard';
+import { ActionCard, Badge, Button, EmptyState, IconBox, SectionHeading, StatCard } from '../components/ui';
 import { WalletPanel } from '../components/wallet/WalletPanel';
 import { SITE } from '../config/site';
 import { formatCurrency, formatDate } from '../lib/format';
 import { Route } from '../lib/routes';
 import { classNames } from '../lib/ui';
 import { useDepositRequests, useWalletDeposit, useWalletTransactions } from '../hooks/wallet.hooks';
-import { DepositRequest, WalletInfo, WalletTransaction } from '../types';
-import { User } from '../types';
+import type { DepositRequest, User, WalletInfo, WalletTransaction } from '../types';
 
 const quickAmounts = [50000, 100000, 200000, 500000];
 const bankNames: Record<string, string> = {
@@ -50,6 +45,11 @@ const transactionFilters = [
   { label: 'Thanh toán', value: 'paid' },
   { label: 'Hoàn tiền', value: 'refund' },
 ] as const;
+
+const walletHeroClassName =
+  'grid gap-4 rounded-2xl border border-white/8 bg-[radial-gradient(circle_at_top_right,rgba(207,250,254,0.34),transparent_34%),linear-gradient(135deg,var(--gt-hero-start),var(--gt-hero-end))] p-5 md:grid-cols-[minmax(0,1fr)_auto] md:items-center';
+
+const walletEmptyStateClassName = 'border-x-0 border-b-0 border-t border-white/5 rounded-none bg-transparent p-6';
 
 type WalletView = 'overview' | 'deposit';
 type TransactionFilter = (typeof transactionFilters)[number]['value'];
@@ -91,21 +91,20 @@ export function WalletPage({
   if (view === 'deposit' || deposit.deposit) {
     return (
       <div className="mx-auto w-full max-w-6xl space-y-4">
-        <button
-          className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-bold text-slate-300 transition-colors hover:border-cyanline/30 hover:text-cyan-100"
-          type="button"
-          onClick={() => {
+      <Button
+        className="border-cyan/25 bg-transparent text-cyan-50 hover:bg-cyan/10 hover:text-cyan-50"
+        onClick={() => {
             deposit.setDeposit(null);
             setView('overview');
           }}
         >
           <ArrowLeft size={16} />
           Quay lại ví
-        </button>
+        </Button>
 
-        <section className="grid gap-4 rounded-2xl border border-white/6 bg-[radial-gradient(circle_at_top_right,rgba(34,211,238,0.08),transparent_34%),linear-gradient(135deg,rgba(13,31,54,0.84),rgba(7,17,31,0.96))] p-5 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
+        <section className={walletHeroClassName}>
           <div className="space-y-2">
-            <p className="eyebrow">Nạp ví</p>
+            <p className="gt-eyebrow">Nạp ví</p>
             <h1>Nạp số dư ví</h1>
             <p>Quét mã VietQR, chuyển đúng nội dung và xác nhận để hệ thống ghi nhận yêu cầu.</p>
           </div>
@@ -135,7 +134,7 @@ export function WalletPage({
           </main>
 
           <aside className="grid gap-4">
-            <div className="rounded-2xl border border-white/6 bg-ink-light p-6">
+            <div className="gt-surface-ink rounded-2xl p-6">
               <h3 className="mb-4 text-lg font-black text-white">Lưu ý khi nạp tiền</h3>
               <ul className="grid gap-3 text-sm leading-6 text-slate-400">
                 <li>Nội dung chuyển khoản phải chính xác như hệ thống cung cấp.</li>
@@ -147,7 +146,7 @@ export function WalletPage({
               </ul>
             </div>
 
-            <div className="flex items-start gap-3 rounded-2xl border border-cyan-400/15 bg-cyan-400/5 p-6 text-slate-300">
+            <div className="flex items-start gap-3 rounded-2xl border border-cyan/15 bg-cyan/10 p-6 text-slate-300">
               <ShieldCheck size={24} />
               <div className="min-w-0">
                 <strong className="block text-white">Không tự sửa nội dung chuyển khoản</strong>
@@ -162,7 +161,7 @@ export function WalletPage({
 
   return (
     <div className="mx-auto w-full max-w-6xl space-y-6">
-      <section className="grid gap-4 rounded-2xl border border-white/6 bg-[radial-gradient(circle_at_top_right,rgba(34,211,238,0.08),transparent_34%),linear-gradient(135deg,rgba(13,31,54,0.84),rgba(7,17,31,0.96))] p-5 md:grid-cols-[minmax(0,1fr)_auto] md:items-center md:p-7">
+      <section className={`${walletHeroClassName} md:p-7`}>
         <div className="space-y-4">
           <SectionHeading
             eyebrow={`Ví ${SITE.name}`}
@@ -170,49 +169,42 @@ export function WalletPage({
             description="Theo dõi biến động ví, nạp tiền và xem lịch sử giao dịch của tài khoản."
           />
           <div className="flex flex-wrap gap-2" aria-label="Thông tin nhanh">
-            <span className="inline-flex min-h-8 items-center rounded-full border border-white/10 bg-white/5 px-3 text-xs font-bold text-slate-300">VietQR an toàn</span>
-            <span className="inline-flex min-h-8 items-center rounded-full border border-white/10 bg-white/5 px-3 text-xs font-bold text-slate-300">Cập nhật tức thời</span>
-            <span className="inline-flex min-h-8 items-center rounded-full border border-white/10 bg-white/5 px-3 text-xs font-bold text-slate-300">Lịch sử rõ ràng</span>
+            <Badge>VietQR an toàn</Badge>
+            <Badge>Cập nhật tức thời</Badge>
+            <Badge>Lịch sử rõ ràng</Badge>
           </div>
         </div>
         <StatCard className="md:min-w-56" icon={<WalletCards size={20} />} label="Số dư khả dụng" value={formatCurrency(wallet?.balance || 0)} />
       </section>
 
       <div className="grid gap-3 md:grid-cols-2">
-        <button
-          type="button"
-          className="grid min-h-24 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-4 rounded-2xl border border-white/10 bg-white/4 px-5 py-4 text-left text-slate-100 transition-transform transition-colors hover:-translate-y-0.5 hover:border-cyan-400/30 hover:bg-cyan-400/8"
+        <ActionCard
+          icon={
+            <IconBox size="sm">
+              <ArrowDownLeft size={18} />
+            </IconBox>
+          }
+          title="Nạp tiền"
+          description="Tạo mã QR chuyển khoản VietQR."
           onClick={() => setView('deposit')}
-        >
-          <IconBox size="sm">
-            <ArrowDownLeft size={18} />
-          </IconBox>
-          <div className="min-w-0">
-            <strong className="block text-base font-black text-white">Nạp tiền</strong>
-            <small className="block text-sm text-slate-400">Tạo mã QR chuyển khoản VietQR.</small>
-          </div>
-          <ArrowRight size={18} className="text-slate-300" />
-        </button>
+        />
 
-        <button
-          type="button"
-          className="grid min-h-24 grid-cols-[auto_minmax(0,1fr)] items-center gap-4 rounded-2xl border border-white/10 bg-white/4 px-5 py-4 text-left text-slate-100 opacity-65"
+        <ActionCard
+          icon={
+            <IconBox size="sm">
+              <ArrowUpRight size={18} />
+            </IconBox>
+          }
+          title="Rút tiền"
+          description="Chức năng đang được phát triển."
           disabled
-          title="Chức năng rút tiền chưa hỗ trợ"
-        >
-          <IconBox size="sm">
-            <ArrowUpRight size={18} />
-          </IconBox>
-          <div className="min-w-0">
-            <strong className="block text-base font-black text-white">Rút tiền</strong>
-            <small className="block text-sm text-slate-400">Chức năng đang được phát triển.</small>
-          </div>
-        </button>
+          className="opacity-65"
+        />
       </div>
 
       <DepositRequestList loading={depositRequests.depositRequestsLoading} requests={depositRequests.depositRequests} onCreate={() => setView('deposit')} />
 
-      <section className="rounded-2xl border border-white/6 bg-ink-light">
+      <section className="gt-surface-ink rounded-2xl">
         <SectionHeading
           className="px-6 pt-6"
           action={<History size={22} />}
@@ -222,19 +214,14 @@ export function WalletPage({
 
         <div className="flex gap-2 overflow-x-auto px-6 pb-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {transactionFilters.map((item) => (
-            <button
-              key={item.value}
-              type="button"
-              className={classNames(
-                'whitespace-nowrap rounded-full border px-4 py-2 text-sm font-bold transition-colors',
-                filter === item.value
-                  ? 'border-cyan-400/30 bg-cyan-400/10 text-cyan-100'
-                  : 'border-white/10 bg-white/4 text-slate-400 hover:border-cyan-400/20 hover:text-slate-200',
-              )}
-              onClick={() => setFilter(item.value)}
-            >
-              {item.label}
-            </button>
+          <Button
+            key={item.value}
+            variant={filter === item.value ? 'accent' : 'default'}
+            className="min-h-10 whitespace-nowrap rounded-full px-3.5 py-2 text-sm"
+            onClick={() => setFilter(item.value)}
+          >
+            {item.label}
+          </Button>
           ))}
         </div>
 
@@ -248,7 +235,7 @@ function DepositRequestList({ loading, requests, onCreate }: { loading: boolean;
   const recentRequests = requests.slice(0, 4);
 
   return (
-    <section className="rounded-2xl border border-white/6 bg-ink-light">
+    <section className="gt-surface-ink rounded-2xl">
       <SectionHeading
         className="px-6 pt-6"
         action={<Send size={22} />}
@@ -257,17 +244,17 @@ function DepositRequestList({ loading, requests, onCreate }: { loading: boolean;
       />
 
       {loading && recentRequests.length === 0 ? (
-        <EmptyState className="rounded-none border-t border-white/6 bg-transparent px-6 py-6" title="Đang tải yêu cầu nạp..." />
+        <EmptyState className={walletEmptyStateClassName} title="Đang tải yêu cầu nạp..." />
       ) : recentRequests.length === 0 ? (
         <EmptyState
-          className="rounded-none border-t border-white/6 bg-transparent px-6 py-6"
+          className={walletEmptyStateClassName}
           title="Chưa có yêu cầu nạp nào."
           description="Hãy tạo yêu cầu mới để hệ thống cấp mã VietQR."
           actionLabel="Tạo yêu cầu nạp"
           onAction={onCreate}
         />
       ) : (
-        <div className="divide-y divide-white/6 border-t border-white/6">
+        <div className="divide-y divide-white/[0.06] border-t border-white/[0.06]">
           {recentRequests.map((request) => {
             const status = getDepositRequestStatus(request.status);
 
@@ -289,9 +276,9 @@ function DepositRequestList({ loading, requests, onCreate }: { loading: boolean;
                   <span className="mt-1 block break-words text-sm text-slate-300">{request.transferContent}</span>
                   <small className="mt-1 block text-xs font-semibold text-slate-500">{formatDate(request.createdAt)}</small>
                 </div>
-                <div className="grid gap-2 text-left md:max-w-[230px] md:justify-self-end md:text-right">
+                <div className="grid gap-2 text-left md:max-w-56 md:justify-self-end md:text-right">
                   <Badge
-                    tone={status.tone === 'approved' ? 'success' : status.tone === 'reviewing' ? 'info' : status.tone === 'rejected' ? 'danger' : 'warning'}
+                    variant={status.tone === 'approved' ? 'success' : status.tone === 'reviewing' ? 'accent' : status.tone === 'rejected' ? 'danger' : 'warning'}
                     icon={status.icon}
                   >
                     {status.label}
@@ -309,7 +296,7 @@ function DepositRequestList({ loading, requests, onCreate }: { loading: boolean;
 
 function DepositAmountForm({ amount, busy, onSubmit, setAmount }: { amount: number; busy: boolean; onSubmit: (event: FormEvent) => void; setAmount: (value: number) => void }) {
   return (
-    <form onSubmit={onSubmit} className="rounded-2xl border border-white/6 bg-ink-light p-6">
+    <form onSubmit={onSubmit} className="gt-surface-ink rounded-2xl p-6">
       <SectionHeading className="mb-6" action={<IconBox size="md"><WalletCards size={22} /></IconBox>} title="Tạo lệnh nạp" description="Chọn số tiền muốn nạp vào ví của bạn." />
 
       <label className="mb-4 block">
@@ -320,7 +307,7 @@ function DepositAmountForm({ amount, busy, onSubmit, setAmount }: { amount: numb
           onChange={(event) => setAmount(Number(event.target.value))}
           min={10000}
           step={10000}
-          className="w-full min-h-12 rounded-xl border border-white/10 bg-ink-lighter px-4 text-white outline-none transition-colors focus:border-cyanline focus:shadow-[0_0_0_3px_rgba(34,211,238,0.1)]"
+          className="w-full min-h-12 rounded-xl border border-white/10 bg-ink-lighter px-4 text-white outline-none transition-colors focus:border-cyan focus:shadow-[0_0_0_3px_rgba(34,211,238,0.1)]"
         />
       </label>
 
@@ -332,8 +319,8 @@ function DepositAmountForm({ amount, busy, onSubmit, setAmount }: { amount: numb
             className={classNames(
               'rounded-xl border px-3 py-3 text-sm font-bold transition-colors',
               amount === value
-                ? 'border-cyanline bg-cyanline/15 text-cyan-100'
-                : 'border-white/10 bg-white/4 text-slate-300 hover:border-cyanline/30 hover:bg-white/8',
+                  ? 'border-cyan bg-cyan/15 text-cyan-50'
+                  : 'border-white/10 bg-[rgba(255,255,255,0.03)] text-slate-300 hover:border-cyan/25 hover:bg-[rgba(255,255,255,0.04)]',
             )}
             onClick={() => setAmount(value)}
           >
@@ -342,9 +329,9 @@ function DepositAmountForm({ amount, busy, onSubmit, setAmount }: { amount: numb
         ))}
       </div>
 
-      <button type="submit" className="btn-primary w-full text-lg" disabled={amount < 10000 || busy}>
-        Tạo lệnh nạp <ArrowRight size={20} />
-      </button>
+            <Button type="submit" variant="accent" className="w-full text-lg" disabled={amount < 10000 || busy}>
+              Tạo lệnh nạp <ArrowRight size={20} />
+            </Button>
     </form>
   );
 }
@@ -352,7 +339,7 @@ function DepositAmountForm({ amount, busy, onSubmit, setAmount }: { amount: numb
 function WalletNotes() {
   return (
     <aside className="grid gap-4">
-      <div className="rounded-2xl border border-white/6 bg-ink-light p-6">
+      <div className="gt-surface-ink rounded-2xl p-6">
         <h3 className="mb-4 text-lg font-black text-white">Lưu ý khi nạp tiền</h3>
         <ul className="grid gap-3 text-sm leading-6 text-slate-400">
           <li>Nội dung chuyển khoản phải chính xác như hệ thống cung cấp.</li>
@@ -364,7 +351,7 @@ function WalletNotes() {
         </ul>
       </div>
 
-      <div className="flex items-start gap-3 rounded-2xl border border-cyan-400/15 bg-cyan-400/5 p-6 text-slate-300">
+      <div className="flex items-start gap-3 rounded-2xl border border-cyan/15 bg-cyan/10 p-6 text-slate-300">
         <ShieldCheck size={24} />
         <div className="min-w-0">
           <strong className="block text-white">Không tự sửa nội dung chuyển khoản</strong>
@@ -382,7 +369,7 @@ function DepositQrPanel({ deposit, busy, onConfirm }: { deposit: DepositRequest;
   const accountName = deposit.accountName || '--';
 
   return (
-    <div className="rounded-2xl border border-white/6 bg-ink-light p-6">
+    <div className="gt-surface-ink rounded-2xl p-6">
       <SectionHeading
         className="mb-6"
         action={<IconBox size="md"><QrCode size={22} /></IconBox>}
@@ -395,7 +382,7 @@ function DepositQrPanel({ deposit, busy, onConfirm }: { deposit: DepositRequest;
           <img src={deposit.qrImageUrl} alt="Mã QR chuyển khoản VietQR" />
         </div>
 
-        <div className="grid gap-2 rounded-2xl border border-white/6 bg-white/3 p-4">
+        <div className="grid gap-2 rounded-2xl gt-panel p-4">
           <InfoRow label="Số tiền" value={formatCurrency(deposit.amount)} highlight />
           <InfoRow label="Ngân hàng" value={bankName} />
           <InfoRow label="Số tài khoản" value={accountNo} copyValue={accountNo} />
@@ -404,35 +391,35 @@ function DepositQrPanel({ deposit, busy, onConfirm }: { deposit: DepositRequest;
         </div>
       </div>
 
-      <div className="mt-4 flex items-start gap-2 rounded-xl border border-cyan-400/15 bg-cyan-400/8 px-4 py-3 text-sm text-slate-300">
+      <div className="mt-4 flex items-start gap-2 rounded-xl border border-cyan/15 bg-cyan/10 px-4 py-3 text-sm text-slate-300">
         <CheckCircle2 size={20} />
         <span>Chỉ xác nhận sau khi bạn đã chuyển khoản thành công.</span>
       </div>
 
-      <button className="btn-primary mt-4 h-14 w-full text-lg" onClick={onConfirm} disabled={busy}>
+      <Button className="mt-4 h-14 w-full text-lg" type="button" variant="accent" onClick={onConfirm} disabled={busy}>
         Xác nhận đã chuyển khoản
-      </button>
+      </Button>
     </div>
   );
 }
 
 function WalletTransactionList({ loading, transactions }: { loading: boolean; transactions: WalletTransaction[] }) {
   if (loading && transactions.length === 0) {
-    return <EmptyState className="rounded-none border-t border-white/6 bg-transparent px-6 py-6" title="Đang tải lịch sử ví..." />;
+    return <EmptyState className={walletEmptyStateClassName} title="Đang tải lịch sử ví..." />;
   }
 
   if (transactions.length === 0) {
-    return <EmptyState className="rounded-none border-t border-white/6 bg-transparent px-6 py-6" title="Chưa có giao dịch phù hợp." />;
+    return <EmptyState className={walletEmptyStateClassName} title="Chưa có giao dịch phù hợp." />;
   }
 
   return (
-    <div className="divide-y divide-white/6 border-t border-white/6">
+    <div className="divide-y divide-white/[0.06] border-t border-white/[0.06]">
       {transactions.map((item) => (
         <div key={item.id} className="grid gap-4 px-6 py-5 md:grid-cols-[auto_minmax(0,1fr)_auto] md:items-center">
           <IconBox
             size="md"
             className={classNames(
-              '!bg-cyan-400/10 !text-cyan-300',
+              '!bg-cyan/10 !text-cyan',
               getTransactionGroup(item.type) === 'withdraw' && '!bg-rose-500/10 !text-rose-300',
               getTransactionGroup(item.type) === 'paid' && '!bg-rose-500/10 !text-rose-300',
               getTransactionGroup(item.type) === 'refund' && '!bg-emerald-500/10 !text-emerald-300',
@@ -472,17 +459,17 @@ function InfoRow({
   code?: boolean;
 }) {
   return (
-    <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-xl border border-white/6 bg-slate-950/35 px-4 py-3">
+    <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-xl gt-panel px-4 py-3">
       <span className="text-sm font-semibold text-slate-400">{label}</span>
       <div className="flex items-center gap-2 justify-self-end">
-        <strong className={classNames('max-w-[220px] overflow-hidden text-ellipsis text-right text-sm font-black', highlight ? 'text-cyan-100' : 'text-white', code ? 'font-mono tracking-tight' : '')}>
+        <strong className={classNames('max-w-[220px] overflow-hidden text-ellipsis text-right text-sm font-black', highlight ? 'text-cyan-50' : 'text-white', code ? 'font-mono tracking-tight' : '')}>
           {value}
         </strong>
         {copyValue && (
           <button
             type="button"
             aria-label={`Sao chép ${label}`}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-slate-300 transition-colors hover:border-cyanline/30 hover:text-cyan-100"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 bg-white/5 text-slate-300 transition-colors hover:border-cyan/25 hover:text-cyan-50"
             onClick={() => navigator.clipboard?.writeText(copyValue)}
           >
             <Copy size={15} />

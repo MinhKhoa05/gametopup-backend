@@ -7,9 +7,7 @@
   font-family: Inter, ui-sans-serif, system-ui, sans-serif;
   --color-ink: #07111f;
   --color-ink-light: #0d1f36;
-  --color-ink-lighter: #162b47;
-  --color-cyanline: #22d3ee;
-  --color-ocean: #0f766e;
+  --color-accent: #22d3ee;
 }
 
 * {

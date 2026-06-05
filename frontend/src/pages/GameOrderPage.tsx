@@ -1,4 +1,4 @@
-import { EmptyState } from '../components/ui/EmptyState';
+import { EmptyState } from '../components/ui';
 import { GameOrderWizard } from '../components/game-order/GameOrderWizard';
 import type { Route } from '../lib/routes';
 

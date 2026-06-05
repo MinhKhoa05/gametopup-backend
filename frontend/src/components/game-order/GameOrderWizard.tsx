@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { ArrowLeft, CheckCircle2, ChevronRight, Home } from 'lucide-react';
 import { useAuthUserQuery } from '../../services/auth';
 import { useWalletQuery } from '../../services/wallet';
-import { EmptyState } from '../ui/EmptyState';
+import { EmptyState } from '../ui';
 import { classNames } from '../../lib/ui';
 import type { Route } from '../../lib/routes';
 import { GameOrderPackageStep, PackageGridSkeleton } from './GameOrderPackageStep';
@@ -74,10 +74,10 @@ export function GameOrderWizard({ gameId, navigate }: Props) {
   }
 
   return (
-    <div className="mx-auto max-w-[1120px]">
+    <div className="mx-auto max-w-6xl">
       <GameOrderHeader gameName={game.name} />
 
-      <div className="gametopup-surface p-5 sm:p-6">
+      <div className="gt-surface p-5 sm:p-6">
         <GameOrderProgress step={step} direction={stepDirection} />
         <GameOrderBackButton step={step} navigate={navigate} onBack={() => setStep((step - 1) as 1 | 2 | 3)} />
 
@@ -123,7 +123,7 @@ function GameOrderBackButton({
 
   return (
     <button
-      className="mb-4 inline-flex items-center gap-2 border-0 bg-transparent p-0 text-[0.84rem] font-bold text-slate-400 hover:text-cyan-50"
+      className="mb-4 inline-flex items-center gap-2 border-0 bg-transparent p-0 text-sm font-bold text-slate-400 hover:text-cyan-50"
       type="button"
       onClick={() => {
         if (isFirstStep) {
@@ -169,7 +169,7 @@ export function GameOrderProgress({ step, direction }: { step: 1 | 2 | 3; direct
 
 export function GameOrderSkeleton() {
   return (
-    <div className="mx-auto max-w-[1120px]" aria-busy="true" aria-label="Đang tải trang đặt hàng">
+    <div className="mx-auto max-w-6xl" aria-busy="true" aria-label="Đang tải trang đặt hàng">
       <div className="mb-5 flex items-center gap-2 text-sm text-slate-400">
         <div className="h-4 w-4 animate-pulse rounded-full bg-white/10" />
         <div className="h-4 w-4 animate-pulse rounded-full bg-white/10" />
@@ -178,7 +178,7 @@ export function GameOrderSkeleton() {
         <div className="h-4 w-36 animate-pulse rounded-full bg-white/10" />
       </div>
 
-      <div className="gametopup-surface p-5 sm:p-6">
+      <div className="gt-surface p-5 sm:p-6">
         <div className="topup-steps" aria-hidden="true">
           {Array.from({ length: 3 }).map((_, index) => (
             <div key={`step-skeleton-${index}`} className={classNames('topup-step', index === 1 && 'active')}>
@@ -208,7 +208,7 @@ export function GameOrderSkeleton() {
           </div>
 
           <aside className="sticky top-24">
-            <div className="gametopup-surface rounded-[8px] border border-white/[0.06] bg-[rgba(255,255,255,0.03)]">
+            <div className="gt-panel-soft rounded-lg">
               <div className="mb-4 h-5 w-40 animate-pulse rounded-full bg-white/10" />
               <div className="grid gap-3">
                 {Array.from({ length: 4 }).map((_, index) => (

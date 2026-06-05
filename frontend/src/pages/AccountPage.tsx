@@ -1,4 +1,4 @@
-import { SectionHeading } from '../components/ui/SectionHeading';
+import { SectionHeading } from '../components/ui';
 import { AuthSection } from '../components/account/AuthSection';
 import { AccountProfileSection } from '../components/account/AccountProfileSection';
 import { useAuthSession } from '../hooks/auth.hooks';
@@ -26,7 +26,7 @@ export function AccountPage({ navigate }: { navigate: (route: Route) => void }) 
       <header className="grid items-end gap-2">
         <div className="grid gap-1.5">
           <h1 className="m-0 text-[clamp(1.9rem,2.7vw,2.75rem)] font-black leading-none text-white">Tài khoản của tôi</h1>
-          <p className="m-0 max-w-[720px] text-[0.95rem] leading-[1.55] text-[#a7b7ca]">
+          <p className="m-0 max-w-2xl text-sm leading-6 text-slate-400">
             Quản lý thông tin tài khoản và theo dõi nhanh các hoạt động của bạn.
           </p>
         </div>
@@ -54,15 +54,15 @@ function AccountPageLoading() {
       <header className="grid items-end gap-2">
         <div className="grid gap-1.5">
           <div className="h-12 w-full max-w-72 animate-pulse rounded-2xl bg-white/10" />
-          <div className="h-5 w-[min(100%,28rem)] animate-pulse rounded-full bg-white/5" />
+          <div className="h-5 w-full max-w-72 animate-pulse rounded-full bg-white/5" />
         </div>
       </header>
 
-      <section className="grid gap-4 overflow-hidden rounded-2xl border border-white/5 bg-ink-light p-0">
+      <section className="gt-surface-ink grid gap-4 overflow-hidden rounded-2xl p-0">
         <div className="grid gap-0 px-4 pt-5 pb-6 md:p-5 lg:px-6 lg:pt-5 lg:pb-6">
           <div className="grid items-stretch gap-4 lg:grid-cols-[minmax(0,1.15fr)_1px_minmax(0,1fr)] lg:gap-0">
             <div className="grid grid-cols-1 items-center gap-4 pr-0 md:grid-cols-[auto_minmax(0,1fr)] md:justify-items-start lg:pr-6">
-              <div className="grid h-24 w-24 place-items-center rounded-full border border-cyanline/20 bg-[radial-gradient(circle_at_30%_30%,rgba(34,211,238,0.24),transparent_55%),rgba(34,211,238,0.1)] shadow-[inset_0_0_28px_rgba(34,211,238,0.08)]">
+              <div className="grid h-24 w-24 place-items-center rounded-full border border-cyan/20 bg-[radial-gradient(circle_at_30%_30%,rgba(34,211,238,0.24),transparent_55%),rgba(34,211,238,0.1)] shadow-[inset_0_0_28px_rgba(34,211,238,0.08)]">
                 <div className="h-14 w-14 animate-pulse rounded-full bg-white/10" />
               </div>
               <div className="grid min-w-0 gap-2">
@@ -87,7 +87,7 @@ function AccountPageLoading() {
         </div>
 
         <div className="grid grid-cols-1 items-stretch gap-4 px-4 pb-4 md:px-5 md:pb-5 lg:grid-cols-[minmax(0,340px)_minmax(0,1fr)] lg:px-6 lg:pb-6">
-          <section className="gametopup-surface min-h-0">
+          <section className="gt-surface min-h-0">
             <SectionHeading className="mb-4" title="Lối đi nhanh" />
             <div className="grid gap-3.5">
               <div className="h-16 animate-pulse rounded-2xl bg-white/6" />
@@ -97,7 +97,7 @@ function AccountPageLoading() {
             </div>
           </section>
 
-          <section className="gametopup-surface min-h-0">
+          <section className="gt-surface min-h-0">
             <SectionHeading className="mb-4" title="Thông tin cá nhân" description="Đang đồng bộ dữ liệu tài khoản." />
             <div className="grid gap-4">
               <div className="h-12 animate-pulse rounded-xl bg-white/6" />

@@ -2,7 +2,7 @@ import { Boxes, Gamepad2, LayoutDashboard, ReceiptText, Users } from 'lucide-rea
 import { useQueryClient } from '@tanstack/react-query';
 import { Route } from '../../lib/routes';
 import { isAdminUser } from '../../lib/roles';
-import { EmptyState } from '../../components/ui/EmptyState';
+import { EmptyState, IconBox } from '../../components/ui';
 import { User } from '../../types';
 import { AdminHeader } from '../../components/admin/AdminHeader';
 import { AdminNavButton } from '../../components/admin/AdminNavButton';
@@ -164,9 +164,9 @@ export function AdminPage({
           <EmptyState
             className="max-w-[560px] py-10"
             icon={
-              <span className="inline-flex h-[54px] w-[54px] items-center justify-center rounded-[16px] bg-cyanline/12 text-cyanline">
+              <IconBox size="lg">
                 <LayoutDashboard size={26} />
-              </span>
+              </IconBox>
             }
             title="Cần quyền quản trị"
             description="Bạn cần đăng nhập bằng tài khoản quản trị để truy cập khu vực này."
