@@ -1,11 +1,13 @@
-import { FormEvent } from 'react';
+import type { ChangeEvent, FormEvent } from 'react';
+import { memo, useCallback } from 'react';
 import { ShieldCheck, ShoppingCart } from 'lucide-react';
-import { Button, EmptyState, Field, SectionHeading } from '../ui';
+import { Button, EmptyState, Field } from '../ui';
 import { formatCurrency } from '../../lib/format';
 import { classNames, pickImage } from '../../lib/ui';
 import type { Game, User } from '../../types';
 import type { GameOrderPackage } from '../../hooks/game-order.hooks';
 import { useGameOrderStore } from '../../store/game-order.store';
+import { GameOrderStepBanner } from './GameOrderStepBanner';
 
 type Props = {
   game: Game;
@@ -24,6 +26,19 @@ export function GameOrderPackageStep({ game, packages, isLoading, user }: Props)
   const startCheckout = useGameOrderStore((state) => state.startCheckout);
   const selectedPackage = packages.find((pkg) => pkg.id === selectedPackageId) ?? null;
   const total = selectedPackage ? selectedPackage.salePrice * quantity : 0;
+  const handleSelectPackage = useCallback((packageId: number) => setSelectedPackageId(packageId), [setSelectedPackageId]);
+  const handleQuantityChange = useCallback(
+    (event: ChangeEvent<HTMLInputElement>) => {
+      setQuantity(Math.max(1, Number(event.target.value) || 1));
+    },
+    [setQuantity],
+  );
+  const handleGameAccountInfoChange = useCallback(
+    (event: ChangeEvent<HTMLInputElement>) => {
+      setGameAccountInfo(event.target.value);
+    },
+    [setGameAccountInfo],
+  );
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -34,119 +49,178 @@ export function GameOrderPackageStep({ game, packages, isLoading, user }: Props)
 
   return (
     <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
-      <div className="grid gap-4">
-        <div className="flex items-center gap-4 border-b gt-divider pb-5">
-          <div className="h-[92px] w-[92px] flex-none overflow-hidden rounded-[14px] border gt-divider bg-slate-900">
-            <img src={pickImage(game)} alt={game.name} className="h-full w-full object-cover" />
-          </div>
-          <div className="min-w-0">
-            <p className="gt-eyebrow">Bước 1</p>
-            <h1 className="m-0 mb-2 text-[clamp(1.5rem,3vw,2.1rem)] font-black leading-[1.1] text-white">Chọn gói nạp</h1>
-            <div className="flex items-center gap-2 text-sm font-semibold text-amber-300">
-              <ShieldCheck size={16} /> Dịch vụ nạp trung gian chiết khấu
-            </div>
-          </div>
-        </div>
+      <PackageSelectionPanel
+        game={game}
+        isLoading={isLoading}
+        onSelectPackage={handleSelectPackage}
+        packages={packages}
+        selectedPackageId={selectedPackageId}
+      />
 
-        <SectionHeading eyebrow={game.name} title="Chọn gói nạp" />
-
-        {isLoading && packages.length === 0 ? (
-          <PackageGridSkeleton />
-        ) : (
-          <div className="grid grid-cols-2 gap-2.5 md:grid-cols-4 md:gap-3.5">
-            {packages.map((pkg) => {
-              const isSelected = selectedPackageId === pkg.id;
-
-              return (
-                <button
-                  key={pkg.id}
-                  type="button"
-                  className={classNames(
-                'gt-panel relative flex min-h-48 flex-col items-stretch rounded-lg p-2.5 text-center text-white transition-all duration-200 hover:-translate-y-0.5 hover:border-cyan/20 hover:bg-[rgba(255,255,255,0.035)] md:min-h-[210px]',
-                    isSelected && 'border-cyan/20 bg-[rgba(255,255,255,0.035)] shadow-[0_0_0_1px_rgba(34,211,238,0.08),0_10px_22px_rgba(0,0,0,0.22)]',
-                  )}
-                  onClick={() => setSelectedPackageId(pkg.id)}
-                >
-                  {pkg.discount > 0 && (
-                    <span className="absolute right-2.5 top-2.5 z-[1] rounded-full bg-emerald-500 px-2 py-0.5 text-[0.68rem] font-black text-slate-950">
-                      -{pkg.discount}%
-                    </span>
-                  )}
-                  <div className="mb-2.5 aspect-[1/0.82] overflow-hidden rounded-md bg-slate-950/65">
-                    <img src={pickImage(pkg)} alt={pkg.name} className="h-full w-full object-cover" />
-                  </div>
-                  <strong className="flex min-h-10 items-center justify-center text-[0.95rem] font-black leading-[1.25] text-white">{pkg.name}</strong>
-                  <small className="mb-2 block text-[0.72rem] font-extrabold text-slate-400">Còn {pkg.stockQuantity} suất</small>
-                  <div
-                    className={classNames(
-                      'mt-auto w-full rounded-md py-1.5 text-sm font-extrabold transition-colors',
-                      isSelected ? 'bg-cyan text-ink' : 'bg-cyan/15 text-cyan-50',
-                    )}
-                  >
-                    {formatCurrency(pkg.salePrice)}
-                  </div>
-                  {pkg.discount > 0 && (
-                    <div className="mt-1.5 text-[0.75rem] font-bold text-slate-500 line-through">
-                      {formatCurrency(pkg.originalPrice)}
-                    </div>
-                  )}
-                </button>
-              );
-            })}
-            {packages.length === 0 && <EmptyState className="col-span-full py-8">Chưa có gói nạp.</EmptyState>}
-          </div>
-        )}
-      </div>
-
-      <aside className="sticky top-24">
-        <div className="gt-surface gt-panel rounded-lg">
-          <h2 className="mb-4 text-base font-black text-white">Thông tin đơn hàng</h2>
-
-          <form onSubmit={handleSubmit}>
-            <Field
-              label="UID / Server / Tên nhân vật"
-              value={gameAccountInfo}
-              onChange={(event) => setGameAccountInfo(event.target.value)}
-              placeholder="Ví dụ: UID 12345678"
-            />
-            <Field
-              label="Số lượng"
-              value={String(quantity)}
-              onChange={(event) => setQuantity(Math.max(1, Number(event.target.value) || 1))}
-              type="number"
-              placeholder="1"
-            />
-
-            <div className="flex justify-between gap-3 border-t gt-divider py-2.5 text-sm text-slate-400">
-              <span>Gói đã chọn</span>
-              <strong>{selectedPackage?.name ?? '---'}</strong>
-            </div>
-            <div className="flex justify-between gap-3 border-t gt-divider py-2.5 text-sm text-slate-400">
-              <span>Tổng tiền hàng</span>
-              <strong>{formatCurrency(total)}</strong>
-            </div>
-            <div className="flex items-center justify-between gap-3 border-t gt-divider py-2.5 text-sm font-bold text-white">
-              <span>Tổng thanh toán</span>
-              <strong>{formatCurrency(total)}</strong>
-            </div>
-
-            <label className="mb-4 mt-3 flex items-start gap-2 text-[0.74rem] leading-[1.35] text-slate-400">
-              <input className="mt-0.5 accent-cyan" type="checkbox" checked readOnly />
-              <span>Tôi đã đọc và đồng ý với các điều khoản sử dụng dịch vụ.</span>
-            </label>
-
-            <Button type="submit" variant="accent" className="w-full" disabled={!user || !selectedPackage || !gameAccountInfo.trim()}>
-              <ShoppingCart size={19} />
-              Mua ngay
-            </Button>
-
-            {!user && <p className="mt-3 text-center text-sm text-red-400">Vui lòng đăng nhập để đặt đơn.</p>}
-          </form>
-        </div>
-      </aside>
+      <OrderSummarySidebar
+        gameAccountInfo={gameAccountInfo}
+        onGameAccountInfoChange={handleGameAccountInfoChange}
+        onQuantityChange={handleQuantityChange}
+        onSubmit={handleSubmit}
+        quantity={quantity}
+        selectedPackage={selectedPackage}
+        total={total}
+        user={user}
+      />
     </div>
   );
 }
+
+const PackageSelectionPanel = memo(function PackageSelectionPanel({
+  game,
+  isLoading,
+  onSelectPackage,
+  packages,
+  selectedPackageId,
+}: {
+  game: Game;
+  isLoading: boolean;
+  onSelectPackage: (packageId: number) => void;
+  packages: GameOrderPackage[];
+  selectedPackageId: number | null;
+}) {
+  return (
+    <div className="grid gap-4">
+      <GameOrderStepBanner
+        afterTitle={
+          <div className="flex items-center gap-2 text-sm font-semibold text-amber-300">
+            <ShieldCheck size={16} /> Dịch vụ nạp trung gian chiết khấu
+          </div>
+        }
+        eyebrow="Bước 1"
+        imageAlt={game.name}
+        imageSrc={pickImage(game)}
+        title="Chọn gói nạp"
+      />
+
+      {isLoading && packages.length === 0 ? (
+        <PackageGridSkeleton />
+      ) : packages.length === 0 ? (
+        <EmptyState variant="compact">Chưa có gói nạp.</EmptyState>
+      ) : (
+        <div className="grid grid-cols-2 gap-2.5 md:grid-cols-4 md:gap-3.5">
+          {packages.map((pkg) => (
+            <PackageCard key={pkg.id} isSelected={selectedPackageId === pkg.id} onSelect={onSelectPackage} packageItem={pkg} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+});
+
+const PackageCard = memo(function PackageCard({
+  isSelected,
+  onSelect,
+  packageItem,
+}: {
+  isSelected: boolean;
+  onSelect: (packageId: number) => void;
+  packageItem: GameOrderPackage;
+}) {
+  return (
+    <button
+      type="button"
+      className={classNames(
+        'gt-panel relative flex min-h-48 flex-col items-stretch rounded-lg p-2.5 text-center text-white transition-all duration-200 hover:-translate-y-0.5 hover:border-cyan/20 hover:bg-[rgba(255,255,255,0.035)] md:min-h-[210px]',
+        isSelected && 'border-cyan/20 bg-[rgba(255,255,255,0.035)] shadow-[0_0_0_1px_rgba(34,211,238,0.08),0_10px_22px_rgba(0,0,0,0.22)]',
+      )}
+      onClick={() => onSelect(packageItem.id)}
+    >
+      {packageItem.discount > 0 && (
+        <span className="absolute right-2.5 top-2.5 z-[1] rounded-full bg-emerald-500 px-2 py-0.5 text-[0.68rem] font-black text-slate-950">
+          -{packageItem.discount}%
+        </span>
+      )}
+      <div className="mb-2.5 aspect-[1/0.82] overflow-hidden rounded-md bg-slate-950/65">
+        <img src={pickImage(packageItem)} alt={packageItem.name} className="h-full w-full object-cover" />
+      </div>
+      <strong className="flex min-h-10 items-center justify-center text-[0.95rem] font-black leading-[1.25] text-white">{packageItem.name}</strong>
+      <small className="mb-2 block text-[0.72rem] font-extrabold text-slate-400">Còn {packageItem.stockQuantity} suất</small>
+      <div
+        className={classNames(
+          'mt-auto w-full rounded-md py-1.5 text-sm font-extrabold transition-colors',
+          isSelected ? 'bg-cyan text-ink' : 'bg-cyan/15 text-cyan-50',
+        )}
+      >
+        {formatCurrency(packageItem.salePrice)}
+      </div>
+      {packageItem.discount > 0 && (
+        <div className="mt-1.5 text-[0.75rem] font-bold text-slate-500 line-through">
+          {formatCurrency(packageItem.originalPrice)}
+        </div>
+      )}
+    </button>
+  );
+});
+
+const OrderSummarySidebar = memo(function OrderSummarySidebar({
+  gameAccountInfo,
+  onGameAccountInfoChange,
+  onQuantityChange,
+  onSubmit,
+  quantity,
+  selectedPackage,
+  total,
+  user,
+}: {
+  gameAccountInfo: string;
+  onGameAccountInfoChange: (event: ChangeEvent<HTMLInputElement>) => void;
+  onQuantityChange: (event: ChangeEvent<HTMLInputElement>) => void;
+  onSubmit: (event: FormEvent<HTMLFormElement>) => void;
+  quantity: number;
+  selectedPackage: GameOrderPackage | null;
+  total: number;
+  user: User | null;
+}) {
+  return (
+    <aside className="sticky top-24">
+      <div className="gt-surface gt-panel rounded-lg">
+        <h2 className="mb-4 text-base font-black text-white">Thông tin đơn hàng</h2>
+
+        <form onSubmit={onSubmit}>
+          <Field
+            label="UID / Server / Tên nhân vật"
+            value={gameAccountInfo}
+            onChange={onGameAccountInfoChange}
+            placeholder="Ví dụ: UID 12345678"
+          />
+          <Field
+            label="Số lượng"
+            value={String(quantity)}
+            onChange={onQuantityChange}
+            type="number"
+            placeholder="1"
+          />
+
+          <div className="flex justify-between gap-3 border-t gt-divider py-2.5 text-sm text-slate-400">
+            <span>Gói đã chọn</span>
+            <strong>{selectedPackage?.name ?? '---'}</strong>
+          </div>
+          <div className="flex justify-between gap-3 border-t gt-divider py-2.5 text-sm text-slate-400">
+            <span>Tổng tiền hàng</span>
+            <strong>{formatCurrency(total)}</strong>
+          </div>
+          <div className="flex items-center justify-between gap-3 border-t gt-divider py-2.5 text-sm font-bold text-white">
+            <span>Tổng thanh toán</span>
+            <strong>{formatCurrency(total)}</strong>
+          </div>
+
+          <Button type="submit" variant="accent" className="w-full" disabled={!user || !selectedPackage || !gameAccountInfo.trim()}>
+            <ShoppingCart size={19} />
+            Mua ngay
+          </Button>
+
+          {!user && <p className="mt-3 text-center text-sm text-red-400">Vui lòng đăng nhập để đặt đơn.</p>}
+        </form>
+      </div>
+    </aside>
+  );
+});
 
 export function PackageGridSkeleton() {
   return (

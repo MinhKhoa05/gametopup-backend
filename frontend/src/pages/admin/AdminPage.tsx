@@ -3,12 +3,7 @@ import { isAdminUser } from '../../lib/roles';
 import { classNames } from '../../lib/ui';
 import { EmptyState, IconBox } from '../../components/ui';
 import { User } from '../../types';
-import { AdminHeader } from '../../components/admin/AdminHeader';
-import { DashboardPanel } from '../../components/admin/DashboardPanel';
-import { GamesAdminPanel } from '../../components/admin/GamesAdminPanel';
-import { PackagesAdminPanel } from '../../components/admin/PackagesAdminPanel';
-import { OrdersAdminPanel } from '../../components/admin/OrdersAdminPanel';
-import { UsersAdminPanel } from '../../components/admin/UsersAdminPanel';
+import { AdminHeader, DashboardPanel, GamesAdminPanel, OrdersAdminPanel, PackagesAdminPanel, UsersAdminPanel } from '../../components/admin';
 import { useAdminPage } from '../../hooks/admin/admin-page.hooks';
 
 export function AdminPage({

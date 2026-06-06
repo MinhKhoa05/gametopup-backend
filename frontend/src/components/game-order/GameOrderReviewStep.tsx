@@ -2,10 +2,12 @@ import { CreditCard, Layers3, ShoppingCart, Tag, UserRound, WalletCards } from '
 import { ActionCard, Button, EmptyState, IconBox } from '../ui';
 import { useRoute } from '../../hooks/common/route.hooks';
 import { formatCurrency } from '../../lib/format';
-import { pickImage } from '../../lib/ui';
+import { classNames, pickImage } from '../../lib/ui';
 import { useOrderMutations } from '../../services/orders';
 import type { Game, User, WalletInfo } from '../../types';
+import type { GameOrderSummaryRow } from '../../types/game-order-ui.type';
 import { useGameOrderStore } from '../../store/game-order.store';
+import { GameOrderStepBanner } from './GameOrderStepBanner';
 
 type Props = {
   game: Game;
@@ -21,64 +23,107 @@ export function GameOrderReviewStep({ game, user, wallet, walletLoading }: Props
   const checkoutGameAccountInfo = useGameOrderStore((state) => state.checkoutGameAccountInfo);
   const setStep = useGameOrderStore((state) => state.setStep);
   const setCheckoutSuccess = useGameOrderStore((state) => state.setCheckoutSuccess);
-  const checkoutTotal = checkoutPackage ? checkoutPackage.salePrice * checkoutQuantity : 0;
-  const walletBalance = wallet?.balance ?? 0;
-  const shortage = Math.max(0, checkoutTotal - walletBalance);
   const orderMutations = useOrderMutations();
 
   if (!checkoutPackage) {
     return <EmptyState>Vui lòng hoàn tất thông tin bước trước.</EmptyState>;
   }
 
+  const checkoutTotal = checkoutPackage.salePrice * checkoutQuantity;
+  const walletBalance = wallet?.balance ?? 0;
+  const shortage = Math.max(0, checkoutTotal - walletBalance);
+  const orderRows: GameOrderSummaryRow[] = [
+    {
+      label: 'UID / Server / Tên nhân vật',
+      icon: <UserRound size={14} />,
+      value: checkoutGameAccountInfo,
+    },
+    {
+      label: 'Số lượng',
+      icon: <Layers3 size={14} />,
+      value: checkoutQuantity.toString(),
+    },
+    {
+      label: 'Giá gói',
+      icon: <Tag size={14} />,
+      value: formatCurrency(checkoutPackage.salePrice),
+    },
+  ];
+  const paymentRows: GameOrderSummaryRow[] = [
+    {
+      label: 'Tạm tính',
+      value: formatCurrency(checkoutTotal),
+      valueClassName: 'text-white',
+    },
+    {
+      label: 'Giảm giá',
+      value: '-0 đ',
+      valueClassName: 'text-slate-400',
+    },
+  ];
+  const balanceRows: GameOrderSummaryRow[] = [
+    {
+      label: 'Số dư hiện tại',
+      value: formatCurrency(walletBalance),
+      valueClassName: 'text-cyan-50',
+    },
+    {
+      label: 'Cần thanh toán',
+      value: formatCurrency(checkoutTotal),
+      valueClassName: 'text-amber-300',
+    },
+    {
+      label: 'Thiếu',
+      value: formatCurrency(shortage),
+      valueClassName: 'text-rose-300',
+    },
+  ];
+  const checkoutActionLabel = walletLoading ? 'Đang tải ví' : shortage > 0 ? 'Thiếu tiền' : 'Thanh toán bằng ví';
+
   return (
     <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)]">
       <section className="gt-panel grid gap-4 rounded-2xl p-5">
-        <div className="flex items-center gap-4 border-b gt-divider pb-4">
-          <img className="h-20 w-20 flex-none rounded-2xl border gt-divider object-cover" src={pickImage(game)} alt={game.name} />
-          <div className="min-w-0">
-            <p className="gt-eyebrow">Bước 2</p>
-            <h1 className="m-0 mt-1 text-[clamp(1.42rem,2vw,1.92rem)] font-bold leading-[1.05] text-white">Thanh toán</h1>
+        <GameOrderStepBanner
+          afterTitle={
             <p className="m-0 mt-1 text-[0.92rem] font-semibold text-cyan">
               Gói nạp: <span>{checkoutPackage.name}</span>
             </p>
-          </div>
+          }
+          eyebrow="Bước 2"
+          imageAlt={game.name}
+          imageSrc={pickImage(game)}
+          title="Thanh toán"
+        />
+        <div className="h-px w-full bg-white/[0.06]" aria-hidden="true" />
+
+        <div className="grid gap-0">
+          {orderRows.map((row, index) => (
+            <div
+              key={row.label}
+              className={classNames(
+                'grid min-h-[42px] grid-cols-[minmax(0,1fr)_auto] items-center gap-3 py-2',
+                index < orderRows.length - 1 && 'border-b gt-divider',
+              )}
+            >
+              <span className="inline-flex items-center gap-2 text-[0.79rem] font-medium text-slate-400">
+                {row.icon}
+                {row.label}
+              </span>
+              <strong className={classNames('break-words text-right text-[0.96rem] font-semibold', row.valueClassName ?? 'text-white')}>
+                {row.value}
+              </strong>
+            </div>
+          ))}
         </div>
         <div className="h-px w-full bg-white/[0.06]" aria-hidden="true" />
 
         <div className="grid gap-0">
-          <div className="grid min-h-[42px] grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b gt-divider py-2">
-            <span className="inline-flex items-center gap-2 text-[0.79rem] font-medium text-slate-400">
-              <UserRound size={14} />
-              UID / Server / Tên nhân vật
-            </span>
-            <strong className="break-words text-right text-[0.96rem] font-semibold text-white">{checkoutGameAccountInfo}</strong>
-          </div>
-          <div className="grid min-h-[42px] grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b gt-divider py-2">
-            <span className="inline-flex items-center gap-2 text-[0.79rem] font-medium text-slate-400">
-              <Layers3 size={14} />
-              Số lượng
-            </span>
-            <strong className="break-words text-right text-[0.96rem] font-semibold text-white">{checkoutQuantity}</strong>
-          </div>
-          <div className="grid min-h-[42px] grid-cols-[minmax(0,1fr)_auto] items-center gap-3 py-2">
-            <span className="inline-flex items-center gap-2 text-[0.79rem] font-medium text-slate-400">
-              <Tag size={14} />
-              Giá gói
-            </span>
-            <strong className="break-words text-right text-[0.96rem] font-semibold text-white">{formatCurrency(checkoutPackage.salePrice)}</strong>
-          </div>
-        </div>
-        <div className="h-px w-full bg-white/[0.06]" aria-hidden="true" />
-
-        <div className="grid gap-0">
-          <div className="flex justify-between gap-3 border-b gt-divider py-2.5 text-sm text-slate-400">
-            <span>Tạm tính</span>
-            <strong className="text-right font-bold text-white">{formatCurrency(checkoutTotal)}</strong>
-          </div>
-          <div className="flex justify-between gap-3 border-b gt-divider py-2.5 text-sm text-slate-400">
-            <span>Giảm giá</span>
-            <strong className="text-right font-bold text-slate-400">-0 đ</strong>
-          </div>
+          {paymentRows.map((row) => (
+            <div key={row.label} className="flex justify-between gap-3 border-b gt-divider py-2.5 text-sm text-slate-400">
+              <span>{row.label}</span>
+              <strong className={classNames('text-right font-bold', row.valueClassName)}>{row.value}</strong>
+            </div>
+          ))}
           <div className="flex items-center justify-between gap-3 py-2.5 text-sm font-bold text-white">
             <span>Tổng thanh toán</span>
             <strong className="text-right text-[1.08rem] font-extrabold text-cyan">{formatCurrency(checkoutTotal)}</strong>
@@ -86,9 +131,9 @@ export function GameOrderReviewStep({ game, user, wallet, walletLoading }: Props
         </div>
 
         <div className="flex gap-3">
-        <Button className="w-full" onClick={() => setStep(1)}>
-          Quay lại
-        </Button>
+          <Button className="w-full" onClick={() => setStep(1)}>
+            Quay lại
+          </Button>
           <Button
             variant="accent"
             className="w-full"
@@ -111,7 +156,7 @@ export function GameOrderReviewStep({ game, user, wallet, walletLoading }: Props
             disabled={orderMutations.place.isPending || orderMutations.pay.isPending || !user || walletLoading || shortage > 0}
           >
             <ShoppingCart size={19} />
-            {walletLoading ? 'Đang tải ví' : shortage > 0 ? 'Thiếu tiền' : 'Thanh toán bằng ví'}
+            {checkoutActionLabel}
           </Button>
         </div>
       </section>
@@ -129,18 +174,16 @@ export function GameOrderReviewStep({ game, user, wallet, walletLoading }: Props
           <div className="grid gap-2">
             <p className="m-0 text-[0.92rem] font-bold text-slate-200">Số dư ví của bạn</p>
             <div className="grid gap-0">
-              <div className="flex min-h-9 items-center justify-between gap-3 py-1.5">
-                <span>Số dư hiện tại</span>
-                <strong className="text-right text-[1rem] font-bold text-cyan-50">{formatCurrency(walletBalance)}</strong>
-              </div>
-              <div className="flex min-h-9 items-center justify-between gap-3 py-1.5">
-                <span>Cần thanh toán</span>
-                <strong className="text-right text-[1rem] font-bold text-amber-300">{formatCurrency(checkoutTotal)}</strong>
-              </div>
+              {balanceRows.map((row) => (
+                <div key={row.label} className="flex min-h-9 items-center justify-between gap-3 py-1.5">
+                  <span>{row.label}</span>
+                  <strong className={classNames('text-right text-[1rem] font-bold', row.valueClassName)}>{row.value}</strong>
+                </div>
+              ))}
               <div className="h-px w-full bg-white/[0.06]" aria-hidden="true" />
-              <div className="flex min-h-9 items-center justify-between gap-3 py-1.5 text-rose-300">
-                <span>Thiếu</span>
-                <strong>{formatCurrency(shortage)}</strong>
+              <div className="flex min-h-9 items-center justify-between gap-3 py-1.5">
+                <span className="text-rose-300">Thiếu</span>
+                <strong className="text-rose-300">{formatCurrency(shortage)}</strong>
               </div>
             </div>
           </div>

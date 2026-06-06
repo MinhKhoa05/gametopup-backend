@@ -1,9 +1,9 @@
 import { CheckCircle2, Edit3, Plus, Save, Trash2, X } from 'lucide-react';
 import type { Game } from '../../types';
 import { useAdminGamesPanel } from '../../hooks/admin/admin-games.hooks';
-import { Badge, Button, Field } from '../ui';
+import { Badge, Button, EmptyState, Field, FormActions, RecordRow, SearchBar, SectionHeading, ToggleField } from '../ui';
 import { pickImage } from '../../lib/ui';
-import { AdminSkeleton, EmptyLine, PanelTitle, SearchBox } from './AdminShared';
+import { AdminSkeleton } from './AdminShared';
 
 export function GamesAdminPanel({
   busy,
@@ -30,16 +30,16 @@ export function GamesAdminPanel({
   return (
     <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1.18fr)_minmax(380px,0.82fr)]">
       <div className="gt-surface">
-        <PanelTitle title="Danh sách game" />
-        <SearchBox value={query} onChange={setQuery} placeholder="Tìm game..." />
+        <SectionHeading title="Danh sách game" />
+        <SearchBar className="mb-4" inputClassName="text-sm" value={query} onChange={setQuery} placeholder="Tìm game..." />
         {loading && filteredGames.length === 0 ? (
           <AdminSkeleton rows={6} />
         ) : filteredGames.length === 0 ? (
-          <EmptyLine text="Không tìm thấy game phù hợp." />
+          <EmptyState>Không tìm thấy game phù hợp.</EmptyState>
         ) : (
           <div className="grid gap-2.5">
             {filteredGames.map((game) => (
-              <div className="gt-record-row grid-cols-[auto_minmax(0,1fr)_auto_auto] max-[700px]:grid-cols-1" key={game.id}>
+              <RecordRow className="grid-cols-[auto_minmax(0,1fr)_auto_auto]" key={game.id}>
                 <img className="h-12 w-12 rounded-xl bg-cyan/10 object-cover max-[700px]:h-[54px] max-[700px]:w-[54px]" src={pickImage(game)} alt="" />
                 <div>
                   <strong>{game.name}</strong>
@@ -61,31 +61,27 @@ export function GamesAdminPanel({
                     <Trash2 size={16} />
                   </Button>
                 </div>
-              </div>
+              </RecordRow>
             ))}
           </div>
         )}
       </div>
 
       <form className="gt-surface sticky top-24" onSubmit={submit}>
-        <PanelTitle title={editing ? 'Cập nhật game' : 'Tạo game'} />
+        <SectionHeading title={editing ? 'Cập nhật game' : 'Tạo game'} />
         <Field label="Tên game" onChange={(event) => setForm({ ...form, name: event.target.value })} placeholder="Nhập tên game" required value={form.name} />
         <Field label="Ảnh đại diện" onChange={(event) => setForm({ ...form, imageUrl: event.target.value })} placeholder="https://..." value={form.imageUrl} />
-        <label className="mb-4 flex items-center gap-2 font-semibold text-slate-200">
-          <input type="checkbox" checked={form.isActive} onChange={(event) => setForm({ ...form, isActive: event.target.checked })} />
-          <span>Hiển thị game trong danh mục</span>
-        </label>
-        <div className="mt-4 flex flex-wrap justify-end gap-2">
-          {editing && (
-            <Button onClick={resetForm}>
-              <X size={17} /> Hủy
-            </Button>
-          )}
-          <Button type="submit" variant="accent" disabled={busy}>
-            {editing ? <Save size={17} /> : <Plus size={17} />}
-            {editing ? 'Lưu game' : 'Tạo game'}
-          </Button>
-        </div>
+        <ToggleField
+          checked={form.isActive}
+          label="Hiển thị game trong danh mục"
+          onChange={(isActive) => setForm({ ...form, isActive })}
+        />
+        <FormActions
+          disabled={busy}
+          onCancel={editing ? resetForm : undefined}
+          submitIcon={editing ? <Save size={17} /> : <Plus size={17} />}
+          submitLabel={editing ? 'Lưu game' : 'Tạo game'}
+        />
       </form>
     </div>
   );

@@ -3,6 +3,8 @@ import { classNames } from '../../lib/ui';
 import { Button } from './Button';
 import { IconBox } from './IconBox';
 
+export type EmptyStateVariant = 'default' | 'compact' | 'spacious' | 'flush';
+
 export function EmptyState({
   actionLabel,
   className,
@@ -11,6 +13,7 @@ export function EmptyState({
   onAction,
   title,
   children,
+  variant = 'default',
 }: {
   actionLabel?: string;
   className?: string;
@@ -19,9 +22,19 @@ export function EmptyState({
   onAction?: () => void;
   title?: ReactNode;
   children?: ReactNode;
+  variant?: EmptyStateVariant;
 }) {
+  const variantClassName =
+    variant === 'compact'
+      ? 'gt-surface-ink grid gap-2 rounded-2xl px-5 py-6 text-center'
+      : variant === 'spacious'
+        ? 'gt-surface-ink grid gap-3 rounded-2xl px-6 py-12 text-center'
+      : variant === 'flush'
+        ? 'grid gap-3 rounded-none border-x-0 border-b-0 border-t border-white/5 bg-transparent px-6 py-6 text-center'
+        : 'gt-surface-ink grid gap-3 rounded-2xl px-6 py-8 text-center';
+
   return (
-    <div className={classNames('gt-surface-ink grid gap-3 rounded-2xl px-6 py-8 text-center', className)} role="status">
+    <div className={classNames(variantClassName, className)} role="status">
       {icon && <IconBox className="mx-auto">{icon}</IconBox>}
       {title && <div className="m-0 text-[1.15rem] font-extrabold leading-[1.25] text-white">{title}</div>}
       {description && <div className="m-0 text-[0.9rem] leading-[1.55] text-slate-400">{description}</div>}

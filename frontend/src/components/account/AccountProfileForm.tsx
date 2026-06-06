@@ -1,7 +1,7 @@
 import { FormEvent } from 'react';
 import { Save, ShieldCheck } from 'lucide-react';
 
-import { Button, Field, SectionHeading } from '../ui';
+import { Field, FormActions, SectionHeading } from '../ui';
 
 type AccountProfileFormProps = {
   email: string;
@@ -58,12 +58,13 @@ export function AccountProfileForm({
           </div>
         )}
 
-        <div className="flex w-full justify-start gap-2 pt-0.5">
-          <Button className="min-w-40" type="submit" variant="accent" disabled={!canSave || busy}>
-            <Save size={16} />
-            {busy ? 'Đang lưu...' : 'Lưu thay đổi'}
-          </Button>
-        </div>
+        <FormActions
+          className="pt-0.5"
+          justify="start"
+          disabled={!canSave || busy}
+          submitIcon={<Save size={16} />}
+          submitLabel={busy ? 'Đang lưu...' : 'Lưu thay đổi'}
+        />
       </form>
     </section>
   );

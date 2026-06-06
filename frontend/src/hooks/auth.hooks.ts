@@ -1,14 +1,16 @@
 import { useRoute } from './common/route.hooks';
 import { useAuthStore } from '../store/auth.store';
-import type { AuthFormData, AuthMode, AuthStatus } from '../types';
+import type { AuthFormData } from '../types';
 import { useAuthMutations, useAuthUserQuery } from '../services/auth';
+
+export type AuthMode = 'login' | 'register';
 
 export function useAuthSession() {
   const { navigate } = useRoute();
   const authUserQuery = useAuthUserQuery();
   const authMutations = useAuthMutations();
   const user = authUserQuery.data ?? null;
-  const authStatus: AuthStatus = authUserQuery.isLoading ? 'checking' : user ? 'authenticated' : 'guest';
+  const authStatus: 'unknown' | 'checking' | 'authenticated' | 'guest' = authUserQuery.isLoading ? 'checking' : user ? 'authenticated' : 'guest';
   const isLoggedIn = authStatus === 'authenticated';
   function submitAuth({ form, mode }: { form: AuthFormData; mode: AuthMode }) {
     const navigateToGames = () => navigate({ name: 'games' });

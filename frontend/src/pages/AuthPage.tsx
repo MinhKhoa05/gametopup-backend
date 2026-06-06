@@ -2,9 +2,9 @@ import { useState, type ReactNode } from 'react';
 import { AnimatePresence, LayoutGroup, motion } from 'framer-motion';
 import { ShieldCheck, Tag, Zap } from 'lucide-react';
 import { useAuthSession } from '../hooks/auth.hooks';
+import type { AuthMode } from '../hooks/auth.hooks';
 import { classNames } from '../lib/ui';
 import { SITE } from '../config/site';
-import type { AuthMode } from '../types';
 import { AuthForm } from '../components/auth/AuthForm';
 
 export function AuthPage() {
@@ -28,8 +28,8 @@ export function AuthPage() {
         />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(34,211,238,0.13),transparent_28%),radial-gradient(circle_at_85%_40%,rgba(34,211,238,0.1),transparent_18%)]" />
 
-        <div className="relative grid min-h-[540px] w-full lg:grid-cols-[1.55fr_0.88fr] xl:grid-cols-[1.6fr_0.9fr]">
-          <div className="flex flex-col px-5 py-5 sm:px-8 sm:py-7 lg:px-6 lg:py-8">
+        <div className="relative grid min-h-[600px] w-full lg:grid-cols-[1.45fr_1fr] xl:grid-cols-[1.5fr_0.98fr]">
+          <div className="flex flex-col justify-between px-5 py-5 sm:px-8 sm:py-7 lg:px-6 lg:py-8">
             <div className="max-w-[34rem]">
               <p className="inline-flex rounded-full border border-cyan/20 bg-cyan/10 px-4 py-1 text-[0.7rem] font-bold uppercase tracking-[0.24em] text-cyan-100">
                 Đại lý nạp game uy tín số 1
@@ -65,8 +65,8 @@ export function AuthPage() {
             </div>
           </div>
 
-          <div className="flex items-center justify-start px-5 py-5 sm:px-8 sm:py-7 lg:pl-0 lg:pr-6 lg:py-8 xl:pr-8">
-            <div className="flex h-[524px] w-full max-w-[498px] flex-col overflow-hidden rounded-[22px] border border-white/8 bg-[rgba(12,20,36,0.84)] p-4.5 shadow-[0_24px_80px_rgba(0,0,0,0.32)] sm:p-5">
+          <div className="flex items-stretch justify-start px-5 py-5 sm:px-8 sm:py-7 lg:pl-0 lg:pr-6 lg:py-8 xl:pr-8">
+            <div className="flex min-h-[560px] w-full max-w-[498px] flex-col overflow-hidden rounded-[22px] border border-white/8 bg-[rgba(12,20,36,0.84)] p-4.5 shadow-[0_24px_80px_rgba(0,0,0,0.32)] sm:p-5">
               <LayoutGroup>
                 <div className="mx-auto flex w-full max-w-[350px] items-center justify-center gap-10 border-b border-white/8">
                   <AuthTabButton active={activeMode === 'login'} onClick={() => switchMode('login')}>
@@ -82,7 +82,7 @@ export function AuthPage() {
                 <AnimatePresence initial={false} custom={direction} mode="sync">
                   <motion.div
                     key={activeMode}
-                    className="absolute inset-0"
+                    className="absolute inset-0 flex"
                     custom={direction}
                     variants={formSlideVariants}
                     initial="enter"
@@ -95,7 +95,7 @@ export function AuthPage() {
                       busy={isAuthSubmitting}
                       onSubmitAuth={submitAuth}
                       onSwitchMode={switchMode}
-                      className="h-full"
+                      className="flex h-full flex-1 flex-col"
                     />
                   </motion.div>
                 </AnimatePresence>

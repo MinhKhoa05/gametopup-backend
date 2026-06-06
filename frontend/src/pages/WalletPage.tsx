@@ -1,32 +1,38 @@
-import { ArrowLeft, ArrowDownLeft, ArrowUpRight, History, ShieldCheck, WalletCards } from 'lucide-react';
+import { ArrowLeft, ArrowDownLeft, ArrowUpRight, CheckCircle2, History, ShieldCheck, WalletCards } from 'lucide-react';
 import { ActionCard, Badge, Button, EmptyState, IconBox, SectionHeading, StatCard } from '../components/ui';
-import { WalletPanel } from '../components/wallet/WalletPanel';
-import { DepositRequestList, WalletTransactionList } from '../components/wallet/WalletActivityLists';
+import { DepositRequestList, WalletPanel, WalletTransactionList } from '../components/wallet';
 import { SITE } from '../config/site';
 import { formatCurrency } from '../lib/format';
 import { useAuthSession } from '../hooks/auth.hooks';
 import { useRoute } from '../hooks/common/route.hooks';
 import { useWalletPage } from '../hooks/wallet.hooks';
-
-const transactionFilters = [
-  { label: 'Tất cả', value: 'all' },
-  { label: 'Nạp tiền', value: 'deposit' },
-  { label: 'Rút tiền', value: 'withdraw' },
-  { label: 'Thanh toán', value: 'paid' },
-  { label: 'Hoàn tiền', value: 'refund' },
-] as const;
+import { TRANSACTION_FILTERS, WALLET_DEPOSIT_WARNING, walletHeroClassName } from './wallet-page.data';
 
 export function WalletPage() {
   const { navigate } = useRoute();
-  const auth = useAuthSession();
-  const user = auth.user;
-  const walletPage = useWalletPage({ isLoggedIn: auth.isLoggedIn });
+  const { isLoggedIn, user } = useAuthSession();
+  const walletPage = useWalletPage({ isLoggedIn });
+  const {
+    deposit,
+    depositRequests,
+    filteredTransactions,
+    filter,
+    setFilter,
+    setView,
+    transactionLoading,
+    view,
+    wallet,
+  } = walletPage;
 
   if (!user) {
     return (
       <EmptyState
         className="mx-auto mt-12 max-w-lg"
-        icon={<IconBox className="mx-auto mb-4" size="lg"><WalletCards size={24} /></IconBox>}
+        icon={
+          <IconBox className="mx-auto mb-4" size="lg">
+            <WalletCards size={24} />
+          </IconBox>
+        }
         title="Bạn chưa đăng nhập"
         description="Vui lòng đăng nhập để quản lý ví và nạp tiền."
         actionLabel="Đăng nhập ngay"
@@ -35,9 +41,9 @@ export function WalletPage() {
     );
   }
 
-  if (walletPage.view === 'deposit' || walletPage.deposit.deposit) {
+  if (view === 'deposit' || deposit.deposit) {
     return (
-      <div className="mx-auto w-full max-w-6xl space-y-4">
+      <div className="mx-auto w-full max-w-6xl space-y-5">
         <Button
           className="border-cyan/25 bg-transparent text-cyan-50 hover:bg-cyan/10 hover:text-cyan-50"
           onClick={() => {
@@ -49,56 +55,125 @@ export function WalletPage() {
           Quay lại ví
         </Button>
 
-        <section className={walletHeroClassName}>
-          <div className="space-y-2">
-            <p className="gt-eyebrow">Nạp ví</p>
-            <h1>Nạp số dư ví</h1>
-            <p>Quét mã VietQR, chuyển đúng nội dung và xác nhận để hệ thống ghi nhận yêu cầu.</p>
+        <section className="grid gap-4 rounded-2xl border border-white/8 bg-[radial-gradient(circle_at_top_right,rgba(34,211,238,0.18),transparent_32%),linear-gradient(135deg,var(--gt-hero-start),var(--gt-hero-end))] p-5 md:grid-cols-[minmax(0,1fr)_280px] md:items-center md:p-6">
+          <div className="space-y-3">
+            <Badge variant="accent" className="uppercase tracking-[0.18em]">
+              Nạp ví VietQR
+            </Badge>
+            <div className="space-y-2">
+              <h1 className="text-[clamp(2rem,4.2vw,3.1rem)] font-black leading-[0.95] tracking-tight text-white">
+                Nạp ví
+                <br />
+                <span className="text-cyan">nhanh, rõ và đúng chuẩn</span>
+              </h1>
+              <p className="max-w-2xl text-[0.95rem] leading-6 text-slate-300 sm:text-base">
+                Quét mã VietQR, chuyển đúng số tiền và nội dung để hệ thống tự động ghi nhận yêu cầu nạp của bạn.
+              </p>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              <Badge>VietQR tự động</Badge>
+              <Badge>Đối soát theo mã nạp</Badge>
+              <Badge>Cập nhật trạng thái tức thì</Badge>
+            </div>
           </div>
-          <StatCard
-            className="md:min-w-56"
-            icon={<WalletCards size={20} />}
-            label="Số dư khả dụng"
-            value={formatCurrency(walletPage.wallet?.balance || 0)}
-          />
+
+          <div className="grid gap-3">
+            <StatCard icon={<WalletCards size={20} />} label="Số dư khả dụng" value={formatCurrency(wallet?.balance || 0)} />
+            <div className="rounded-2xl border border-white/8 bg-slate-950/25 p-4 text-sm leading-6 text-slate-300">
+              Mỗi yêu cầu nạp có mã riêng. Chỉ cần chuyển đúng nội dung là hệ thống sẽ nhận diện tự động.
+            </div>
+          </div>
         </section>
 
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
           <main className="min-w-0">
             <WalletPanel
               user={user}
-              wallet={walletPage.wallet}
-              amount={walletPage.deposit.depositAmount}
-              setAmount={walletPage.deposit.setDepositAmount}
-              deposit={walletPage.deposit.deposit}
-              busy={walletPage.deposit.createDepositPending || walletPage.deposit.confirmDepositPending}
-              createDepositPending={walletPage.deposit.createDepositPending}
-              confirmDepositPending={walletPage.deposit.confirmDepositPending}
-              onSubmit={walletPage.deposit.handleCreateDeposit}
-              onConfirm={walletPage.deposit.handleConfirmTransfer}
+              wallet={wallet}
+              deposit={deposit.deposit}
+              depositState={{
+                amount: deposit.depositAmount,
+                busy: deposit.createDepositPending || deposit.confirmDepositPending,
+                confirmDepositPending: deposit.confirmDepositPending,
+                createDepositPending: deposit.createDepositPending,
+                onConfirm: deposit.handleConfirmTransfer,
+                onSubmit: deposit.handleCreateDeposit,
+                setAmount: deposit.setDepositAmount,
+              }}
             />
           </main>
 
-          <aside className="grid gap-4">
-            <div className="gt-surface-ink rounded-2xl p-6">
-              <h3 className="mb-4 text-lg font-black text-white">Lưu ý khi nạp tiền</h3>
-              <ul className="grid gap-3 text-sm leading-6 text-slate-400">
-                <li>Nội dung chuyển khoản phải chính xác như hệ thống cung cấp.</li>
-                <li>Mã QR đã bao gồm số tiền và nội dung nạp.</li>
-                <li>Sau khi chuyển khoản, hãy nhấn “Xác nhận đã chuyển khoản” để gửi yêu cầu duyệt.</li>
-                <li>Yêu cầu nạp tiền sẽ ở trạng thái chờ admin kiểm tra.</li>
-                <li>Thời gian kiểm tra thường khoảng 10-15 phút, có thể lâu hơn tùy tình trạng giao dịch.</li>
-                <li>Số dư chỉ được cộng sau khi admin xác nhận giao dịch thành công.</li>
-              </ul>
-            </div>
-
-            <div className="flex items-start gap-3 rounded-2xl border border-cyan/15 bg-cyan/10 p-6 text-slate-300">
-              <ShieldCheck size={24} />
-              <div className="min-w-0">
-                <strong className="block text-white">Không tự sửa nội dung chuyển khoản</strong>
-                <span className="mt-1 block text-sm leading-6">Hệ thống đối soát theo mã nạp riêng của từng yêu cầu.</span>
+          <aside className="grid gap-4 self-start lg:sticky lg:top-24">
+            <section className="gt-surface-ink rounded-2xl p-5">
+              <div className="mb-4 flex items-center gap-3">
+                <IconBox size="md" className="border border-cyan/15 bg-cyan/10 text-cyan-50">
+                  <ShieldCheck size={18} />
+                </IconBox>
+                <div>
+                  <p className="gt-eyebrow">Lưu ý khi nạp tiền</p>
+                  <h3 className="m-0 text-lg font-black text-white">Đọc nhanh trước khi chuyển khoản</h3>
+                </div>
               </div>
-            </div>
+
+              <div className="grid gap-3">
+                <ActionCard
+                  icon={
+                    <IconBox size="sm" className="border border-cyan/15 bg-cyan/10 text-cyan-50">
+                      <ShieldCheck size={16} />
+                    </IconBox>
+                  }
+                  title="Chỉ đúng nội dung"
+                  description="Nhập đúng nội dung."
+                  className="p-4"
+                />
+                <ActionCard
+                  icon={
+                    <IconBox size="sm" className="border border-emerald-400/15 bg-emerald-400/10 text-emerald-300">
+                      <WalletCards size={16} />
+                    </IconBox>
+                  }
+                  title="Đúng số tiền"
+                  description="Chuyển đúng số tiền hiển thị."
+                  className="p-4"
+                />
+                <ActionCard
+                  icon={
+                    <IconBox size="sm" className="border border-violet-400/15 bg-violet-400/10 text-violet-300">
+                      <CheckCircle2 size={16} />
+                    </IconBox>
+                  }
+                  title="Xác nhận sau khi chuyển"
+                  description="Bấm xác nhận sau khi xong."
+                  className="p-4"
+                />
+                <ActionCard
+                  icon={
+                    <IconBox size="sm" className="border border-amber-400/15 bg-amber-400/10 text-amber-300">
+                      <History size={16} />
+                    </IconBox>
+                  }
+                  title="Admin duyệt 10 - 15 phút"
+                  description="Số dư cập nhật sau khi duyệt."
+                  className="p-4"
+                />
+                <ActionCard
+                  icon={
+                    <IconBox size="sm" className="border border-sky-400/15 bg-sky-400/10 text-sky-300">
+                      <ShieldCheck size={16} />
+                    </IconBox>
+                  }
+                  title="Cần hỗ trợ?"
+                  description="Liên hệ CSKH nếu quá 15 phút."
+                  className="p-4"
+                />
+              </div>
+            </section>
+
+            <section className="rounded-2xl border border-cyan/15 bg-cyan/8 p-5 text-slate-300">
+              <strong className="block text-white">{WALLET_DEPOSIT_WARNING.title}</strong>
+              <span className="mt-1 block text-sm leading-6">{WALLET_DEPOSIT_WARNING.description}</span>
+            </section>
           </aside>
         </div>
       </div>
@@ -116,11 +191,11 @@ export function WalletPage() {
           />
           <div className="flex flex-wrap gap-2" aria-label="Thông tin nhanh">
             <Badge>VietQR an toàn</Badge>
-            <Badge>Cập nhật tức thời</Badge>
+            <Badge>Cập nhật tức thì</Badge>
             <Badge>Lịch sử rõ ràng</Badge>
           </div>
         </div>
-        <StatCard className="md:min-w-56" icon={<WalletCards size={20} />} label="Số dư khả dụng" value={formatCurrency(walletPage.wallet?.balance || 0)} />
+        <StatCard icon={<WalletCards size={20} />} label="Số dư khả dụng" value={formatCurrency(wallet?.balance || 0)} />
       </section>
 
       <div className="grid gap-3 md:grid-cols-2">
@@ -149,9 +224,9 @@ export function WalletPage() {
       </div>
 
       <DepositRequestList
-        loading={walletPage.depositRequests.depositRequestsLoading}
-        requests={walletPage.depositRequests.depositRequests}
-        onCreate={() => walletPage.setView('deposit')}
+        loading={depositRequests.depositRequestsLoading}
+        requests={depositRequests.depositRequests}
+        onCreate={() => setView('deposit')}
       />
 
       <section className="gt-surface-ink rounded-2xl">
@@ -163,23 +238,20 @@ export function WalletPage() {
         />
 
         <div className="flex gap-2 overflow-x-auto px-6 pb-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          {transactionFilters.map((item) => (
+          {TRANSACTION_FILTERS.map((item) => (
             <Button
               key={item.value}
-              variant={walletPage.filter === item.value ? 'accent' : 'default'}
+              variant={filter === item.value ? 'accent' : 'default'}
               className="min-h-10 whitespace-nowrap rounded-full px-3.5 py-2 text-sm"
-              onClick={() => walletPage.setFilter(item.value)}
+              onClick={() => setFilter(item.value)}
             >
               {item.label}
             </Button>
           ))}
         </div>
 
-        <WalletTransactionList loading={walletPage.transactionLoading} transactions={walletPage.filteredTransactions} />
+        <WalletTransactionList loading={transactionLoading} transactions={filteredTransactions} />
       </section>
     </div>
   );
 }
-
-const walletHeroClassName =
-  'grid gap-4 rounded-2xl border border-white/8 bg-[radial-gradient(circle_at_top_right,rgba(207,250,254,0.34),transparent_34%),linear-gradient(135deg,var(--gt-hero-start),var(--gt-hero-end))] p-5 md:grid-cols-[minmax(0,1fr)_auto] md:items-center';

@@ -2,9 +2,9 @@ import { CheckCircle2, Edit3, Plus, Save, Trash2, X } from 'lucide-react';
 import { formatCurrency } from '../../lib/format';
 import type { AdminGamePackage, Game } from '../../types';
 import { useAdminPackagesPanel } from '../../hooks/admin/admin-packages.hooks';
-import { Badge, Button, Field } from '../ui';
+import { Badge, Button, EmptyState, Field, FormActions, RecordRow, SearchBar, SectionHeading, ToggleField } from '../ui';
 import { classNames, pickImage } from '../../lib/ui';
-import { AdminSkeleton, EmptyLine, NumberField, PanelTitle, SearchBox } from './AdminShared';
+import { AdminSkeleton } from './AdminShared';
 import { gameName } from './admin.utils';
 
 export function PackagesAdminPanel({
@@ -70,7 +70,7 @@ export function PackagesAdminPanel({
   return (
     <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1.18fr)_minmax(380px,0.82fr)]">
       <div className="gt-surface grid gap-4">
-        <PanelTitle title="Chọn game" />
+        <SectionHeading title="Chọn game" />
         <div className="grid grid-cols-[repeat(auto-fit,minmax(186px,1fr))] gap-2.5 max-[700px]:grid-cols-[repeat(auto-fit,minmax(152px,1fr))]" role="tablist" aria-label="Chọn game để quản lý gói nạp">
           {games.map((game) => (
             <button
@@ -92,26 +92,24 @@ export function PackagesAdminPanel({
           ))}
         </div>
 
-        <PanelTitle title="Danh sách gói nạp" />
-        <SearchBox value={query} onChange={setQuery} placeholder="Tìm gói nạp..." />
+        <SectionHeading title="Danh sách gói nạp" />
+        <SearchBar className="mb-4" inputClassName="text-sm" value={query} onChange={setQuery} placeholder="Tìm gói nạp..." />
 
         {loading && games.length === 0 && packages.length === 0 ? (
           <AdminSkeleton rows={6} />
         ) : !selectedGameId ? (
-          <EmptyLine text="Hãy chọn hoặc tạo game trước." />
+          <EmptyState>Hãy chọn hoặc tạo game trước.</EmptyState>
         ) : scopedPackages.length === 0 ? (
-          <EmptyLine text="Game này chưa có gói nạp nào." />
+          <EmptyState>Game này chưa có gói nạp nào.</EmptyState>
         ) : (
           <div className="grid gap-2.5">
             {scopedPackages.map((item) => {
               const isEditing = editing?.id === item.id;
 
               return (
-                <div
-                  className={classNames(
-                    'gt-record-row grid-cols-[auto_minmax(0,1fr)_minmax(140px,auto)_auto_auto] max-[700px]:grid-cols-1',
-                    isEditing && 'border-cyan/25 bg-cyan/10 shadow-[inset_0_0_0_1px_rgba(34,211,238,0.15)]',
-                  )}
+                <RecordRow
+                  className="grid-cols-[auto_minmax(0,1fr)_minmax(140px,auto)_auto_auto]"
+                  highlighted={isEditing}
                   key={item.id}
                 >
                   <img className="h-12 w-12 rounded-xl bg-cyan/10 object-cover max-[700px]:h-[54px] max-[700px]:w-[54px]" src={pickImage(item)} alt="" />
@@ -149,7 +147,7 @@ export function PackagesAdminPanel({
                       <Trash2 size={16} />
                     </Button>
                   </div>
-                </div>
+                </RecordRow>
               );
             })}
           </div>
@@ -157,7 +155,7 @@ export function PackagesAdminPanel({
       </div>
 
       <form className="gt-surface sticky top-24" onSubmit={submit}>
-        <PanelTitle title={editing ? 'Cập nhật gói nạp' : 'Tạo gói nạp'} />
+        <SectionHeading title={editing ? 'Cập nhật gói nạp' : 'Tạo gói nạp'} />
 
         <div className="mb-4 grid gap-3">
           <Field label="Tên gói" onChange={(event) => setForm({ ...form, name: event.target.value })} placeholder="Nhập tên gói" required value={form.name} />
@@ -168,28 +166,52 @@ export function PackagesAdminPanel({
         </div>
 
         <div className="mb-4 grid gap-3 md:grid-cols-2">
-          <NumberField label="Giá bán" value={form.salePrice} onChange={(salePrice) => setForm({ ...form, salePrice })} />
-          <NumberField label="Giá gốc" value={form.originalPrice} onChange={(originalPrice) => setForm({ ...form, originalPrice })} />
-          <NumberField label="Giá nhập" value={form.importPrice} onChange={(importPrice) => setForm({ ...form, importPrice })} />
-          <NumberField label="Tồn kho" value={form.stockQuantity} onChange={(stockQuantity) => setForm({ ...form, stockQuantity })} />
+          <Field
+            label="Giá bán"
+            min={0}
+            onChange={(event) => setForm({ ...form, salePrice: Number(event.target.value) })}
+            placeholder="0"
+            required
+            type="number"
+            value={String(form.salePrice)}
+          />
+          <Field
+            label="Giá gốc"
+            min={0}
+            onChange={(event) => setForm({ ...form, originalPrice: Number(event.target.value) })}
+            placeholder="0"
+            required
+            type="number"
+            value={String(form.originalPrice)}
+          />
+          <Field
+            label="Giá nhập"
+            min={0}
+            onChange={(event) => setForm({ ...form, importPrice: Number(event.target.value) })}
+            placeholder="0"
+            required
+            type="number"
+            value={String(form.importPrice)}
+          />
+          <Field
+            label="Tồn kho"
+            min={0}
+            onChange={(event) => setForm({ ...form, stockQuantity: Number(event.target.value) })}
+            placeholder="0"
+            required
+            type="number"
+            value={String(form.stockQuantity)}
+          />
         </div>
 
-        <label className="mb-4 flex items-center gap-2 font-semibold text-slate-200">
-          <input type="checkbox" checked={form.isActive} onChange={(event) => setForm({ ...form, isActive: event.target.checked })} />
-          <span>Cho phép bán gói này</span>
-        </label>
+        <ToggleField checked={form.isActive} label="Cho phép bán gói này" onChange={(isActive) => setForm({ ...form, isActive })} />
 
-        <div className="mt-4 flex flex-wrap justify-end gap-2">
-          {editing && (
-            <Button onClick={resetForm}>
-              <X size={17} /> Hủy
-            </Button>
-          )}
-          <Button type="submit" variant="accent" disabled={busy || games.length === 0}>
-            {editing ? <Save size={17} /> : <Plus size={17} />}
-            {editing ? 'Lưu gói' : 'Tạo gói'}
-          </Button>
-        </div>
+        <FormActions
+          disabled={busy || games.length === 0}
+          onCancel={editing ? resetForm : undefined}
+          submitIcon={editing ? <Save size={17} /> : <Plus size={17} />}
+          submitLabel={editing ? 'Lưu gói' : 'Tạo gói'}
+        />
       </form>
     </div>
   );

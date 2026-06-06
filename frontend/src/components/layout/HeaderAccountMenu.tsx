@@ -1,16 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
-import type { ReactNode } from 'react';
 import { ChevronDown, ShieldCheck, UserRound } from 'lucide-react';
 import { classNames } from '../../lib/ui';
 import { Badge, IconBox } from '../ui';
-
-export type HeaderAccountMenuItem = {
-  className?: string;
-  icon: ReactNode;
-  label: string;
-  onClick: () => void;
-  dividerAfter?: boolean;
-};
+import type { HeaderAccountMenuItem } from '../../types/layout.type';
 
 export function HeaderAccountMenu({
   infoLabel,

@@ -3,9 +3,8 @@ import { formatCurrency, formatDate } from '../../lib/format';
 import { statusLabel } from '../../lib/labels';
 import type { Order, User } from '../../types';
 import { useAdminOrdersPanel } from '../../hooks/admin/admin-orders.hooks';
-import { AdminSkeleton, EmptyLine, PanelTitle, SearchBox } from './AdminShared';
-import { Badge, Button, IconBox } from '../ui';
-import { classNames } from '../../lib/ui';
+import { AdminSkeleton } from './AdminShared';
+import { Badge, Button, EmptyState, IconBox, RecordRow, SearchBar, SectionHeading } from '../ui';
 
 export function OrdersAdminPanel({
   busy,
@@ -29,8 +28,8 @@ export function OrdersAdminPanel({
   return (
     <div className="grid gap-5">
       <div className="gt-surface grid gap-4">
-        <PanelTitle title="Bộ lọc đơn hàng" />
-        <SearchBox value={query} onChange={setQuery} placeholder="Tìm theo mã đơn, user, package..." />
+        <SectionHeading title="Bộ lọc đơn hàng" />
+        <SearchBar className="mb-4" inputClassName="text-sm" value={query} onChange={setQuery} placeholder="Tìm theo mã đơn, user, package..." />
         <div className="flex flex-wrap gap-2.5">
           {FILTERS.map((item) => (
             <Button
@@ -46,12 +45,12 @@ export function OrdersAdminPanel({
       </div>
 
       <div className="gt-surface">
-        <PanelTitle title="Danh sách đơn hàng" />
+        <SectionHeading title="Danh sách đơn hàng" />
 
         {loading && filteredOrders.length === 0 ? (
           <AdminSkeleton rows={6} />
         ) : filteredOrders.length === 0 ? (
-          <EmptyLine text="Không tìm thấy đơn hàng phù hợp." />
+          <EmptyState>Không tìm thấy đơn hàng phù hợp.</EmptyState>
         ) : (
           <div className="admin-table">
             {filteredOrders.map((order) => {
@@ -61,7 +60,7 @@ export function OrdersAdminPanel({
               const canCancel = isProcessing && order.assignedTo === currentUser?.id;
 
               return (
-                <article className={classNames('gt-record-row grid-cols-[auto_minmax(0,1.2fr)_minmax(140px,auto)_auto_auto] max-[700px]:grid-cols-1')} key={order.id}>
+                <RecordRow className="grid-cols-[auto_minmax(0,1.2fr)_minmax(140px,auto)_auto_auto]" key={order.id}>
                   <IconBox size="md" className="font-black text-[0.8rem]">
                     #{order.id}
                   </IconBox>
@@ -118,7 +117,7 @@ export function OrdersAdminPanel({
                       </Badge>
                     )}
                   </div>
-                </article>
+                </RecordRow>
               );
             })}
           </div>

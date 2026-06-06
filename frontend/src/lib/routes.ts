@@ -1,16 +1,34 @@
+import type { GameOrderStep } from '../types';
+
 export type Route =
   | { name: 'home' }
-  | { name: 'games'; gameId?: number }
+  | { name: 'games'; gameId?: number; step?: GameOrderStep }
   | { name: 'auth' }
   | { name: 'wallet' }
   | { name: 'orders' }
   | { name: 'account' }
   | { name: 'admin'; section?: 'dashboard' | 'games' | 'packages' | 'orders' | 'users' };
 
+function parseGameOrderStep(value: string | undefined): GameOrderStep | undefined {
+  if (value === '1' || value === '2' || value === '3') {
+    return Number(value) as GameOrderStep;
+  }
+
+  return undefined;
+}
+
 export function parseRoute(pathname = window.location.pathname): Route {
   const segments = pathname.split('/').filter(Boolean);
 
   if (segments[0] === 'games') {
+    if (segments[2] === 'step') {
+      return {
+        name: 'games',
+        gameId: segments[1] ? Number(segments[1]) : undefined,
+        step: parseGameOrderStep(segments[3]),
+      };
+    }
+
     return { name: 'games', gameId: segments[1] ? Number(segments[1]) : undefined };
   }
 
@@ -30,7 +48,13 @@ export function parseRoute(pathname = window.location.pathname): Route {
 }
 
 export function routePath(route: Route) {
-  if (route.name === 'games') return route.gameId ? `/games/${route.gameId}` : '/games';
+  if (route.name === 'games') {
+    if (route.gameId) {
+      return `/games/${route.gameId}/step/${route.step ?? 1}`;
+    }
+
+    return '/games';
+  }
   if (route.name === 'auth') return '/auth';
   if (route.name === 'wallet') return '/wallet';
   if (route.name === 'orders') return '/orders';

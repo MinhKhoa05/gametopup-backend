@@ -1,6 +1,7 @@
 import { useState, type InputHTMLAttributes, type ReactNode } from 'react';
 import { Eye, EyeOff, Lock, Mail, UserRound } from 'lucide-react';
-import type { AuthFormData, AuthMode } from '../../types';
+import type { AuthFormData } from '../../types';
+import type { AuthMode } from '../../hooks/auth.hooks';
 import { classNames } from '../../lib/ui';
 import { Button } from '../ui';
 
@@ -21,7 +22,6 @@ type AuthFormProps = {
 export function AuthForm({ mode, busy, onSubmitAuth, onSwitchMode, className = '' }: AuthFormProps) {
   const [form, setForm] = useState<AuthFormData>(defaultForm);
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [rememberMe, setRememberMe] = useState(true);
   const [error, setError] = useState('');
   const isRegister = mode === 'register';
   const [showPassword, setShowPassword] = useState(false);
@@ -99,32 +99,53 @@ export function AuthForm({ mode, busy, onSubmitAuth, onSwitchMode, className = '
           />
         ) : null}
 
-        {!isRegister ? (
-          <div className="flex items-center justify-between gap-3 text-[0.88rem]">
-            <label className="inline-flex items-center gap-2 text-slate-300">
-              <input
-                type="checkbox"
-                checked={rememberMe}
-                onChange={(event) => setRememberMe(event.target.checked)}
-                className="size-4 rounded border-white/15 bg-white/5 text-cyan focus:ring-cyan"
-              />
-              Ghi nhớ đăng nhập
-            </label>
-            <button type="button" className="font-semibold text-cyan transition-colors hover:text-cyan-50">
-              Quên mật khẩu?
-            </button>
-          </div>
-        ) : null}
-
         {error ? <p className="text-sm font-medium text-rose-300">{error}</p> : null}
 
         <Button className="w-full text-base" type="submit" variant="accent" disabled={busy}>
           {busy ? 'Đang xử lý...' : isRegister ? 'Đăng ký' : 'Đăng nhập'}
         </Button>
 
-        {!isRegister ? <div className="h-px bg-white/6" aria-hidden="true" /> : null}
+        {!isRegister ? (
+          <div className="grid gap-3.5 rounded-2xl pt-1">
+            <div className="flex items-center gap-3 text-[0.82rem] text-slate-400">
+              <span className="h-px flex-1 bg-white/8" aria-hidden="true" />
+              <span className="whitespace-nowrap">Hoặc đăng nhập với</span>
+              <span className="h-px flex-1 bg-white/8" aria-hidden="true" />
+            </div>
 
-        {!isRegister ? <SocialLoginBlock /> : null}
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Button
+                type="button"
+                variant="outline"
+                disabled
+                className="h-11 justify-center gap-2 px-4 text-[0.93rem] font-semibold"
+                title="Tính năng đang được phát triển"
+              >
+                <span className="inline-flex items-center gap-2">
+                  <span className="grid size-6 place-items-center rounded-full bg-[#4285F4]/15 text-[0.92rem] font-black text-[#4285F4]">
+                    G
+                  </span>
+                  Google
+                </span>
+              </Button>
+
+              <Button
+                type="button"
+                variant="outline"
+                disabled
+                className="h-11 justify-center gap-2 px-4 text-[0.93rem] font-semibold"
+                title="Tính năng đang được phát triển"
+              >
+                <span className="inline-flex items-center gap-2">
+                  <span className="grid size-6 place-items-center rounded-full bg-[#1877F2]/15 text-[0.92rem] font-black text-[#1877F2]">
+                    f
+                  </span>
+                  Facebook
+                </span>
+              </Button>
+            </div>
+          </div>
+        ) : null}
 
         {onSwitchMode ? (
           <div className="pt-1 text-center text-[0.88rem] text-slate-400">
@@ -139,48 +160,6 @@ export function AuthForm({ mode, busy, onSubmitAuth, onSwitchMode, className = '
           </div>
         ) : null}
       </form>
-    </div>
-  );
-}
-
-function SocialLoginBlock() {
-  return (
-    <div className="grid gap-3.5 rounded-2xl px-0 py-0">
-      <div className="flex items-center gap-3 text-[0.82rem] text-slate-400">
-        <span className="h-px flex-1 bg-white/8" aria-hidden="true" />
-        <span className="whitespace-nowrap">Hoặc đăng nhập với</span>
-        <span className="h-px flex-1 bg-white/8" aria-hidden="true" />
-      </div>
-
-      <div className="flex gap-3">
-        <Button
-          type="button"
-          variant="outline"
-          disabled
-          className="h-11 flex-1 justify-center gap-2 px-4 text-[0.93rem] font-semibold"
-        >
-          <span className="inline-flex items-center gap-2">
-            <span className="grid size-6 place-items-center rounded-full bg-[#4285F4]/15 text-[0.92rem] font-black text-[#4285F4]">
-              G
-            </span>
-            Google
-          </span>
-        </Button>
-
-        <Button
-          type="button"
-          variant="outline"
-          disabled
-          className="h-11 flex-1 justify-center gap-2 px-4 text-[0.93rem] font-semibold"
-        >
-          <span className="inline-flex items-center gap-2">
-            <span className="grid size-6 place-items-center rounded-full bg-[#1877F2]/15 text-[0.92rem] font-black text-[#1877F2]">
-              f
-            </span>
-            Facebook
-          </span>
-        </Button>
-      </div>
     </div>
   );
 }

@@ -1,6 +1,5 @@
 import { EmptyState, SearchBar } from '../components/ui';
-import { OrderCard } from '../components/orders/OrderCard';
-import { classNames } from '../lib/ui';
+import { OrderCard } from '../components/orders';
 import { useOrdersPage } from '../hooks/orders.hooks';
 
 export function OrdersPage() {
@@ -20,24 +19,9 @@ export function OrdersPage() {
         />
       </div>
 
-      <div className="mb-6 flex gap-2 overflow-x-auto border-b border-white/10 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        {orderTabs.map((label, index) => (
-          <button
-            key={label}
-            type="button"
-            className={classNames(
-              'whitespace-nowrap border-b-2 px-5 py-3 text-sm font-bold transition-colors',
-              index === 0 ? 'border-cyan text-cyan-50' : 'border-transparent text-slate-400 hover:border-cyan/25 hover:text-cyan-50',
-            )}
-          >
-            {label}
-          </button>
-        ))}
-      </div>
-
       <div className="grid gap-4">
         {ordersPage.filteredOrders.length === 0 ? (
-          <EmptyState className="py-12">
+          <EmptyState variant="spacious">
             {ordersPage.query.trim() ? `Không tìm thấy đơn hàng phù hợp với "${ordersPage.query}".` : 'Bạn chưa có đơn hàng nào.'}
           </EmptyState>
         ) : (
@@ -47,5 +31,3 @@ export function OrdersPage() {
     </div>
   );
 }
-
-const orderTabs = ['Tất cả', 'Chờ xử lý', 'Đã hoàn thành', 'Đã hủy'];

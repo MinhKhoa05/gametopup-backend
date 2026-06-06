@@ -4,8 +4,8 @@ import { userRoleLabel } from '../../lib/labels';
 import { classNames } from '../../lib/ui';
 import type { User } from '../../types';
 import { useAdminUsersPanel } from '../../hooks/admin/admin-users.hooks';
-import { AdminSkeleton, EmptyLine, PanelTitle, SearchBox } from './AdminShared';
-import { Badge, Button, Field, IconBox } from '../ui';
+import { AdminSkeleton } from './AdminShared';
+import { Badge, Button, EmptyState, Field, FormActions, IconBox, RecordRow, SearchBar, SectionHeading, ToggleField } from '../ui';
 
 export function UsersAdminPanel({
   busy,
@@ -31,24 +31,22 @@ export function UsersAdminPanel({
   return (
     <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1.18fr)_minmax(380px,0.82fr)]">
       <div className="gt-surface grid gap-4">
-        <PanelTitle title="Danh sách users" />
-        <SearchBox value={query} onChange={setQuery} placeholder="Tìm user theo tên, email, role..." />
+        <SectionHeading title="Danh sách users" />
+        <SearchBar className="mb-4" inputClassName="text-sm" value={query} onChange={setQuery} placeholder="Tìm user theo tên, email, role..." />
 
         {loading && filteredUsers.length === 0 ? (
           <AdminSkeleton rows={6} />
         ) : filteredUsers.length === 0 ? (
-          <EmptyLine text="Không tìm thấy user phù hợp." />
+          <EmptyState>Không tìm thấy user phù hợp.</EmptyState>
         ) : (
           <div className="grid gap-2.5">
             {filteredUsers.map((user) => {
               const isSelf = user.id === currentUser?.id;
 
               return (
-                <div
-                  className={classNames(
-                    'gt-record-row grid-cols-[auto_minmax(0,1fr)_minmax(180px,auto)_auto] max-[700px]:grid-cols-1',
-                    isSelf && 'border-cyan/25 bg-cyan/10 shadow-[inset_0_0_0_1px_rgba(34,211,238,0.15)]',
-                  )}
+                <RecordRow
+                  className="grid-cols-[auto_minmax(0,1fr)_minmax(180px,auto)_auto]"
+                  highlighted={isSelf}
                   key={user.id}
                 >
                   <IconBox size="sm" className="h-12 w-12 rounded-xl max-[700px]:h-[54px] max-[700px]:w-[54px]">
@@ -88,7 +86,7 @@ export function UsersAdminPanel({
                       <Trash2 size={16} />
                     </Button>
                   </div>
-                </div>
+                </RecordRow>
               );
             })}
           </div>
@@ -96,7 +94,7 @@ export function UsersAdminPanel({
       </div>
 
       <form className="gt-surface sticky top-24" onSubmit={submit}>
-        <PanelTitle title={editing ? 'Cập nhật user' : 'Chọn user để sửa'} />
+        <SectionHeading title={editing ? 'Cập nhật user' : 'Chọn user để sửa'} />
 
         {editing ? (
           <>
@@ -116,10 +114,7 @@ export function UsersAdminPanel({
               </select>
             </label>
 
-            <label className="mb-4 flex items-center gap-2 font-semibold text-slate-200">
-              <input type="checkbox" checked={form.isActive} onChange={(event) => setForm({ ...form, isActive: event.target.checked })} />
-              <span>Kích hoạt tài khoản</span>
-            </label>
+            <ToggleField checked={form.isActive} label="Kích hoạt tài khoản" onChange={(isActive) => setForm({ ...form, isActive })} />
 
             <div className="gt-panel-soft rounded-2xl p-4 text-sm text-slate-300">
               <div className="mb-2 flex items-center gap-2 font-semibold text-white">
@@ -133,16 +128,12 @@ export function UsersAdminPanel({
               </div>
             </div>
 
-            <div className="mt-4 flex flex-wrap justify-end gap-2">
-              <Button onClick={resetForm}>Hủy</Button>
-              <Button type="submit" variant="accent" disabled={busy}>
-                <Save size={17} />
-                Lưu user
-              </Button>
-            </div>
+            <FormActions disabled={busy} onCancel={resetForm} submitIcon={<Save size={17} />} submitLabel="Lưu user" />
           </>
         ) : (
-          <EmptyLine text="Chọn một user ở danh sách bên trái để chỉnh sửa." />
+          <div className="rounded-2xl border border-dashed border-white/12 px-6 py-8 text-slate-400">
+            <span>Chọn một user ở danh sách bên trái để chỉnh sửa.</span>
+          </div>
         )}
       </form>
     </div>

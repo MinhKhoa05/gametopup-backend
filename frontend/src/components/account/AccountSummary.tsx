@@ -1,4 +1,5 @@
-import { Mail, ShieldCheck, UserRound } from 'lucide-react';
+import { Fragment } from 'react';
+import { PackageCheck, ShieldCheck, UserRound, WalletCards } from 'lucide-react';
 import { Badge, IconBox, StatCard } from '../ui';
 import { formatCurrency } from '../../lib/format';
 import { userDisplayName } from '../../lib/labels';
@@ -15,7 +16,18 @@ export function AccountSummary({ user, wallet, ordersCount }: AccountSummaryProp
   const displayName = userDisplayName(user);
   const roleLabel = isAdminUser(user) ? 'Quản trị viên' : 'Tài khoản cá nhân';
   const statusLabel = user.isActive === false ? 'Tạm khóa' : 'Đang hoạt động';
-  const statIconClassName = 'flex items-center justify-center rounded-xl bg-cyan/10 text-cyan shadow-[inset_0_0_22px_rgba(34,211,238,0.06)]';
+  const stats = [
+    {
+      icon: <WalletCards size={24} />,
+      label: 'Số dư ví',
+      value: formatCurrency(wallet?.balance || 0),
+    },
+    {
+      icon: <PackageCheck size={24} />,
+      label: 'Đơn hàng',
+      value: `${ordersCount} đơn`,
+    },
+  ] as const;
 
   return (
     <div className="grid gap-0 px-4 pt-5 pb-6 md:p-5 lg:px-6 lg:pt-5 lg:pb-6">
@@ -53,25 +65,20 @@ export function AccountSummary({ user, wallet, ordersCount }: AccountSummaryProp
         <div className="h-px w-full self-stretch bg-slate-400/15 lg:h-auto lg:w-px" />
 
         <div className="grid grid-cols-1 items-center gap-0 pl-0 lg:grid-cols-[minmax(0,1fr)_1px_minmax(0,1fr)] lg:pl-6">
-          <StatCard
-            surface={false}
-            variant="inline"
-            iconClassName={statIconClassName}
-            icon={<Mail size={24} />}
-            label="Số dư ví"
-            value={formatCurrency(wallet?.balance || 0)}
-          />
+          {stats.map((item, index) => (
+            <Fragment key={item.label}>
+              <StatCard
+                surface={false}
+                variant="inline"
+                icon={item.icon}
+                iconClassName="flex items-center justify-center rounded-xl bg-cyan/10 text-cyan shadow-[inset_0_0_22px_rgba(34,211,238,0.06)]"
+                label={item.label}
+                value={item.value}
+              />
 
-          <div className="my-2 h-px w-full justify-self-center bg-slate-400/20 lg:my-0 lg:h-16 lg:w-px" />
-
-          <StatCard
-            surface={false}
-            variant="inline"
-            iconClassName={statIconClassName}
-            icon={<Mail size={24} />}
-            label="Đơn hàng"
-            value={`${ordersCount} đơn`}
-          />
+              {index === 0 ? <div className="my-2 h-px w-full justify-self-center bg-slate-400/20 lg:my-0 lg:h-16 lg:w-px" /> : null}
+            </Fragment>
+          ))}
         </div>
       </div>
     </div>

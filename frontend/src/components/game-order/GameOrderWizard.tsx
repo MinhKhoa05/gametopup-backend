@@ -1,9 +1,9 @@
-import { useEffect, useRef } from 'react';
-import { ArrowLeft, CheckCircle2, ChevronRight, Home } from 'lucide-react';
+import { useEffect } from 'react';
+import { ArrowLeft, ChevronRight, Home } from 'lucide-react';
 import { useRoute } from '../../hooks/common/route.hooks';
 import { useAuthSession } from '../../hooks/auth.hooks';
 import { useWalletQuery } from '../../services/wallet';
-import { EmptyState } from '../ui';
+import { EmptyState, StepProgress } from '../ui';
 import { classNames } from '../../lib/ui';
 import { GameOrderPackageStep, PackageGridSkeleton } from './GameOrderPackageStep';
 import { GameOrderReviewStep } from './GameOrderReviewStep';
@@ -11,11 +11,27 @@ import { GameOrderSuccessStep } from './GameOrderSuccessStep';
 import { useGameOrderGame, useGameOrderPackages } from '../../hooks/game-order.hooks';
 import { useGameOrderStore } from '../../store/game-order.store';
 
+const ORDER_STEPS = [
+  {
+    icon: <span className="text-sm font-black tabular-nums">1</span>,
+    title: 'Chọn gói & nhập thông tin',
+  },
+  {
+    icon: <span className="text-sm font-black tabular-nums">2</span>,
+    title: 'Thanh toán',
+  },
+  {
+    icon: <span className="text-sm font-black tabular-nums">3</span>,
+    title: 'Đặt hàng thành công',
+  },
+] as const;
+
 type Props = {
   gameId: number;
 };
 
 export function GameOrderWizard({ gameId }: Props) {
+  const { navigate, route } = useRoute();
   const gameQuery = useGameOrderGame(gameId);
   const packagesQuery = useGameOrderPackages(gameId);
   const auth = useAuthSession();
@@ -29,11 +45,11 @@ export function GameOrderWizard({ gameId }: Props) {
   const setSelectedPackageId = useGameOrderStore((state) => state.setSelectedPackageId);
   const setStep = useGameOrderStore((state) => state.setStep);
   const resetWizard = useGameOrderStore((state) => state.resetWizard);
+  const routeStep = route.name === 'games' ? route.step : undefined;
 
   const game = gameQuery.isPlaceholderData ? null : gameQuery.data ?? null;
   const packages = packagesQuery.isPlaceholderData ? [] : packagesQuery.data ?? [];
-  const previousStepRef = useRef(step);
-  const stepDirection = step >= previousStepRef.current ? 'forward' : 'back';
+  const isFirstStep = step === 1;
 
   useEffect(() => {
     if (activeGameId !== gameId) {
@@ -43,8 +59,29 @@ export function GameOrderWizard({ gameId }: Props) {
   }, [activeGameId, gameId, resetWizard, setActiveGameId]);
 
   useEffect(() => {
-    previousStepRef.current = step;
-  }, [step]);
+    if (activeGameId !== gameId || routeStep === undefined) {
+      return;
+    }
+
+    if (routeStep !== step) {
+      setStep(routeStep);
+    }
+  }, [activeGameId, gameId, routeStep, setStep, step]);
+
+  useEffect(() => {
+    if (activeGameId !== gameId) {
+      return;
+    }
+
+    if (routeStep === undefined) {
+      navigate({ name: 'games', gameId, step }, { replace: true });
+      return;
+    }
+
+    if (routeStep !== step) {
+      navigate({ name: 'games', gameId, step });
+    }
+  }, [activeGameId, gameId, navigate, routeStep, step]);
 
   useEffect(() => {
     if (packagesQuery.isPlaceholderData) {
@@ -74,13 +111,32 @@ export function GameOrderWizard({ gameId }: Props) {
 
   return (
     <div className="mx-auto max-w-6xl">
-      <GameOrderHeader gameName={game.name} />
+      <div className="mb-5 flex items-center gap-2 text-sm text-slate-400">
+        <Home size={16} />
+        <span>Đơn hàng</span>
+        <ChevronRight size={14} />
+        <span className="font-bold text-white">{game.name}</span>
+      </div>
 
       <div className="gt-surface p-5 sm:p-6">
-        <GameOrderProgress step={step} direction={stepDirection} />
-        <GameOrderBackButton step={step} onBack={() => setStep((step - 1) as 1 | 2 | 3)} />
+        <StepProgress currentStep={step} steps={ORDER_STEPS} />
+        <button
+          className="mb-4 inline-flex items-center gap-2 border-0 bg-transparent p-0 text-sm font-bold text-slate-400 hover:text-cyan-50"
+          type="button"
+          onClick={() => {
+            if (isFirstStep) {
+              navigate({ name: 'games' });
+              return;
+            }
 
-        <div key={step} className={classNames('game-order-stage', stepDirection === 'back' && 'game-order-stage--back')}>
+            setStep((step - 1) as 1 | 2 | 3);
+          }}
+        >
+          <ArrowLeft size={15} />
+          {isFirstStep ? 'Quay lại danh sách game' : 'Quay lại bước trước'}
+        </button>
+
+        <div>
           {step === 1 && <GameOrderPackageStep game={game} packages={packages} isLoading={packagesQuery.isPending && !packagesQuery.data} user={user} />}
           {step === 2 && (
             <GameOrderReviewStep
@@ -93,73 +149,6 @@ export function GameOrderWizard({ gameId }: Props) {
           {step === 3 && <GameOrderSuccessStep />}
         </div>
       </div>
-    </div>
-  );
-}
-
-function GameOrderHeader({ gameName }: { gameName: string }) {
-  return (
-    <div className="mb-5 flex items-center gap-2 text-sm text-slate-400">
-      <Home size={16} />
-      <span>Đơn hàng</span>
-      <ChevronRight size={14} />
-      <span className="font-bold text-white">{gameName}</span>
-    </div>
-  );
-}
-
-function GameOrderBackButton({
-  step,
-  onBack,
-}: {
-  step: 1 | 2 | 3;
-  onBack: () => void;
-}) {
-  const { navigate } = useRoute();
-  const isFirstStep = step === 1;
-
-  return (
-    <button
-      className="mb-4 inline-flex items-center gap-2 border-0 bg-transparent p-0 text-sm font-bold text-slate-400 hover:text-cyan-50"
-      type="button"
-      onClick={() => {
-        if (isFirstStep) {
-          navigate({ name: 'games' });
-          return;
-        }
-
-        onBack();
-      }}
-    >
-      <ArrowLeft size={15} />
-      {isFirstStep ? 'Quay lại danh sách game' : 'Quay lại bước trước'}
-    </button>
-  );
-}
-
-function GameOrderProgress({ step, direction }: { step: 1 | 2 | 3; direction?: 'forward' | 'back' }) {
-  return (
-    <div
-      key={step}
-      className={classNames(
-        'topup-steps',
-        step === 3 && 'topup-steps--success',
-        direction === 'back' ? 'topup-steps--back' : 'topup-steps--forward',
-      )}
-      aria-label="Tiến trình đặt hàng"
-    >
-      {['Chọn gói & nhập thông tin', 'Thanh toán', 'Đặt hàng thành công'].map((label, index) => {
-        const stepNumber = (index + 1) as 1 | 2 | 3;
-        const isActive = step === stepNumber;
-        const isCompleted = step > stepNumber;
-
-        return (
-          <div key={label} className={classNames('topup-step', isCompleted && 'completed', isActive && 'active')}>
-            <span>{isCompleted ? <CheckCircle2 size={14} /> : stepNumber}</span>
-            <small>{label}</small>
-          </div>
-        );
-      })}
     </div>
   );
 }

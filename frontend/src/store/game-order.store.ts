@@ -1,8 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { GamePackage } from '../types';
-
-export type GameOrderStep = 1 | 2 | 3;
+import type { GameOrderStep, GamePackage } from '../types';
 
 type GameOrderState = {
   activeGameId: number | null;

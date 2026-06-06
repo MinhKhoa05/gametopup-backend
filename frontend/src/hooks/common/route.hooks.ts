@@ -1,19 +1,16 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useLocation, useNavigate as useRouterNavigate } from 'react-router-dom';
 import { parseRoute, Route, routePath } from '../../lib/routes';
 
 export function useRoute() {
   const location = useLocation();
   const routerNavigate = useRouterNavigate();
-  const [route, setRoute] = useState<Route>(() => parseRoute(location.pathname));
-  useEffect(() => {
-    setRoute(parseRoute(location.pathname));
-  }, [location.pathname]);
+  const route = useMemo(() => parseRoute(location.pathname), [location.pathname]);
 
-  const navigate = useCallback((nextRoute: Route) => {
+  const navigate = useCallback((nextRoute: Route, options?: { replace?: boolean }) => {
     const nextPath = routePath(nextRoute);
 
-    routerNavigate(nextPath);
+    routerNavigate(nextPath, options);
     window.scrollTo({ top: 0, behavior: 'auto' });
   }, [routerNavigate]);
 

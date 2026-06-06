@@ -1,4 +1,4 @@
-import { ChevronRight, Gamepad2, ShieldCheck, Tag, WalletCards, Zap } from 'lucide-react';
+import { ChevronRight, ShieldCheck } from 'lucide-react';
 import { useState } from 'react';
 import { ActionCard, Badge, Button, IconBox, SearchBar } from '../components/ui';
 import { GameGrid } from '../components/games/GameGrid';
@@ -8,6 +8,7 @@ import { useRoute } from '../hooks/common/route.hooks';
 import { useGameCatalog } from '../hooks/games.hooks';
 import { SITE } from '../config/site';
 import { pickImage } from '../lib/ui';
+import { HOME_FEATURES, HOME_STEPS, homeHeroClassName } from './home-page.data';
 
 export function HomePage() {
   const { navigate } = useRoute();
@@ -46,9 +47,9 @@ export function HomePage() {
       </section>
 
       <section className="my-8 grid grid-cols-1 gap-3 border-y border-white/5 py-4 md:grid-cols-3 md:gap-4 md:py-6">
-        <ActionCard icon={<Zap size={32} className="text-cyan" />} title="Xử Lý Nhanh Chóng" description="Hoàn thành trong 5-15 phút" />
-        <ActionCard icon={<ShieldCheck size={32} className="text-cyan" />} title="Giao Dịch Đảm Bảo" description="Uy tín 100%" />
-        <ActionCard icon={<WalletCards size={32} className="text-cyan" />} title="Giá Rẻ Hơn" description="Rẻ hơn tới 15% so với web gốc" />
+        {HOME_FEATURES.map((feature) => (
+          <ActionCard key={feature.title} icon={feature.icon} title={feature.title} description={feature.desc} />
+        ))}
       </section>
 
       <section className="mb-12">
@@ -79,7 +80,7 @@ export function HomePage() {
                 <button
                   key={game.id}
                   className="group flex w-full flex-col items-center justify-start gap-2 text-center text-[0.72rem] font-semibold text-slate-300 transition-transform duration-200 md:w-[96px] md:flex-none md:text-sm"
-                  onClick={() => navigate({ name: 'games', gameId: game.id })}
+                  onClick={() => navigate({ name: 'games', gameId: game.id, step: 1 })}
                 >
                   <img
                     src={pickImage(game)}
@@ -100,7 +101,7 @@ export function HomePage() {
           games={featuredGames}
           loading={gamesLoading && games.length === 0}
           skeletonCount={8}
-          onPick={(game) => navigate({ name: 'games', gameId: game.id })}
+          onPick={(game) => navigate({ name: 'games', gameId: game.id, step: 1 })}
           renderBadges={(game) => {
             const maxDiscount = 12 + (game.name.length % 10);
             return <div className="rounded-md bg-red-500 px-2 py-1 text-xs font-bold text-white shadow-lg shadow-red-500/20">CK {maxDiscount}%</div>;
@@ -144,24 +145,3 @@ export function HomePage() {
     </div>
   );
 }
-
-const HOME_STEPS = [
-  {
-    title: '1. Chọn game',
-    desc: 'Tìm tựa game và chọn gói nạp phù hợp.',
-    icon: <Gamepad2 size={24} />,
-  },
-  {
-    title: '2. Nhập ID',
-    desc: 'Cung cấp UID hoặc thông tin tài khoản.',
-    icon: <Tag size={24} />,
-  },
-  {
-    title: '3. Thanh toán',
-    desc: 'Sử dụng số dư ví và nhận gói nạp tức thì.',
-    icon: <WalletCards size={24} />,
-  },
-] as const;
-
-const homeHeroClassName =
-  'relative mb-10 overflow-hidden rounded-3xl border border-white/5 bg-[linear-gradient(100deg,rgba(7,17,31,0.94)_0%,rgba(7,17,31,0.82)_44%,rgba(7,17,31,0.46)_100%),url("https://images.unsplash.com/photo-1552820728-8b83bb6b773f?auto=format&fit=crop&w=1600&q=80")] bg-cover px-4 py-6 sm:rounded-[24px] sm:px-6 sm:py-10 lg:px-10 lg:py-16';

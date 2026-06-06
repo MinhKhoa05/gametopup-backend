@@ -13,6 +13,8 @@ type OrderCardProps = {
 
 export function OrderCard({ busy, order, onPay }: OrderCardProps) {
   const { navigate } = useRoute();
+  const total = order.total || order.unitPrice * order.quantity;
+  const statusMeta = getOrderStatusMeta(order.status);
 
   return (
     <div className="grid gap-4 rounded-2xl border border-white/5 bg-ink-lighter p-4 md:grid-cols-[auto_minmax(0,1fr)_auto_auto] md:items-center">
@@ -29,14 +31,8 @@ export function OrderCard({ busy, order, onPay }: OrderCardProps) {
         <span className="mt-1 block text-xs text-slate-500">{formatDate(order.createdAt)}</span>
       </div>
       <div className="text-left md:text-right">
-        <strong className="mb-2 block text-xl text-cyan">
-          {formatCurrency(order.total || order.unitPrice * order.quantity)}
-        </strong>
-        <Badge
-          className="ml-auto w-fit"
-          icon={order.status === 0 ? <Clock size={14} /> : order.status === 1 ? <CheckCircle2 size={14} /> : order.status === 2 ? <XCircle size={14} /> : null}
-          variant={order.status === 0 ? 'warning' : order.status === 1 ? 'success' : order.status === 2 ? 'danger' : 'default'}
-        >
+        <strong className="mb-2 block text-xl text-cyan">{formatCurrency(total)}</strong>
+        <Badge className="ml-auto w-fit" icon={statusMeta.icon} variant={statusMeta.variant}>
           {statusLabel(order.status)}
         </Badge>
       </div>
@@ -53,4 +49,17 @@ export function OrderCard({ busy, order, onPay }: OrderCardProps) {
       </div>
     </div>
   );
+}
+
+function getOrderStatusMeta(status: number) {
+  switch (status) {
+    case 0:
+      return { icon: <Clock size={14} />, variant: 'warning' as const };
+    case 1:
+      return { icon: <CheckCircle2 size={14} />, variant: 'success' as const };
+    case 2:
+      return { icon: <XCircle size={14} />, variant: 'danger' as const };
+    default:
+      return { icon: null, variant: 'default' as const };
+  }
 }
