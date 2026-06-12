@@ -31,14 +31,10 @@ public sealed class AuthFlowTests : BaseIntegrationTest
         var registerBody = await registerResponse.ReadApiResponseAsync<object>();
         registerBody.Success.Should().BeTrue();
 
-        var loginResponse = await Client.PostJsonAsync("/api/auth/login", new LoginRequest
-        {
-            Email = email,
-            Password = password
-        });
+        var loginResponse = await Client.LoginAsync(email, password);
 
         loginResponse.StatusCode.Should().Be(HttpStatusCode.OK);
-        loginResponse.Headers.TryGetValues("Set-Cookie", out var setCookies).Should().BeTrue();
+        var setCookies = loginResponse.GetSetCookieHeaders();
         setCookies.Should().Contain(cookie => cookie.Contains("accessToken=", StringComparison.OrdinalIgnoreCase));
         setCookies.Should().Contain(cookie => cookie.Contains("refreshToken=", StringComparison.OrdinalIgnoreCase));
 
