@@ -1,0 +1,306 @@
+using FluentAssertions;
+using GameTopUp.BLL.Context;
+using GameTopUp.BLL.DTOs.Auths;
+using GameTopUp.BLL.DTOs.Users;
+using GameTopUp.BLL.Exceptions;
+using GameTopUp.BLL.Options;
+using GameTopUp.BLL.Services;
+using GameTopUp.BLL.Services.Auth;
+using GameTopUp.BLL.UseCases;
+using GameTopUp.DAL.Database;
+using GameTopUp.DAL.Entities.Auth;
+using GameTopUp.DAL.Entities.Users;
+using GameTopUp.DAL.Entities.Wallets;
+using GameTopUp.DAL.Interfaces.Auth;
+using GameTopUp.DAL.Interfaces.Users;
+using GameTopUp.DAL.Interfaces.Wallets;
+using Microsoft.Data.Sqlite;
+using Microsoft.Extensions.Options;
+using Moq;
+
+namespace GameTopUp.Tests.UnitTests.UseCases;
+
+public class AuthUseCaseTests : IDisposable
+{
+    private readonly Mock<IUserRepository> _userRepository = new();
+    private readonly Mock<IRefreshTokenRepository> _refreshTokenRepository = new();
+    private readonly Mock<IWalletRepository> _walletRepository = new();
+    private readonly Mock<IWalletTransactionRepository> _walletTransactionRepository = new();
+    private readonly DatabaseContext _database;
+    private readonly AuthUseCase _useCase;
+    private readonly PasswordService _passwordService = new();
+    private readonly TokenService _tokenService;
+
+    public AuthUseCaseTests()
+    {
+        _database = CreateDatabaseContext();
+        _tokenService = new TokenService(Options.Create(new JwtSettings
+        {
+            Key = "this-is-a-test-key-that-is-long-enough-12345",
+            Issuer = "GameTopUp.Tests",
+            Audience = "GameTopUp.Tests",
+            ExpireMinutes = 30
+        }));
+
+        var userService = new UserService(_userRepository.Object);
+        var walletService = new WalletService(_walletRepository.Object, _walletTransactionRepository.Object);
+        var refreshTokenService = new RefreshTokenService(_refreshTokenRepository.Object);
+
+        _useCase = new AuthUseCase(
+            userService,
+            _tokenService,
+            _passwordService,
+            walletService,
+            refreshTokenService,
+            _database);
+    }
+
+    [Fact]
+    public async Task RegisterAsync_ShouldHashPasswordAndCreateWalletInTransaction()
+    {
+        User? createdUser = null;
+        Wallet? createdWallet = null;
+
+        _userRepository.Setup(repo => repo.ExistsByEmailAsync("user@test.local"))
+            .ReturnsAsync(false);
+        _userRepository.Setup(repo => repo.CreateAsync(It.IsAny<User>()))
+            .ReturnsAsync(7)
+            .Callback<User>(user => createdUser = user);
+        _walletRepository.Setup(repo => repo.UpsertWalletAsync(It.IsAny<Wallet>()))
+            .Returns(Task.CompletedTask)
+            .Callback<Wallet>(wallet => createdWallet = wallet);
+
+        await _useCase.RegisterAsync(new CreateUserRequest
+        {
+            DisplayName = "Test User",
+            Email = "user@test.local",
+            Password = "Password123!"
+        });
+
+        createdUser.Should().NotBeNull();
+        createdUser!.PasswordHash.Should().NotBe("Password123!");
+        _passwordService.Verify("Password123!", createdUser.PasswordHash).Should().BeTrue();
+        createdWallet.Should().NotBeNull();
+        createdWallet!.UserId.Should().Be(7);
+        createdWallet.Balance.Should().Be(0m);
+    }
+
+    [Fact]
+    public async Task RegisterAsync_ShouldThrow_WhenEmailAlreadyExists_AndSkipWalletCreation()
+    {
+        _userRepository.Setup(repo => repo.ExistsByEmailAsync("user@test.local"))
+            .ReturnsAsync(true);
+
+        var act = async () => await _useCase.RegisterAsync(new CreateUserRequest
+        {
+            DisplayName = "Test User",
+            Email = "user@test.local",
+            Password = "Password123!"
+        });
+
+        await act.Should().ThrowAsync<BusinessException>()
+            .Where(ex => ex.ErrorCode == ErrorCode.EmailExists);
+        _walletRepository.Verify(repo => repo.UpsertWalletAsync(It.IsAny<Wallet>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task LoginAsync_ShouldThrow_WhenCredentialsAreInvalid()
+    {
+        var wrongHash = _passwordService.Hash("Password123!");
+        _userRepository.Setup(repo => repo.GetByEmailAsync("user@test.local"))
+            .ReturnsAsync(new User
+            {
+                Id = 7,
+                DisplayName = "Test User",
+                Email = "user@test.local",
+                PasswordHash = wrongHash,
+                Role = UserRole.Member,
+                IsActive = true
+            });
+
+        var act = async () => await _useCase.LoginAsync(new LoginRequest
+        {
+            Email = "user@test.local",
+            Password = "WrongPass123!"
+        });
+
+        await act.Should().ThrowAsync<BusinessException>()
+            .Where(ex => ex.ErrorCode == ErrorCode.InvalidCredentials);
+        _refreshTokenRepository.Verify(repo => repo.CreateAsync(It.IsAny<RefreshToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task LoginAsync_ShouldReturnTokensAndUserPayload_WhenCredentialsAreValid()
+    {
+        RefreshToken? savedRefreshToken = null;
+        var passwordHash = _passwordService.Hash("Password123!");
+
+        _userRepository.Setup(repo => repo.GetByEmailAsync("user@test.local"))
+            .ReturnsAsync(new User
+            {
+                Id = 7,
+                DisplayName = "Test User",
+                Email = "user@test.local",
+                PasswordHash = passwordHash,
+                Role = UserRole.Member,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow.AddDays(-1),
+                UpdatedAt = DateTime.UtcNow
+            });
+        _refreshTokenRepository.Setup(repo => repo.CreateAsync(It.IsAny<RefreshToken>()))
+            .ReturnsAsync(12)
+            .Callback<RefreshToken>(token => savedRefreshToken = token);
+
+        var response = await _useCase.LoginAsync(new LoginRequest
+        {
+            Email = "user@test.local",
+            Password = "Password123!"
+        });
+
+        response.AccessToken.Should().NotBeNullOrWhiteSpace();
+        response.RefreshToken.Should().NotBeNullOrWhiteSpace();
+        response.User.Should().NotBeNull();
+        response.User!.Email.Should().Be("user@test.local");
+        response.User.Role.Should().Be(UserRole.Member.ToString());
+        savedRefreshToken.Should().NotBeNull();
+        savedRefreshToken!.UserId.Should().Be(7);
+        savedRefreshToken.TokenHash.Should().NotBeNullOrWhiteSpace();
+        savedRefreshToken.TokenHash.Length.Should().Be(64);
+    }
+
+    [Fact]
+    public async Task RefreshAsync_ShouldThrow_WhenRefreshTokenIsInvalid()
+    {
+        _refreshTokenRepository.Setup(repo => repo.GetByTokenHashAsync(It.IsAny<string>()))
+            .ReturnsAsync((RefreshToken?)null);
+
+        var act = async () => await _useCase.RefreshAsync("invalid-refresh-token");
+
+        await act.Should().ThrowAsync<BusinessException>()
+            .Where(ex => ex.ErrorCode == ErrorCode.InvalidRefreshToken);
+    }
+
+    [Fact]
+    public async Task RefreshAsync_ShouldReturnNewTokens_WhenRefreshTokenIsValid()
+    {
+        RefreshToken? savedRefreshToken = null;
+        var hash = _tokenService.HashToken("refresh-token");
+
+        _refreshTokenRepository.Setup(repo => repo.GetByTokenHashAsync(hash))
+            .ReturnsAsync(new RefreshToken
+            {
+                Id = 5,
+                UserId = 7,
+                TokenHash = hash,
+                CreatedAt = DateTime.UtcNow.AddDays(-1),
+                ExpiresAt = DateTime.UtcNow.AddDays(6)
+            });
+        _refreshTokenRepository.Setup(repo => repo.RevokeTokenAsync(hash))
+            .ReturnsAsync(true);
+        _userRepository.Setup(repo => repo.GetByIdAsync(7))
+            .ReturnsAsync(new User
+            {
+                Id = 7,
+                DisplayName = "Test User",
+                Email = "user@test.local",
+                PasswordHash = _passwordService.Hash("Password123!"),
+                Role = UserRole.Member,
+                IsActive = true
+            });
+        _refreshTokenRepository.Setup(repo => repo.CreateAsync(It.IsAny<RefreshToken>()))
+            .ReturnsAsync(12)
+            .Callback<RefreshToken>(token => savedRefreshToken = token);
+
+        var response = await _useCase.RefreshAsync("refresh-token");
+
+        response.AccessToken.Should().NotBeNullOrWhiteSpace();
+        response.RefreshToken.Should().NotBeNullOrWhiteSpace();
+        savedRefreshToken.Should().NotBeNull();
+        savedRefreshToken!.UserId.Should().Be(7);
+    }
+
+    [Fact]
+    public async Task ChangePasswordAsync_ShouldThrow_WhenNewPasswordMatchesCurrentPassword()
+    {
+        var act = async () => await _useCase.ChangePasswordAsync(new UserContext { UserId = 7 }, new PasswordChangeRequest
+        {
+            CurrentPassword = "Password123!",
+            NewPassword = "Password123!"
+        });
+
+        await act.Should().ThrowAsync<BusinessException>()
+            .Where(ex => ex.ErrorCode == ErrorCode.NewPasswordSameAsCurrent);
+    }
+
+    [Fact]
+    public async Task ChangePasswordAsync_ShouldThrow_WhenCurrentPasswordDoesNotMatch()
+    {
+        _userRepository.Setup(repo => repo.GetByIdAsync(7))
+            .ReturnsAsync(new User
+            {
+                Id = 7,
+                PasswordHash = _passwordService.Hash("Password123!"),
+                Role = UserRole.Member,
+                IsActive = true
+            });
+
+        var act = async () => await _useCase.ChangePasswordAsync(new UserContext { UserId = 7 }, new PasswordChangeRequest
+        {
+            CurrentPassword = "WrongPass123!",
+            NewPassword = "NewPass123!"
+        });
+
+        await act.Should().ThrowAsync<BusinessException>()
+            .Where(ex => ex.ErrorCode == ErrorCode.CurrentPasswordIncorrect);
+        _userRepository.Verify(repo => repo.UpdatePasswordAsync(It.IsAny<long>(), It.IsAny<string>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task ChangePasswordAsync_ShouldPersistHashedPassword_WhenCurrentPasswordMatches()
+    {
+        string? persistedHash = null;
+        _userRepository.Setup(repo => repo.GetByIdAsync(7))
+            .ReturnsAsync(new User
+            {
+                Id = 7,
+                PasswordHash = _passwordService.Hash("Password123!"),
+                Role = UserRole.Member,
+                IsActive = true
+            });
+        _userRepository.Setup(repo => repo.UpdatePasswordAsync(7, It.IsAny<string>()))
+            .ReturnsAsync(1)
+            .Callback<long, string>((_, hash) => persistedHash = hash);
+
+        await _useCase.ChangePasswordAsync(new UserContext { UserId = 7 }, new PasswordChangeRequest
+        {
+            CurrentPassword = "Password123!",
+            NewPassword = "NewPass123!"
+        });
+
+        persistedHash.Should().NotBeNullOrWhiteSpace();
+        _passwordService.Verify("NewPass123!", persistedHash!).Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task LogoutAsync_ShouldSwallowRepositoryErrors()
+    {
+        _refreshTokenRepository.Setup(repo => repo.RevokeTokenAsync(It.IsAny<string>()))
+            .ThrowsAsync(new InvalidOperationException("boom"));
+
+        var act = async () => await _useCase.LogoutAsync("refresh-token");
+
+        await act.Should().NotThrowAsync();
+    }
+
+    public void Dispose()
+    {
+        _database.Dispose();
+    }
+
+    private static DatabaseContext CreateDatabaseContext()
+    {
+        var connection = new SqliteConnection("Data Source=:memory:");
+        connection.Open();
+        return new DatabaseContext(connection);
+    }
+}

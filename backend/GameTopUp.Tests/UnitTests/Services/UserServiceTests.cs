@@ -38,6 +38,31 @@ public class UserServiceTests
     }
 
     [Fact]
+    public async Task CreateUserAsync_ShouldPersistNewUser_WhenEmailIsUnique()
+    {
+        User? created = null;
+        _repository
+            .Setup(repo => repo.ExistsByEmailAsync("admin@gametopup.com"))
+            .ReturnsAsync(false);
+        _repository
+            .Setup(repo => repo.CreateAsync(It.IsAny<User>()))
+            .ReturnsAsync(22)
+            .Callback<User>(user => created = user);
+
+        var userId = await _service.CreateUserAsync(new CreateUserRequest
+        {
+            DisplayName = "Admin",
+            Email = "admin@gametopup.com",
+            Password = "StrongPass1!"
+        });
+
+        userId.Should().Be(22);
+        created.Should().NotBeNull();
+        created!.DisplayName.Should().Be("Admin");
+        created.Email.Should().Be("admin@gametopup.com");
+    }
+
+    [Fact]
     public async Task UpdateProfileAsync_ShouldPersistUpdatedUser()
     {
         User? updatedUser = null;
@@ -48,6 +73,7 @@ public class UserServiceTests
                 Id = 7,
                 DisplayName = "Old",
                 Email = "old@example.com",
+                PasswordHash = "password-hash",
                 Role = UserRole.Member,
                 IsActive = true
             });
@@ -70,12 +96,95 @@ public class UserServiceTests
     }
 
     [Fact]
+    public async Task UpdateProfileAsync_ShouldThrow_WhenEmailAlreadyExistsOnAnotherUser()
+    {
+        _repository
+            .Setup(repo => repo.GetByIdAsync(7))
+            .ReturnsAsync(new User
+            {
+                Id = 7,
+                DisplayName = "Old",
+                Email = "old@example.com",
+                PasswordHash = "password-hash",
+                Role = UserRole.Member,
+                IsActive = true
+            });
+        _repository
+            .Setup(repo => repo.ExistsByEmailAsync("taken@example.com"))
+            .ReturnsAsync(true);
+
+        var act = async () => await _service.UpdateProfileAsync(new UserContext { UserId = 7 }, 7, new UpdateUserRequest
+        {
+            Email = "taken@example.com"
+        });
+
+        await act.Should().ThrowAsync<BusinessException>()
+            .Where(ex => ex.ErrorCode == ErrorCode.EmailExists);
+        _repository.Verify(repo => repo.UpdateAsync(It.IsAny<User>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task UpdateProfileAsync_ShouldIgnoreBlankFieldsAndKeepExistingValues()
+    {
+        User? updatedUser = null;
+        _repository
+            .Setup(repo => repo.GetByIdAsync(7))
+            .ReturnsAsync(new User
+            {
+                Id = 7,
+                DisplayName = "Old",
+                Email = "old@example.com",
+                Role = UserRole.Member,
+                IsActive = true
+            });
+        _repository
+            .Setup(repo => repo.UpdateAsync(It.IsAny<User>()))
+            .ReturnsAsync(true)
+            .Callback<User>(user => updatedUser = user);
+
+        await _service.UpdateProfileAsync(new UserContext { UserId = 7 }, 7, new UpdateUserRequest
+        {
+            DisplayName = "   ",
+            Email = null
+        });
+
+        updatedUser.Should().NotBeNull();
+        updatedUser!.DisplayName.Should().Be("Old");
+        updatedUser.Email.Should().Be("old@example.com");
+    }
+
+    [Fact]
     public async Task GetProfileAsync_ShouldThrowForbidden_WhenMemberRequestsAnotherUser()
     {
         var act = async () => await _service.GetProfileAsync(new UserContext { UserId = 7 }, 8);
 
         await act.Should().ThrowAsync<ForbiddenException>()
             .Where(ex => ex.ErrorCode == ErrorCode.Forbidden);
+    }
+
+    [Fact]
+    public async Task GetProfileAsync_ShouldReturnCurrentUserProfile_WhenUserRequestsOwnProfile()
+    {
+        _repository
+            .Setup(repo => repo.GetByIdAsync(7))
+            .ReturnsAsync(new User
+            {
+                Id = 7,
+                DisplayName = "Self",
+                Email = "self@example.com",
+                PasswordHash = "password-hash",
+                Role = UserRole.Member,
+                IsActive = true,
+                CreatedAt = new DateTime(2025, 1, 1),
+                UpdatedAt = new DateTime(2025, 1, 2)
+            });
+
+        var profile = await _service.GetProfileAsync(new UserContext { UserId = 7 }, 7);
+
+        profile.Id.Should().Be(7);
+        profile.DisplayName.Should().Be("Self");
+        profile.Email.Should().Be("self@example.com");
+        profile.Role.Should().Be(UserRole.Member.ToString());
     }
 
     [Fact]
@@ -89,6 +198,7 @@ public class UserServiceTests
                 Id = 8,
                 DisplayName = "Old",
                 Email = "old@example.com",
+                PasswordHash = "password-hash",
                 Role = UserRole.Member,
                 IsActive = true
             });
@@ -104,5 +214,33 @@ public class UserServiceTests
 
         updatedUser.Should().NotBeNull();
         updatedUser!.DisplayName.Should().Be("AdminEdit");
+    }
+
+    [Fact]
+    public async Task DeleteAsync_ShouldDeleteUser_WhenUserExists()
+    {
+        _repository
+            .Setup(repo => repo.GetByIdAsync(7))
+            .ReturnsAsync(new User { Id = 7 });
+        _repository
+            .Setup(repo => repo.DeleteAsync(7))
+            .ReturnsAsync(1);
+
+        await _service.DeleteAsync(7);
+
+        _repository.Verify(repo => repo.DeleteAsync(7), Times.Once);
+    }
+
+    [Fact]
+    public async Task DeleteAsync_ShouldThrow_WhenUserMissing()
+    {
+        _repository
+            .Setup(repo => repo.GetByIdAsync(7))
+            .ReturnsAsync((User?)null);
+
+        var act = async () => await _service.DeleteAsync(7);
+
+        await act.Should().ThrowAsync<NotFoundException>()
+            .Where(ex => ex.ErrorCode == ErrorCode.UserNotFound);
     }
 }

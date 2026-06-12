@@ -24,4 +24,27 @@ public class PasswordServiceTests
 
         act.Should().NotThrow();
     }
+
+    [Fact]
+    public void Hash_And_Verify_ShouldRoundTrip()
+    {
+        var hash = _service.Hash("StrongPass1!");
+
+        hash.Should().NotBeNullOrWhiteSpace();
+        _service.Verify("StrongPass1!", hash).Should().BeTrue();
+    }
+
+    [Theory]
+    [InlineData("short1!")]
+    [InlineData("nouppercase1!")]
+    [InlineData("NOLOWERCASE1!")]
+    [InlineData("NoNumber!")]
+    [InlineData("NoSpecial123")]
+    public void Validate_ShouldReject_CommonWeakPasswordForms(string password)
+    {
+        var act = () => _service.Validate(password);
+
+        act.Should().Throw<BusinessException>()
+            .Which.ErrorCode.Should().Be(ErrorCode.WeakPassword);
+    }
 }
