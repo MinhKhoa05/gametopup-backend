@@ -1,5 +1,6 @@
 # GameTopUp
 
+![CI](https://github.com/MinhKhoa05/gametopup/actions/workflows/ci.yml/badge.svg?branch=main)
 ![ASP.NET Core](https://img.shields.io/badge/ASP.NET_Core-8.0-512BD4)
 ![React](https://img.shields.io/badge/React-19-61DAFB)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6)
@@ -27,6 +28,20 @@ GameTopUp centralizes these workflows into a single system, helping service owne
 **Testing:** xUnit, Integration Tests, Testcontainers, Respawn
 
 **Development:** Docker, Docker Compose
+
+## Testing & Quality
+
+* Automated CI validation runs in GitHub Actions on pushes and pull requests to `main`.
+* Unit tests live under `backend/GameTopUp.Tests/UnitTests`.
+* Integration tests live under `backend/GameTopUp.Tests/IntegrationTests`.
+* Integration tests use Testcontainers-based MariaDB instances, so Docker is required for local runs and CI.
+* Coverage is collected with Coverlet using XPlat Code Coverage and published as Cobertura output in CI artifacts.
+* The GitHub Actions workflow is defined in `.github/workflows/ci.yml`.
+* Run the test suite locally with:
+
+```bash
+dotnet test backend/GameTopUp.slnx
+```
 
 ## Core Features
 
@@ -106,9 +121,3 @@ Available services:
 * Frontend: http://localhost:3000
 * Backend API: http://localhost:5000
 * Swagger UI: http://localhost:5000/swagger
-
-### Tests
-
-```bash
-dotnet test
-```

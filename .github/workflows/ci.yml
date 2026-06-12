@@ -1,0 +1,81 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    name: Build and Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 8 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore packages
+        run: dotnet restore backend/GameTopUp.slnx
+
+      - name: Build solution
+        run: dotnet build backend/GameTopUp.slnx --configuration Release --no-restore
+
+      - name: Run tests with coverage
+        run: |
+          mkdir -p artifacts/test-results
+          dotnet test backend/GameTopUp.slnx \
+            --configuration Release \
+            --no-build \
+            --results-directory artifacts/test-results \
+            --logger "trx;LogFileName=test-results.trx" \
+            --collect "XPlat Code Coverage"
+
+      - name: Publish test report
+        if: always() && hashFiles('artifacts/test-results/**/*.trx') != ''
+        uses: dorny/test-reporter@v1
+        with:
+          name: .NET test results
+          path: artifacts/test-results/**/*.trx
+          reporter: dotnet-trx
+          fail-on-error: false
+
+      - name: Install coverage report generator
+        if: always()
+        run: dotnet tool install --global dotnet-reportgenerator-globaltool
+
+      - name: Generate coverage report
+        if: always()
+        run: |
+          reportgenerator \
+            "-reports:artifacts/test-results/**/coverage.cobertura.xml" \
+            "-targetdir:artifacts/coverage-report" \
+            "-reporttypes:HtmlInline_AzurePipelines;Cobertura;MarkdownSummaryGithub"
+
+      - name: Add coverage summary
+        if: always()
+        run: |
+          if [ -f artifacts/coverage-report/SummaryGithub.md ]; then
+            cat artifacts/coverage-report/SummaryGithub.md >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: artifacts/test-results
+          if-no-files-found: warn
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: artifacts/coverage-report
+          if-no-files-found: warn
