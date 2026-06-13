@@ -41,6 +41,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseStaticFiles();
 app.UseCors(ServiceCollectionExtensions.ReactAppCorsPolicy);
 app.UseMiddleware<GlobalExceptionMiddleware>();
 app.UseAuthentication();

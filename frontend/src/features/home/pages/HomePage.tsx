@@ -12,17 +12,17 @@ import {
   ReceiptText,
   Search,
   ShieldCheck,
-  Tag,
   WalletCards,
   Zap,
 } from 'lucide-react';
 import { AppPageContainer } from '@/app/components/AppPageContainer';
+import { SITE_IMAGES } from '@/app/config/site';
 import { routes } from '@/app/router/routes';
 import { useAuthSession } from '@/features/auth/hooks/useAuthSession';
 import { useGamesQuery } from '@/features/games/server';
 import { useMyOrdersQuery } from '@/features/orders/server';
 import { useWalletBalanceQuery } from '@/features/wallet/server';
-import { Badge, Button, IconBox, ImageBox } from '@/shared/components';
+import { Badge, Button, IconBox, ImageBox, TrustSection } from '@/shared/components';
 import { formatCurrency } from '@/shared/lib/format';
 import { getOrderStatusMeta } from '@/features/orders/lib/orderStatus';
 import type { Game } from '@/features/games/types';
@@ -60,29 +60,6 @@ const QUICK_ACTIONS = [
     description: 'Tra cứu biến động ví và giao dịch gần đây.',
     icon: <History size={22} />,
     href: routes.wallet(),
-  },
-] as const;
-
-const BENEFITS = [
-  {
-    title: 'Giá tốt hơn',
-    description: 'Tối ưu chi phí nạp game, phù hợp cho giao dịch thường xuyên.',
-    icon: <Tag size={24} />,
-  },
-  {
-    title: 'Thanh toán an toàn',
-    description: 'Số dư, đơn hàng và giao dịch đều được theo dõi rõ ràng.',
-    icon: <ShieldCheck size={24} />,
-  },
-  {
-    title: 'Xử lý nhanh chóng',
-    description: 'Ưu tiên quy trình gọn, rút ngắn thời gian chờ.',
-    icon: <Zap size={24} />,
-  },
-  {
-    title: 'Hỗ trợ 24/7',
-    description: 'Đội ngũ hỗ trợ luôn sẵn sàng khi bạn cần.',
-    icon: <Headset size={24} />,
   },
 ] as const;
 
@@ -133,8 +110,8 @@ export function HomePage() {
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(34,211,238,0.1),transparent_26%),radial-gradient(circle_at_top_right,rgba(34,211,238,0.05),transparent_18%),radial-gradient(circle_at_50%_-10%,rgba(15,118,110,0.14),transparent_34%)]" />
       <div className="pointer-events-none absolute inset-0 opacity-[0.04] [background-image:linear-gradient(rgba(255,255,255,0.25)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.25)_1px,transparent_1px)] [background-size:64px_64px]" />
 
-      <AppPageContainer className="relative z-10 py-5 sm:py-7 lg:py-9">
-        <div className="grid gap-7 lg:gap-9">
+      <AppPageContainer className="relative z-10 py-5 sm:py-7 lg:py-8">
+        <div className="grid gap-6 lg:gap-8">
           <HeroSection
             navigate={navigate}
           />
@@ -262,25 +239,7 @@ export function HomePage() {
             </section>
           </div>
 
-            <section className="grid gap-5">
-              <SectionHeader title="Vì sao chọn GameTopUp?" />
-              <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-                {BENEFITS.map((benefit) => (
-                  <article
-                    key={benefit.title}
-                    className="grid gap-3 rounded-[20px] border border-white/10 bg-[rgba(7,16,31,0.82)] p-4 shadow-[0_10px_26px_rgba(2,6,23,0.14)]"
-                  >
-                  <IconBox size="sm" className="h-12 w-12 rounded-2xl border-cyan/20 bg-cyan/10 text-cyan-50">
-                    {benefit.icon}
-                  </IconBox>
-                  <div className="grid gap-1">
-                    <h3 className="text-base font-black text-white">{benefit.title}</h3>
-                    <p className="m-0 text-sm leading-6 text-slate-400">{benefit.description}</p>
-                  </div>
-                </article>
-              ))}
-            </div>
-          </section>
+          <TrustSection />
         </div>
       </AppPageContainer>
     </div>
@@ -293,21 +252,25 @@ function HeroSection({
   navigate: ReturnType<typeof useNavigate>;
 }) {
   return (
-    <section className="gt-surface overflow-hidden rounded-[28px] border border-white/10 bg-[radial-gradient(circle_at_top_right,rgba(34,211,238,0.11),transparent_36%),linear-gradient(180deg,rgba(9,18,35,0.94),rgba(4,10,22,0.98))] p-4 shadow-[0_20px_52px_rgba(2,6,23,0.22)] sm:p-5 lg:p-6">
-      <div className="grid items-stretch gap-5 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)_minmax(264px,0.7fr)]">
-        <div className="grid content-start gap-4">
+    <section className="gt-hero gt-surface relative overflow-hidden rounded-[30px] border border-cyan/10 bg-[radial-gradient(circle_at_18%_22%,rgba(34,211,238,0.14),transparent_30%),radial-gradient(circle_at_72%_46%,rgba(34,211,238,0.09),transparent_24%),linear-gradient(180deg,rgba(7,16,31,0.96),rgba(4,10,22,0.99))] p-3 pb-2 shadow-[0_20px_56px_rgba(2,6,23,0.24)] sm:p-4 sm:pb-3 lg:p-5 lg:pb-4">
+      <div className="pointer-events-none absolute inset-0 opacity-[0.03] [background-image:linear-gradient(rgba(255,255,255,0.3)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.3)_1px,transparent_1px)] [background-size:72px_72px]" />
+      <div className="pointer-events-none absolute left-[44%] top-1/2 h-[28rem] w-[28rem] -translate-y-1/2 rounded-full bg-cyan/16 blur-[104px] lg:left-[46%] lg:h-[34rem] lg:w-[34rem]" />
+      <div className="pointer-events-none absolute left-[50%] top-[56%] h-32 w-32 -translate-x-1/2 -translate-y-1/2 rounded-full bg-cyan/10 blur-[56px]" />
+
+      <div className="relative grid items-start gap-7 lg:grid-cols-[minmax(0,1.16fr)_minmax(0,0.92fr)_minmax(304px,0.72fr)] lg:items-center lg:gap-5">
+        <div className="grid content-start gap-4 lg:self-center lg:pt-0">
           <Badge variant="accent" className="w-fit rounded-full border-cyan/20 bg-cyan/10 px-3 py-1 text-[0.72rem] font-bold tracking-[0.18em] text-cyan-100">
             ĐẠI LÝ NẠP GAME UY TÍN
           </Badge>
 
           <div className="grid gap-3">
-            <h1 className="max-w-[10ch] text-[clamp(2.9rem,4.8vw,5rem)] font-black leading-[0.9] tracking-[-0.045em] text-white text-balance">
+            <h1 className="gt-hero-title max-w-[12ch] text-[clamp(2.8rem,4.55vw,5rem)] font-black leading-[1.08] tracking-[-0.06em] text-white text-balance sm:leading-[1.04] lg:leading-[1]">
               Nạp game
-              <span className="block bg-[linear-gradient(180deg,#67e8f9_0%,#22d3ee_100%)] bg-clip-text text-transparent">
+              <span className="block bg-[linear-gradient(180deg,#8beafe_0%,#22d3ee_100%)] bg-clip-text text-transparent">
                 tiết kiệm hơn
               </span>
             </h1>
-            <p className="max-w-[26ch] text-[0.94rem] leading-7 text-slate-300 sm:text-[0.99rem]">
+            <p className="gt-hero-body max-w-[33ch] text-[0.98rem] leading-7 text-slate-300 sm:text-[1rem]">
               Giá tốt hơn cửa hàng chính thức. Thanh toán an toàn, xử lý đơn nhanh chóng.
             </p>
           </div>
@@ -335,38 +298,37 @@ function HeroSection({
           </div>
         </div>
 
-        <div className="relative min-h-[312px] overflow-hidden rounded-[26px] border border-white/10 bg-[radial-gradient(circle_at_top,rgba(34,211,238,0.12),transparent_28%),linear-gradient(180deg,rgba(7,16,31,0.92),rgba(4,10,22,0.98))] p-4">
-          <div className="absolute inset-x-10 bottom-10 h-20 rounded-full bg-cyan/20 blur-3xl" />
-          <div className="absolute left-8 top-8 size-20 rounded-full bg-cyan/10 blur-2xl" />
-          <div className="absolute right-8 top-10 size-28 rounded-full bg-blue-400/10 blur-3xl" />
+        <div className="relative lg:col-start-2 lg:min-h-[372px]">
+          <div className="pointer-events-none absolute left-[50%] top-[48%] h-[26rem] w-[26rem] -translate-x-1/2 -translate-y-1/2 rounded-full bg-cyan/24 blur-[140px] mix-blend-screen lg:h-[30rem] lg:w-[30rem]" />
+          <div className="pointer-events-none absolute left-[8%] top-[10%] h-36 w-36 rounded-full bg-cyan/20 blur-[88px] mix-blend-screen" />
+          <div className="pointer-events-none absolute left-[10%] top-[41%] h-px w-[60%] bg-gradient-to-r from-cyan/0 via-cyan/38 to-cyan/0" />
+          <div className="pointer-events-none absolute inset-x-[16%] bottom-[11%] h-16 rounded-full bg-cyan/18 blur-[56px] mix-blend-screen" />
+          <div className="pointer-events-none absolute right-[18%] top-[8%] h-16 w-16 rounded-full bg-blue-400/10 blur-[48px] mix-blend-screen" />
 
-          <div className="relative mx-auto flex h-full max-w-[420px] items-center justify-center">
-            <div className="absolute bottom-2 h-24 w-[82%] rounded-full border border-cyan/20 bg-cyan/10 blur-[1px] shadow-[0_0_38px_rgba(34,211,238,0.22)]" />
-            <div className="absolute bottom-4 h-28 w-[72%] rounded-full border border-cyan/20 bg-[rgba(34,211,238,0.11)] shadow-[0_0_32px_rgba(34,211,238,0.16)]" />
-            <div className="relative overflow-hidden rounded-[26px] border border-cyan/25 bg-slate-950 shadow-[0_26px_64px_rgba(2,6,23,0.42)]">
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_44%,rgba(2,6,23,0.2)_70%,rgba(2,6,23,0.62)_100%)]" />
-              <ImageBox
-                src="/reference/home-hero-reference.png"
-                alt="Minh họa hero GameTopUp"
-                className="h-[268px] w-[360px] object-cover object-[72%_24%] scale-[1.06] sm:h-[294px] sm:w-[392px]"
-              />
-            </div>
+          <div className="relative flex min-h-[240px] items-center justify-center overflow-visible lg:min-h-[360px]">
+            <img
+              src={SITE_IMAGES.home.heroIllustration}
+              alt="Minh họa hero GameTopUp"
+              className="relative z-10 w-full max-w-[530px] -translate-y-[1%] object-contain object-center drop-shadow-[0_0_56px_rgba(34,211,238,0.22)] sm:max-w-[560px] lg:max-w-[544px] lg:-translate-y-[1%]"
+              decoding="async"
+              loading="eager"
+            />
           </div>
         </div>
 
-        <div className="grid gap-3">
+        <div className="grid gap-3 lg:col-start-3 lg:self-center lg:pt-0">
           {HERO_STATS.map((stat) => (
             <article
               key={stat.label}
-              className="grid grid-cols-[auto_minmax(0,1fr)] items-start gap-3 rounded-[20px] border border-white/10 bg-[rgba(7,16,31,0.82)] p-3 shadow-[0_10px_24px_rgba(2,6,23,0.14)]"
+              className="grid grid-cols-[auto_minmax(0,1fr)] items-start gap-3 rounded-[18px] border border-white/10 bg-[rgba(7,16,31,0.58)] p-3 backdrop-blur-[12px]"
             >
-              <IconBox size="sm" className="h-11 w-11 rounded-2xl border-cyan/20 bg-cyan/10 text-cyan-50">
+              <IconBox size="sm" className="h-10 w-10 rounded-[14px] border-cyan/15 bg-cyan/10 text-cyan-50">
                 {stat.icon}
               </IconBox>
               <div className="grid gap-1">
-                <strong className="text-[1.28rem] font-black tracking-[-0.03em] text-white">{stat.value}</strong>
+                <strong className="text-[1.22rem] font-black tracking-[-0.035em] text-white">{stat.value}</strong>
                 <span className="text-[0.92rem] font-semibold text-slate-200">{stat.label}</span>
-                <span className="text-[0.88rem] leading-6 text-slate-400">{stat.description}</span>
+                <span className="text-[0.87rem] leading-6 text-slate-400">{stat.description}</span>
               </div>
             </article>
           ))}
@@ -384,12 +346,12 @@ function PopularGamesGrid({
   onPick: (game: Game) => void;
 }) {
   return (
-    <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 xl:grid-cols-8">
+    <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-6">
       {games.map((game) => (
         <button
           key={game.id}
           type="button"
-          className="group grid gap-3 rounded-[18px] border border-white/10 bg-[rgba(7,16,31,0.84)] p-3 text-left transition-all duration-200 hover:-translate-y-1 hover:border-cyan/25 hover:bg-[rgba(15,29,51,0.96)] hover:shadow-[0_18px_36px_rgba(2,6,23,0.2)]"
+          className="group grid gap-3 rounded-[18px] border border-white/10 bg-[rgba(7,16,31,0.88)] p-3 text-left transition-all duration-200 hover:-translate-y-1 hover:border-cyan/25 hover:bg-[rgba(15,29,51,0.98)] hover:shadow-[0_18px_36px_rgba(2,6,23,0.22)]"
           onClick={() => onPick(game)}
         >
           <div className="relative aspect-square overflow-hidden rounded-[16px] border border-white/5 bg-slate-950">
@@ -414,7 +376,7 @@ function PackageCardView({
   onPick: () => void;
 }) {
   return (
-    <article className="grid gap-3 rounded-[20px] border border-white/10 bg-[rgba(7,16,31,0.86)] p-3 transition-all duration-200 hover:-translate-y-1 hover:border-cyan/25 hover:bg-[rgba(15,29,51,0.96)]">
+    <article className="grid gap-3 rounded-[20px] border border-white/10 bg-[rgba(7,16,31,0.88)] p-3 transition-all duration-200 hover:-translate-y-1 hover:border-cyan/25 hover:bg-[rgba(15,29,51,0.98)]">
       <div className="relative aspect-[0.95/1] overflow-hidden rounded-[16px] border border-white/5 bg-slate-950">
         <ImageBox src={packageItem.imageUrl} alt={packageItem.game.name} className="h-full w-full object-cover transition-transform duration-300 hover:scale-[1.03]" />
         <div className="absolute inset-x-0 bottom-0 h-16 bg-[linear-gradient(180deg,transparent,rgba(2,6,23,0.82))]" />
@@ -453,7 +415,7 @@ function WalletSummaryCard({
   return (
     <section className="relative overflow-hidden rounded-[26px] border border-white/10 bg-[radial-gradient(circle_at_top_right,rgba(34,211,238,0.13),transparent_32%),linear-gradient(180deg,rgba(8,18,34,0.96),rgba(7,16,31,0.98))] p-5 shadow-[0_16px_38px_rgba(2,6,23,0.16)]">
       <div className="pointer-events-none absolute right-[-24px] top-[-16px] h-44 w-44 rounded-full border border-cyan/20 bg-cyan/10 blur-3xl" />
-      <div className="relative grid gap-5 md:grid-cols-[minmax(0,1fr)_180px] md:items-center">
+      <div className="relative grid gap-5 pr-[8.5rem] sm:pr-[10.5rem] md:pr-[12rem] lg:pr-[13rem]">
         <div className="grid gap-4">
           <div className="grid gap-2">
             <p className="m-0 text-[0.72rem] font-bold uppercase tracking-[0.2em] text-cyan-100">Ví của bạn</p>
@@ -480,13 +442,15 @@ function WalletSummaryCard({
           </div>
         </div>
 
-        <div className="relative flex justify-center md:justify-end">
-          <div className="absolute inset-x-6 bottom-0 h-20 rounded-full bg-cyan/20 blur-3xl" />
-          <div className="relative h-28 w-36 translate-y-1 rounded-[26px] border border-cyan/20 bg-[linear-gradient(180deg,rgba(11,19,36,1),rgba(8,16,31,1))] shadow-[0_16px_34px_rgba(2,6,23,0.2)]">
-            <div className="absolute left-3 right-3 top-3 h-3 rounded-full bg-cyan/15" />
-            <div className="absolute bottom-3 left-3 right-3 h-14 rounded-[20px] border border-cyan/15 bg-cyan/10" />
-            <WalletCards size={44} className="absolute right-4 top-10 text-cyan-200" />
-          </div>
+        <div className="pointer-events-none absolute right-2 top-2 flex items-start justify-end max-[380px]:right-1/2 max-[380px]:top-auto max-[380px]:bottom-4 max-[380px]:translate-x-1/2">
+          <div className="absolute right-1 top-1 h-28 w-28 rounded-full bg-cyan/16 blur-[64px] opacity-95 mix-blend-screen sm:right-2 sm:top-2 sm:h-32 sm:w-32" />
+          <img
+            src={SITE_IMAGES.home.walletIllustration}
+            alt="Minh họa ví GameTopUp"
+            className="relative z-10 h-auto w-[132px] origin-top-right scale-[1.08] object-contain drop-shadow-[0_0_36px_rgba(34,211,238,0.22)] opacity-80 saturate-125 contrast-110 mix-blend-screen sm:w-[144px] sm:scale-[1.12] sm:opacity-84 md:w-[160px] md:scale-[1.15] md:opacity-88 lg:w-[176px] lg:scale-[1.12] lg:opacity-90 max-[380px]:w-[118px] max-[380px]:scale-[1.02] max-[380px]:opacity-86"
+            decoding="async"
+            loading="eager"
+          />
         </div>
       </div>
     </section>
@@ -524,8 +488,8 @@ function SectionHeader({
   action?: ReactNode;
 }) {
   return (
-    <div className="flex items-end justify-between gap-4">
-      <h2 className="m-0 text-[1.45rem] font-black tracking-[-0.03em] text-white sm:text-[1.65rem]">{title}</h2>
+    <div className="flex items-start justify-between gap-4">
+      <h2 className="m-0 pt-[1px] text-[1.5rem] font-black leading-none tracking-[-0.03em] text-white sm:text-[1.7rem]">{title}</h2>
       {action ? <div className="shrink-0">{action}</div> : null}
     </div>
   );
@@ -572,9 +536,9 @@ function EmptyInlineState({
 
 function GamesSkeleton() {
   return (
-    <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 xl:grid-cols-8" aria-busy="true" aria-label="Đang tải game nổi bật">
+    <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-6" aria-busy="true" aria-label="Đang tải game nổi bật">
       {Array.from({ length: 8 }).map((_, index) => (
-        <div key={index} className="grid gap-3 rounded-[20px] border border-white/10 bg-[rgba(7,16,31,0.84)] p-3">
+        <div key={index} className="grid gap-3 rounded-[20px] border border-white/10 bg-[rgba(7,16,31,0.88)] p-3">
           <div className="aspect-square animate-pulse rounded-[18px] bg-white/6" />
           <div className="grid gap-2">
             <div className="h-3.5 w-20 animate-pulse rounded-full bg-white/6" />

@@ -40,6 +40,10 @@ public sealed class GameManagementTests : BaseIntegrationTest
         createBody.Data.ImageUrl.Should().NotBeNullOrWhiteSpace();
         createBody.Data.ImageRelativePath.Should().NotBeNullOrWhiteSpace();
 
+        var imageResponse = await client.GetAsync(createBody.Data.ImageRelativePath);
+        imageResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        imageResponse.Content.Headers.ContentType?.MediaType.Should().Be("image/png");
+
         var updateResponse = await client.PutMultipartAsync($"/api/games/{createBody.Data.Id}/with-image",
             new Dictionary<string, string>
             {

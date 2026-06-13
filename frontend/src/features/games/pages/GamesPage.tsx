@@ -7,14 +7,10 @@ import {
   Gamepad2,
   Heart,
   Search,
-  ShieldCheck,
-  Tag,
-  Zap,
-  Headset,
 } from 'lucide-react';
 import { AppPageContainer } from '@/app/components/AppPageContainer';
 import { routes } from '@/app/router/routes';
-import { Badge, Button, IconBox } from '@/shared/components';
+import { Badge, Button, IconBox, TrustSection } from '@/shared/components';
 import { classNames } from '@/shared/lib/classNames';
 import { useGamesQuery } from '../server';
 import { GameGrid } from '../components/GameGrid';
@@ -61,29 +57,6 @@ const CATEGORY_CHIPS: Array<{ value: CatalogCategoryFilter; label: string }> = [
   { value: 'console', label: 'Console' },
   { value: 'international', label: 'Phiên bản quốc tế' },
 ];
-
-const BENEFITS = [
-  {
-    title: 'Giá tốt hơn',
-    description: 'Tiết kiệm đến 15% so với cửa hàng chính thức.',
-    icon: <Tag size={24} />,
-  },
-  {
-    title: 'Thanh toán an toàn',
-    description: 'Bảo mật thông tin tuyệt đối, hỗ trợ nhiều phương thức.',
-    icon: <ShieldCheck size={24} />,
-  },
-  {
-    title: 'Xử lý nhanh chóng',
-    description: 'Đơn được xử lý tự động 5 - 15 phút.',
-    icon: <Zap size={24} />,
-  },
-  {
-    title: 'Hỗ trợ 24/7',
-    description: 'Đội ngũ hỗ trợ luôn sẵn sàng giúp đỡ bạn.',
-    icon: <Headset size={24} />,
-  },
-] as const;
 
 export function GamesPage() {
   const navigate = useNavigate();
@@ -201,7 +174,7 @@ export function GamesPage() {
             />
           )}
 
-          <BenefitsSection />
+          <TrustSection />
         </div>
       </AppPageContainer>
     </div>
@@ -450,26 +423,6 @@ function PageNumberButton({
     >
       {children}
     </button>
-  );
-}
-
-function BenefitsSection() {
-  return (
-    <section className="gt-surface overflow-hidden rounded-[18px] border border-white/10 p-0">
-      <div className="grid divide-y divide-white/10 xl:grid-cols-4 xl:divide-x xl:divide-y-0">
-        {BENEFITS.map((benefit) => (
-          <article key={benefit.title} className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-4 px-7 py-5">
-            <IconBox size="sm" className="h-12 w-12 rounded-[16px] border-cyan/20 bg-cyan/10 text-cyan-50">
-              {benefit.icon}
-            </IconBox>
-            <div className="grid gap-1">
-              <h3 className="text-base font-black text-white">{benefit.title}</h3>
-              <p className="m-0 text-sm leading-6 text-slate-400">{benefit.description}</p>
-            </div>
-          </article>
-        ))}
-      </div>
-    </section>
   );
 }
 

@@ -53,6 +53,27 @@ button:disabled {
   opacity: 0.5;
 }
 
+.gt-hero {
+  font-family: inherit;
+}
+
+.gt-hero .gt-hero-title {
+  font-family: inherit;
+  letter-spacing: -0.06em;
+}
+
+.gt-hero .gt-hero-body {
+  font-family: inherit;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: rgba(226, 232, 240, 0.92);
+}
+
+.gt-hero .gt-hero-body,
+.gt-hero .gt-hero-body + * {
+  text-wrap: pretty;
+}
+
 ::selection {
   background: rgba(34, 211, 238, 0.25);
   color: #f8fafc;

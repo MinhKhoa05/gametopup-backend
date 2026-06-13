@@ -14,10 +14,12 @@ export const DEFAULT_IMAGE_SRC = `data:image/svg+xml;charset=UTF-8,${encodeURICo
 
 export function resolveImageUrl(url?: string | null) {
   if (!url) return '';
-  if (url.startsWith('/')) {
-    return `${apiBaseUrl}${url}`;
+
+  if (!url.startsWith('/uploads/')) {
+    return url;
   }
-  return url;
+
+  return `${apiBaseUrl}${url}`;
 }
 
 export function resolveImageSrc(url?: string | null, fallbackSrc = DEFAULT_IMAGE_SRC) {

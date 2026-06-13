@@ -36,7 +36,7 @@ export function Footer() {
   return (
     <footer className="mt-auto border-t border-white/10 bg-[linear-gradient(180deg,rgba(4,10,22,0.08),rgba(4,10,22,0.96))] pb-[calc(2rem+env(safe-area-inset-bottom,0px))] pt-6 md:pb-0">
       <div className="mx-auto max-w-[1480px] px-4 sm:px-6 lg:px-8">
-        <div className="grid gap-6 border-b border-white/10 pb-5 lg:grid-cols-[minmax(300px,1.15fr)_minmax(160px,0.55fr)_minmax(160px,0.55fr)_minmax(160px,0.55fr)_minmax(280px,0.9fr)] lg:gap-10">
+        <div className="grid gap-6 border-b border-white/10 pb-5 lg:grid-cols-[minmax(300px,1fr)_minmax(160px,0.48fr)_minmax(160px,0.48fr)_minmax(160px,0.48fr)_minmax(360px,1.25fr)] lg:gap-10">
           <div className="grid max-w-[320px] gap-2">
             <BrandLogo className="w-fit" onClick={() => navigate(routes.home())} title={SITE.name} subtitle={SITE.tagline} />
             <p className="max-w-[28ch] text-sm leading-6 text-slate-400 [text-wrap:balance]">Đại lý nạp game trung gian - Giá tốt - Xử lý nhanh - Hỗ trợ 24/7</p>
@@ -61,9 +61,9 @@ export function Footer() {
           <FooterLinkColumn title="Hướng dẫn" links={FOOTER_LINKS.guide} onNavigate={navigate} />
           <FooterLinkColumn title="Hỗ trợ" links={FOOTER_LINKS.support} onNavigate={navigate} />
 
-          <div className="grid max-w-[300px] gap-3">
+          <div className="grid w-full max-w-none gap-3 lg:justify-self-start lg:pl-6 xl:pl-8">
             <h3 className="text-lg font-black text-white">Nhận thông báo</h3>
-            <p className="max-w-[26ch] text-sm leading-6 text-slate-400 [text-wrap:balance]">Nhận tin khuyến mãi và cập nhật về game, gói nạp và các chương trình nổi bật.</p>
+            <p className="max-w-[36ch] text-sm leading-6 text-slate-400 [text-wrap:balance]">Nhận tin khuyến mãi và cập nhật về game, gói nạp và các chương trình nổi bật.</p>
 
             <label className="flex h-10 items-center gap-3 rounded-[14px] border border-white/10 bg-[rgba(7,16,31,0.78)] px-4 text-slate-300 transition-all duration-200 hover:border-cyan/25 hover:bg-[rgba(15,29,51,0.92)] focus-within:border-cyan/60 focus-within:bg-[rgba(15,29,51,0.92)]">
               <input

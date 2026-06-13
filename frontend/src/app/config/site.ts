@@ -31,6 +31,13 @@ export type FooterDeveloperLinkConfig = {
   href: string;
 };
 
+export const SITE_IMAGES = {
+  home: {
+    heroIllustration: '/assets/hero-illustration.png',
+    walletIllustration: '/assets/wallet-illustration.png',
+  },
+} as const;
+
 export const SITE = {
   name: 'GameTopUp',
   adminName: 'GameTopUp Admin',
@@ -49,7 +56,7 @@ export const SITE = {
 
 export const HEADER_NAV_ITEMS = [
   { label: 'Trang chủ', href: routes.home() },
-  { label: 'Nạp game', href: routes.games() },
+  { label: 'Kho game', href: routes.games() },
   { label: 'Lịch sử đơn', href: routes.orders() },
   { label: 'Nạp ví', href: routes.wallet() },
 ] as const;
@@ -77,7 +84,7 @@ export const HEADER_ACCOUNT_MENU_ADMIN_ITEMS: HeaderAccountMenuItemConfig[] = [
 
 export const BOTTOM_NAV_ITEMS: BottomNavItemConfig[] = [
   { label: 'Trang chủ', href: routes.home(), iconKey: 'home' },
-  { label: 'Game', href: routes.games(), iconKey: 'games' },
+  { label: 'Kho game', href: routes.games(), iconKey: 'games' },
   { label: 'Ví', href: routes.wallet(), iconKey: 'wallet', requiresAuth: true },
   { label: 'Đơn hàng', href: routes.orders(), iconKey: 'orders', requiresAuth: true },
   { label: 'Tài khoản', href: routes.profile(), iconKey: 'profile', requiresAuth: true },
